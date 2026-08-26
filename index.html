@@ -1012,8 +1012,6 @@ h1 i, h2 i, h3 i {
         margin-top:10px !important;
     }
 }
-
-
 </style>
 
 
@@ -1021,10 +1019,10 @@ h1 i, h2 i, h3 i {
 html, body, button, input, textarea, select, option, table, th, td, div, span, p, a, h1, h2, h3, h4, h5, h6 {
   font-family: "Inter", system-ui, sans-serif !important;
 }
+</style>
 
 <style id="mobile-announcement-compact-final">
 @media (max-width:767px){
-    /* Compact mobile Announcement - do not allow the purple card to become tall */
     .dashboard-announcement-panel{
         min-height:0 !important;
         height:auto !important;
@@ -2069,29 +2067,38 @@ html, body, button, input, textarea, select, option, table, th, td, div, span, p
                 <div v-show="sidebarOpen" @click="sidebarOpen = false" class="md:hidden fixed inset-0 bg-slate-900/45 backdrop-blur-[2px] z-[200]"></div>
 
                 <!-- MOBILE SIDEBAR -->
-                <aside class="md:hidden fixed top-0 left-0 h-full w-[124px] bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 shadow-2xl z-[201] flex flex-col transition-transform duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]"
-                    :class="sidebarOpen ? 'translate-x-0' : '-translate-x-[110%]'">
-                    <div class="flex-1 flex flex-col items-center gap-2 pt-5 px-2">
-                        <button @click="flyoutOpen=false; switchPage('dashboard'); sidebarOpen=false"
-                            class="w-[100px] h-[94px] rounded-xl flex flex-col items-center justify-center gap-2 transition"
-                            :class="currentPage === 'dashboard' ? 'bg-purple-50 dark:bg-purple-950/40 text-purple-600' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-purple-600'">
-                            <i class="fas fa-home text-[21px]"></i>
-                            <span class="text-[12px] font-medium uppercase tracking-wide">Home</span>
+                <aside class="md:hidden fixed top-0 left-0 h-full w-[200px] bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 shadow-2xl z-[201] flex flex-col transition-transform duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]" :class="sidebarOpen ? 'translate-x-0' : '-translate-x-[110%]'">
+                    <div class="flex items-center justify-between px-3 py-3 border-b border-slate-200 dark:border-slate-800 bg-gradient-to-br from-purple-50 dark:from-purple-950/40 to-transparent">
+                        <span class="font-display font-bold text-[14px] text-slate-900 dark:text-white">Kotra<span class="text-purple-600">Hub</span></span>
+                        <button @click="sidebarOpen = false" class="w-7 h-7 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center text-slate-500">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="flex-1 overflow-y-auto scrollbar-hide p-2">
+                        <!-- HOME -->
+                        <button @click="switchPage('dashboard')" 
+                            class="w-full flex flex-col items-center justify-center gap-0.5 px-2 py-3.5 rounded-xl text-[13px] font-medium transition text-center"
+                            :class="currentPage === 'dashboard' ? 'text-purple-600 bg-purple-50 dark:bg-purple-950/30' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-purple-600'">
+                            <i class="fas fa-home text-[30px] text-purple-600"></i>
+                            <span>Home</span>
                         </button>
 
-                        <button @click="flyoutOpen=false; switchPage('all-services'); sidebarOpen=false"
-                            class="w-[100px] h-[94px] rounded-xl flex flex-col items-center justify-center gap-2 transition"
-                            :class="['all-services','service-category','hr','it','eservices','sales','po','ebmr','ndms'].includes(currentPage) ? 'bg-purple-50 dark:bg-purple-950/40 text-purple-600' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-purple-600'">
-                            <i class="fas fa-layer-group text-[21px]"></i>
-                            <span class="text-[12px] font-medium uppercase tracking-wide">Services</span>
+                        <!-- All Services -->
+                        <button @click="switchPage('all-services')" 
+                            class="w-full flex flex-col items-center justify-center gap-0.5 px-2 py-3.5 rounded-xl text-[13px] font-medium transition text-center"
+                            :class="currentPage === 'all-services' ? 'text-purple-600 bg-purple-50 dark:bg-purple-950/30' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-purple-600'">
+                            <i class="fas fa-th-large text-[30px] text-purple-600"></i>
+                            <span>All Services</span>
                         </button>
 
-                        <button @click="flyoutOpen=false; switchPage('employee'); sidebarOpen=false"
-                            class="w-[100px] h-[94px] rounded-xl flex flex-col items-center justify-center gap-2 transition"
-                            :class="currentPage === 'employee' ? 'bg-purple-50 dark:bg-purple-950/40 text-purple-600' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-purple-600'">
-                            <i class="fas fa-user-plus text-[21px]"></i>
-                            <span class="text-[12px] font-medium uppercase tracking-wide">Onboarding</span>
-                        </button>
+                        <div v-for="category in serviceCategories" :key="category.id">
+                            <button @click="navigateToServiceCategory(category.id)" 
+                                class="w-full flex flex-col items-center justify-center gap-0.5 px-2 py-3.5 rounded-xl text-[13px] font-medium transition text-center"
+                                :class="selectedCategoryId === category.id ? 'text-purple-600 bg-purple-50 dark:bg-purple-950/30' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-purple-600'">
+                                <i class="fas text-[28px] text-purple-600" :class="category.icon"></i>
+                                <span>{{ category.label }}</span>
+                            </button>
+                        </div>
                     </div>
                 </aside>
 
@@ -2158,57 +2165,34 @@ html, body, button, input, textarea, select, option, table, th, td, div, span, p
                 <!-- MAIN CONTENT -->
                 <div class="flex-1 flex relative">
                     <!-- DESKTOP SIDEBAR -->
-                    <aside class="hidden md:flex flex-col bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 shrink-0 transition-all duration-300 ease-in-out overflow-hidden"
-                        :class="sidebarDesktopOpen ? 'w-[124px]' : 'w-0 border-0'">
-                        <div class="flex-1 flex flex-col items-center gap-2 pt-4 px-2">
-                            <!-- HR DETAIL SIDEBAR -->
-                            <template v-if="currentPage === 'hr'">
-                                <button @click="switchPage('hr')"
-                                    class="w-[100px] h-[94px] rounded-xl flex flex-col items-center justify-center gap-2 bg-purple-50 text-purple-600 shadow-sm">
-                                    <i class="fas fa-th-large text-[21px]"></i>
-                                    <span class="text-[12px] font-medium tracking-wide">Dashboard</span>
-                                </button>
+                    <aside class="hidden md:flex flex-col bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 shrink-0 transition-all duration-300 ease-in-out overflow-y-auto scrollbar-hide" 
+                        :class="sidebarDesktopOpen ? 'w-[140px]' : 'w-0 overflow-hidden border-0'">
+                        
+                        <div class="flex-1 overflow-y-auto scrollbar-hide p-2 pt-3">
+                            <!-- HOME -->
+                            <button @click="switchPage('dashboard')" 
+                                class="w-full flex flex-col items-center justify-center gap-0.5 px-2 py-3 rounded-xl text-[12px] font-medium transition text-center"
+                                :class="currentPage === 'dashboard' ? 'text-purple-600 bg-purple-50 dark:bg-purple-950/30' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-purple-600'">
+                                <i class="fas fa-home text-[28px] text-purple-600"></i>
+                                <span>Home</span>
+                            </button>
 
-                                <button @click="switchPage('hr')"
-                                    class="w-[100px] h-[94px] rounded-xl flex flex-col items-center justify-center gap-2 text-slate-700 hover:bg-slate-50 hover:text-purple-600">
-                                    <i class="fas fa-user-plus text-[21px]"></i>
-                                    <span class="text-[12px] font-medium text-center leading-tight">HR Requisition</span>
-                                </button>
+                            <!-- All Services -->
+                            <button @click="switchPage('all-services')" 
+                                class="w-full flex flex-col items-center justify-center gap-0.5 px-2 py-3 rounded-xl text-[12px] font-medium transition text-center"
+                                :class="currentPage === 'all-services' ? 'text-purple-600 bg-purple-50 dark:bg-purple-950/30' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-purple-600'">
+                                <i class="fas fa-th-large text-[28px] text-purple-600"></i>
+                                <span>All Services</span>
+                            </button>
 
-                                <button @click="switchPage('hr-handbook')"
-                                    class="w-[100px] h-[94px] rounded-xl flex flex-col items-center justify-center gap-2 text-slate-700 hover:bg-slate-50 hover:text-purple-600">
-                                    <i class="fas fa-book-open text-[21px]"></i>
-                                    <span class="text-[12px] font-medium text-center leading-tight">Employee<br>Handbook</span>
+                            <div v-for="category in serviceCategories" :key="category.id">
+                                <button @click="navigateToServiceCategory(category.id)" 
+                                    class="w-full flex flex-col items-center justify-center gap-0.5 px-2 py-3 rounded-xl text-[12px] font-medium transition text-center"
+                                    :class="selectedCategoryId === category.id ? 'text-purple-600 bg-purple-50 dark:bg-purple-950/30' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-purple-600'">
+                                    <i class="fas text-[26px] text-purple-600" :class="category.icon"></i>
+                                    <span>{{ category.label }}</span>
                                 </button>
-
-                                <button @click="switchPage('leave')"
-                                    class="w-[100px] h-[94px] rounded-xl flex flex-col items-center justify-center gap-2 text-slate-700 hover:bg-slate-50 hover:text-purple-600">
-                                    <i class="fas fa-calendar-alt text-[21px]"></i>
-                                    <span class="text-[12px] font-medium text-center leading-tight">Leave Application<br>(Hours) / Gate Pass</span>
-                                </button>
-                            </template>
-
-                            <!-- DEFAULT SIDEBAR -->
-                            <template v-else>
-                                <button @click="flyoutOpen=false; switchPage('dashboard')"
-                                    class="w-[100px] h-[94px] rounded-xl flex flex-col items-center justify-center gap-2 transition-all duration-200"
-                                    :class="currentPage === 'dashboard' ? 'bg-purple-50 dark:bg-purple-950/40 text-purple-600 shadow-sm' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-purple-600'">
-                                    <i class="fas fa-home text-[21px]"></i>
-                                    <span class="text-[12px] font-medium uppercase tracking-wide">Home</span>
-                                </button>
-                                <button @mouseenter="showFlyout('services')" @mouseleave="hideFlyout()" @click="switchPage('all-services')"
-                                    class="w-[100px] h-[94px] rounded-xl flex flex-col items-center justify-center gap-2 transition-all duration-200"
-                                    :class="['all-services','service-category','hr','it','eservices','sales','po','ebmr','ndms'].includes(currentPage) ? 'bg-purple-50 dark:bg-purple-950/40 text-purple-600 shadow-sm' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-purple-600'">
-                                    <i class="fas fa-layer-group text-[21px]"></i>
-                                    <span class="text-[12px] font-medium uppercase tracking-wide">Services</span>
-                                </button>
-                                <button @mouseenter="showFlyout('onboarding')" @mouseleave="hideFlyout()" @click="switchPage('employee')"
-                                    class="w-[100px] h-[94px] rounded-xl flex flex-col items-center justify-center gap-2 transition-all duration-200"
-                                    :class="currentPage === 'employee' ? 'bg-purple-50 dark:bg-purple-950/40 text-purple-600 shadow-sm border border-purple-600' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 hover:text-purple-600'">
-                                    <i class="fas fa-user-plus text-[21px]"></i>
-                                    <span class="text-[12px] font-medium uppercase tracking-wide">Onboarding</span>
-                                </button>
-                            </template>
+                            </div>
                         </div>
                     </aside>
 
@@ -5605,55 +5589,40 @@ html, body, button, input, textarea, select, option, table, th, td, div, span, p
                         // Service Categories (Sidebar)
                         serviceCategories: [
                             {
-                                id: "hr",
-                                icon: "fa-user-tie",
-                                label: "HR Services",
-                                items: [
-                                    { name: "Apply Leave", icon: "fa-calendar-plus", page: "hr" },
-                                    { name: "Leave Calendar", icon: "fa-calendar-days", page: "hr" },
-                                    { name: "Medical Claim", icon: "fa-hospital-user", page: "hr" },
-                                    { name: "Timesheet", icon: "fa-clock", page: "hr" },
-                                    { name: "Leave Balance", icon: "fa-wallet", page: "hr" },
-                                    { name: "Employee Profile", icon: "fa-user-edit", page: "hr" },
-                                    { name: "Payroll", icon: "fa-file-invoice-dollar", page: "hr" },
-                                    { name: "Training", icon: "fa-graduation-cap", page: "hr" },
-                                ]
+                                id: "plant",
+                                icon: "fa-industry",
+                                label: "Plant",
+                                items: [ /* ... */ ]
                             },
                             {
-                                id: "it",
-                                icon: "fa-laptop",
-                                label: "IT Services",
-                                items: [
-                                    { name: "Hardware Request", icon: "fa-keyboard", page: "it" },
-                                    { name: "Password Reset", icon: "fa-key", page: "it" },
-                                    { name: "Email Setup", icon: "fa-envelope", page: "it" },
-                                    { name: "Access Request", icon: "fa-shield-alt", page: "it" },
-                                    { name: "Software Request", icon: "fa-download", page: "it" },
-                                    { name: "VPN Access", icon: "fa-lock", page: "it" },
-                                ]
+                                id: "sales",
+                                icon: "fa-chart-line",
+                                label: "Sales",
+                                items: [ /* ... */ ]
                             },
                             {
-                                id: "other",
-                                icon: "fa-ellipsis-h",
-                                label: "Other Services",
-                                items: [
-                                    { name: "E-Services", icon: "fa-headset", page: "eservices" },
-                                    { name: "NDMS Portal", icon: "fa-flask", page: "ndms" },
-                                    { name: "Employee Portal", icon: "fa-users", page: "employee" },
-                                    { name: "Help & Support", icon: "fa-life-ring", isAI: true },
-                                    { name: "Documents", icon: "fa-folder-open", page: "employee" },
-                                ]
+                                id: "staff",
+                                icon: "fa-user",
+                                label: "Staff",
+                                items: [ /* ... */ ]
                             },
                             {
-                                id: "facilities",
-                                icon: "fa-building",
-                                label: "Facilities",
-                                items: [
-                                    { name: "Meeting Rooms", icon: "fa-chalkboard", page: "employee" },
-                                    { name: "Parking", icon: "fa-car", page: "employee" },
-                                    { name: "Cafeteria", icon: "fa-utensils", page: "employee" },
-                                    { name: "Maintenance", icon: "fa-tools", page: "employee" },
-                                ]
+                                id: "procurement",
+                                icon: "fa-handshake",
+                                label: "Procurement",
+                                items: [ /* ... */ ]
+                            },
+                            {
+                                id: "requisition",
+                                icon: "fa-clipboard-list",
+                                label: "Requisition",
+                                items: [ /* ... */ ]
+                            },
+                            {
+                                id: "inventory",
+                                icon: "fa-boxes",
+                                label: "Inventory",
+                                items: [ /* ... */ ]
                             }
                         ],
 
