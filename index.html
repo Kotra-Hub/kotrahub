@@ -1011,61 +1011,63 @@ h1 i, h2 i, h3 i {
 html, body, button, input, textarea, select, option, table, th, td, div, span, p, a, h1, h2, h3, h4, h5, h6 {
   font-family: "Inter", system-ui, sans-serif !important;
 }
+</style>
 
 <style id="mobile-announcement-compact-final">
-@media (max-width:767px){
+@media (max-width: 767px) {
+
     /* Compact mobile Announcement - do not allow the purple card to become tall */
-    .dashboard-announcement-panel{
-        min-height:0 !important;
-        height:auto !important;
-        max-height:none !important;
+    .dashboard-announcement-panel {
+        min-height: 0 !important;
+        height: auto !important;
+        max-height: none !important;
     }
 
-    .dashboard-announcement-panel .announcement-slide-card{
-        height:320px !important;
-        min-height:320px !important;
-        max-height:320px !important;
-        padding:10px !important;
-        box-sizing:border-box !important;
-        overflow:hidden !important;
+    .dashboard-announcement-panel .announcement-slide-card {
+        height: 320px !important;
+        min-height: 320px !important;
+        max-height: 320px !important;
+        padding: 10px !important;
+        box-sizing: border-box !important;
+        overflow: hidden !important;
     }
 
-    .dashboard-announcement-panel .announcement-slide-card > .inline-flex{
-        padding-top:4px !important;
-        padding-bottom:4px !important;
+    .dashboard-announcement-panel .announcement-slide-card > .inline-flex {
+        padding-top: 4px !important;
+        padding-bottom: 4px !important;
     }
 
-    .dashboard-announcement-panel .announcement-slide-card h3{
-        margin-top:6px !important;
-        font-size:18px !important;
-        line-height:1.12 !important;
+    .dashboard-announcement-panel .announcement-slide-card h3 {
+        margin-top: 6px !important;
+        font-size: 18px !important;
+        line-height: 1.12 !important;
     }
 
-    .dashboard-announcement-panel .announcement-slide-card > .mt-2{
-        margin-top:6px !important;
+    .dashboard-announcement-panel .announcement-slide-card > .mt-2 {
+        margin-top: 6px !important;
     }
 
-    .dashboard-announcement-panel .announcement-detail-box{
-        height:112px !important;
-        min-height:112px !important;
-        max-height:112px !important;
-        padding:10px !important;
-        margin-top:8px !important;
+    .dashboard-announcement-panel .announcement-detail-box {
+        height: 112px !important;
+        min-height: 112px !important;
+        max-height: 112px !important;
+        padding: 10px !important;
+        margin-top: 8px !important;
     }
 
     /* Staff Purchase needs a little more room for two date columns, but keep it compact. */
-    .dashboard-announcement-panel .staff-purchase-slide .announcement-detail-box{
-        height:132px !important;
-        min-height:132px !important;
-        max-height:132px !important;
+    .dashboard-announcement-panel .staff-purchase-slide .announcement-detail-box {
+        height: 132px !important;
+        min-height: 132px !important;
+        max-height: 132px !important;
     }
 
-    .dashboard-announcement-panel .announcement-slide-card > .dashboard-primary-btn{
-        margin-top:10px !important;
+    .dashboard-announcement-panel .announcement-slide-card > .dashboard-primary-btn {
+        margin-top: 10px !important;
     }
 
-    .dashboard-announcement-panel .announcement-slide-card .text-\[17px\]{
-        line-height:1.15 !important;
+    .dashboard-announcement-panel .announcement-slide-card .text-\[17px\] {
+        line-height: 1.15 !important;
     }
 }
 </style>
@@ -1679,14 +1681,14 @@ html, body, button, input, textarea, select, option, table, th, td, div, span, p
 /* keep teal theme */
 </style>
 
-<style id="remove-all-footer">
+<!-- <style id="remove-all-footer">
 footer,
 [class*="footer"],
 [id*="footer"],
 .footer {
     display: none !important;
 }
-</style>
+</style> -->
 
 
 <style id="calendar-date-font-small-final">
@@ -3112,8 +3114,6 @@ footer,
                                     </div>
                                 </div>
                             </div>
-
-                            <!-- Footer -->
 
                             <!-- My Tasks (Commented out - kept for reference) -->
                             <!--
@@ -5336,6 +5336,12 @@ footer,
                         <span class="text-[10px] font-medium">Apps</span>
                     </button>
                 </nav>-->
+
+                <!-- Footer -->
+                <div v-if="isLoggedIn" id="kotra-footer-final" 
+                    class="w-full bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 py-4 text-center text-slate-500 dark:text-slate-400 text-xs">
+                    © {{ new Date().getFullYear() }} Kotra Pharma (M) Sdn Bhd (90082-V). All Rights Reserved.
+                </div>
 
                 <!-- AI ASSISTANT -->
                 <div v-show="!aiOpen" @click="openAIPanel()" class="fixed z-[90] flex flex-col items-center gap-1.5 cursor-pointer select-none hover:scale-105 transition-transform bottom-[72px] right-4 md:bottom-5 md:right-6">
@@ -9550,21 +9556,6 @@ document.addEventListener("DOMContentLoaded", function(){
 .phone-directory-search svg,.directory-search svg { color:var(--user-accent) !important; }
 .dark .text-purple-200,.dark .text-purple-300,.dark .text-violet-300 { color:var(--user-accent-light) !important; }
 </style>
-
-<div id="kotra-footer-final"
-style="
-width:100%;
-background:#ffffff;
-border-top:1px solid #e2e8f0;
-padding:16px 0;
-text-align:center;
-color:#64748b;
-font-size:12px;
-display:block;
-">
-© 2026 KOTRA PHARMA (M) Sdn Bhd. All rights reserved.
-</div>
-
 
 <style id="calendar-date-font-smaller-final">
 /* Smaller Calendar Agenda date */
