@@ -6,186 +6,153 @@
       <!-- ANNOUNCEMENT SECTION -->
       <v-col cols="12" lg="6" class="pr-0 pr-lg-3">
         <v-card class="dashboard-card rounded-xl h-100 d-flex flex-column" elevation="0" border>
-
           <!-- Announcement Header -->
-          <div class="d-flex align-center justify-space-between pa-3 pb-2 flex-shrink-0">
+          <div class="d-flex align-center justify-space-between pa-4 pb-1 flex-shrink-0">
             <div class="d-flex align-center gap-2">
-              <v-avatar size="32" rounded="lg" color="primary" variant="tonal">
-                <v-icon size="18" color="primary">
-                  mdi-bullhorn
-                </v-icon>
+              <v-avatar size="36" rounded="lg" color="primary" variant="tonal">
+                <v-icon size="20" color="primary">mdi-bullhorn</v-icon>
               </v-avatar>
-
-              <span class="text-subtitle-1 font-weight-bold text-uppercase tracking-tight">
+              <span class="text-h6 font-weight-bold text-uppercase tracking-tight">
                 Announcement
               </span>
             </div>
-
             <div class="d-flex align-center gap-1">
               <v-btn v-if="announcementExpanded" variant="outlined" size="small"
                 class="d-none d-sm-flex dashboard-view-all-btn" rounded="lg" @click="viewAllAnnouncements">
                 View All
               </v-btn>
-
-              <!-- TEMPORARILY COMMENTED: Hide/Show Announcement Feature
-        <v-btn
-          variant="tonal"
-          size="small"
-          icon
-          color="primary"
-          class="rounded-circle"
-          @click="announcementExpanded = !announcementExpanded"
-        >
-          <v-icon size="16">
-            {{ announcementExpanded ? 'mdi-chevron-up' : 'mdi-chevron-down' }}
-          </v-icon>
-        </v-btn>
-        -->
             </div>
           </div>
 
           <!-- Announcement Content -->
-          <div v-show="announcementExpanded" class="announcement-content px-3 pb-3 flex-grow-1">
-
+          <div v-show="announcementExpanded" class="announcement-content px-4 pb-2 flex-grow-1">
             <!-- Announcement Slide Card -->
-            <v-card class="announcement-slide-card rounded-xl" elevation="0" border :style="{
-              background: 'rgb(var(--v-theme-primaryBg))',
-              borderColor: 'rgb(var(--v-theme-primaryLight))'
-            }" @click="openSliderNotice(currentSlide.id)">
-              <v-card-text class="announcement-slide-content pa-3">
-
+            <v-card class="announcement-slide-card rounded-xl announcement-slide-bg" elevation="0" border
+              @click="openSliderNotice(currentSlide.id)">
+              <v-card-text class="announcement-slide-content pa-4">
                 <!-- Featured Badge -->
-                <v-chip size="x-small" class="text-uppercase font-weight-bold"
-                  style="background: rgb(var(--v-theme-primary)); color: white;">
-                  <v-icon left size="10" color="yellow">
-                    mdi-star
-                  </v-icon>
-                  &nbsp; Featured
-                </v-chip>
+                <div class="d-flex align-center mb-2">
+                  <v-chip size="small" class="text-uppercase font-weight-bold" density="compact"
+                    style="background: rgb(var(--v-theme-primary)); color: white; height: 24px; font-size: 11px; padding: 0 14px;">
+                    <v-icon left size="13" color="yellow">mdi-star</v-icon>
+                    &nbsp; Featured
+                  </v-chip>
+                </div>
 
-                <!-- Title -->
-                <h3 class="announcement-title text-subtitle-1 font-weight-bold mt-1 mb-0">
+                <!-- Announcement Title -->
+                <h3 class="announcement-title text-h5 font-weight-bold mt-0 mb-1">
                   {{ currentSlide.title }}
                 </h3>
 
-                <!-- Date & Time -->
-                <div class="d-flex flex-wrap align-center ga-2 mt-1 text-caption announcement-meta">
+                <!-- Announcement Date & Time -->
+                <div class="d-flex flex-wrap align-center ga-3 mt-1 text-body-1 announcement-meta">
                   <span class="d-flex align-center ga-1">
-                    <v-icon size="12" color="primary">
-                      mdi-calendar-outline
-                    </v-icon>
-
+                    <v-icon size="16" color="primary">mdi-calendar-outline</v-icon>
                     {{ currentSlide.date }}
                   </span>
-
                   <span class="d-flex align-center ga-1">
-                    <v-icon size="12" color="primary">
-                      mdi-clock-outline
-                    </v-icon>
-
+                    <v-icon size="16" color="primary">mdi-clock-outline</v-icon>
                     {{ currentSlide.time || '09:30 AM' }}
-
-                    <span v-if="currentSlide.isNew" class="px-2 py-0.5 rounded" style="
-                  background: rgb(var(--v-theme-primary));
-                  color: white;
-                  font-size: 9px;
-                  font-weight: 700;
-                ">
+                    <span v-if="currentSlide.isNew" class="px-2 py-0.5 rounded ml-1" style="
+                background: rgb(var(--v-theme-primary));
+                color: white;
+                font-size: 10px;
+                font-weight: 700;
+              ">
                       New
                     </span>
                   </span>
                 </div>
 
-                <!-- Detail Box -->
+                <!-- Announcement Details -->
                 <v-card class="announcement-detail-box mt-2 rounded-xl" elevation="0" border :style="{
                   background: 'rgb(var(--v-theme-surface))',
                   borderColor: 'rgb(var(--v-theme-primaryLight))'
                 }">
-                  <v-card-text class="pa-2">
-
-                    <div class="d-flex align-center ga-1 text-caption font-weight-bold"
+                  <v-card-text class="pa-3">
+                    <div class="d-flex align-center ga-1 text-subtitle-2 font-weight-bold mb-1"
                       style="color: rgb(var(--v-theme-primary));">
-                      <v-icon size="12" color="primary">
-                        mdi-calendar-outline
-                      </v-icon>
-
+                      <v-icon size="16" color="primary">mdi-calendar-outline</v-icon>
                       Announcement Details
                     </div>
 
-                    <!-- Dynamic Details -->
-                    <div class="announcement-details mt-1">
-
-                      <template v-if="currentSlide.details">
-
-                        <div v-for="(detail, key) in currentSlide.details" :key="key" class="announcement-detail-item">
-                          <div class="text-caption font-weight-bold" style="color: rgb(var(--v-theme-primary));">
-                            {{ detail.label }}
+                    <div class="announcement-details">
+                      <template v-if="currentSlide.details && currentSlide.details.length > 0">
+                        <!-- Single detail -->
+                        <div v-if="currentSlide.details.length === 1" class="announcement-detail-item mt-1">
+                          <div class="text-caption font-weight-bold"
+                            style="color: rgb(var(--v-theme-primary)); font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;">
+                            {{ currentSlide.details[0].label }}
                           </div>
-
-                          <div class="text-body-2 font-weight-bold announcement-detail-value">
-                            {{ detail.value }}
+                          <div class="text-h6 font-weight-bold announcement-detail-value">
+                            {{ currentSlide.details[0].value }}
                           </div>
-
-                          <div v-if="detail.subValue" class="text-caption announcement-detail-subvalue">
-                            {{ detail.subValue }}
+                          <div v-if="currentSlide.details[0].subValue" class="text-body-2 announcement-detail-subvalue">
+                            {{ currentSlide.details[0].subValue }}
                           </div>
                         </div>
 
+                        <div v-else class="row announcement-detail-grid mt-1" style="margin: 0 -8px;">
+                          <div v-for="(detail, index) in currentSlide.details" :key="index"
+                            class="col-6 announcement-detail-item" style="padding: 0 8px;">
+                            <div class="text-caption font-weight-bold"
+                              style="color: rgb(var(--v-theme-primary)); font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;">
+                              {{ detail.label }}
+                            </div>
+                            <div class="text-h6 font-weight-bold announcement-detail-value" style="font-size: 17px;">
+                              {{ detail.value }}
+                            </div>
+                            <div v-if="detail.subValue" class="text-body-2 announcement-detail-subvalue"
+                              style="font-size: 13px;">
+                              {{ detail.subValue }}
+                            </div>
+                            <!-- Separator between details -->
+                            <div v-if="index < currentSlide.details.length - 1"
+                              class="announcement-detail-separator d-none d-md-block"></div>
+                          </div>
+                        </div>
                       </template>
 
-                      <div v-else class="text-caption announcement-excerpt">
+                      <!-- Fallback excerpt -->
+                      <div v-else class="text-body-1 announcement-excerpt mt-1">
                         {{ currentSlide.excerpt }}
                       </div>
-
                     </div>
                   </v-card-text>
                 </v-card>
 
                 <!-- Read More Button -->
-                <v-btn color="primary" variant="flat" size="x-small" class="mt-2 font-weight-bold text-capitalize"
-                  rounded="lg" style=" background: rgb(var(--v-theme-primary)); color: white;
-                box-shadow: 0 4px 12px
-                color-mix(
-                  in srgb,
-                  rgb(var(--v-theme-primary)) 30%,
-                  transparent
-                );
+                <v-btn color="primary" variant="flat" size="medium" class="mt-3 font-weight-bold text-capitalize"
+                  rounded="lg" style="
+              background: rgb(var(--v-theme-primary));
+              color: white;
+              box-shadow: 0 4px 16px color-mix(in srgb, rgb(var(--v-theme-primary)) 35%, transparent);
+              min-width: 150px;
+              height: 40px;
+              font-size: 14px;
+              align-self: flex-start;
+              letter-spacing: 0.3px;
             " @click.stop="openSliderNotice(currentSlide.id)">
                   Read More
                 </v-btn>
-
               </v-card-text>
             </v-card>
 
             <!-- Navigation Controls -->
-            <div class="d-flex align-center justify-center ga-2 mt-2">
-
-              <!-- Previous -->
-              <v-btn variant="outlined" size="x-small" icon class="rounded-circle announcement-nav-btn"
+            <div class="announcement-navigation d-flex align-center justify-center ga-3 mt-2">
+              <v-btn variant="outlined" size="small" icon class="rounded-circle announcement-nav-btn"
                 @click="prevSlide">
-                <v-icon size="14">
-                  mdi-chevron-left
-                </v-icon>
+                <v-icon size="18">mdi-chevron-left</v-icon>
               </v-btn>
-
-              <!-- Dots -->
-              <div class="d-flex ga-1">
-
+              <div class="d-flex ga-2">
                 <button v-for="(_, idx) in sliderItems" :key="idx" class="rounded-circle pa-0 border-0 announcement-dot"
                   :class="{ 'announcement-dot-active': currentSlideIndex === idx }" @click="currentSlideIndex = idx" />
-
               </div>
-
-              <!-- Next -->
-              <v-btn variant="outlined" size="x-small" icon class="rounded-circle announcement-nav-btn"
+              <v-btn variant="outlined" size="small" icon class="rounded-circle announcement-nav-btn"
                 @click="nextSlide">
-                <v-icon size="14">
-                  mdi-chevron-right
-                </v-icon>
+                <v-icon size="18">mdi-chevron-right</v-icon>
               </v-btn>
-
             </div>
-
           </div>
         </v-card>
       </v-col>
@@ -193,21 +160,16 @@
       <!-- QUICK ACCESS SECTION -->
       <v-col cols="12" lg="6" class="pt-3 pt-lg-0">
         <v-card class="dashboard-card rounded-xl h-100 d-flex flex-column" elevation="0" border>
-
           <!-- Quick Access Header -->
-          <div class="d-flex align-center justify-space-between pa-3 pb-2 flex-shrink-0">
+          <div class="d-flex align-center justify-space-between pa-4 pb-1 flex-shrink-0">
             <div class="d-flex align-center ga-2">
-              <v-avatar size="32" rounded="lg" color="primary" variant="tonal">
-                <v-icon size="17" color="primary">
-                  mdi-lightning-bolt
-                </v-icon>
+              <v-avatar size="36" rounded="lg" color="primary" variant="tonal">
+                <v-icon size="20" color="primary">mdi-lightning-bolt</v-icon>
               </v-avatar>
-
-              <span class="text-subtitle-1 font-weight-bold text-uppercase tracking-tight">
+              <span class="text-h6 font-weight-bold text-uppercase tracking-tight">
                 Quick Access
               </span>
             </div>
-
             <v-btn variant="outlined" size="small" class="dashboard-view-all-btn" rounded="lg"
               @click="emit('navigate', 'quickaccess')">
               View All
@@ -215,17 +177,14 @@
           </div>
 
           <!-- Quick Access Grid -->
-          <div class="quick-access-grid-wrapper px-3 pb-3 flex-grow-1">
+          <div class="quick-access-grid-wrapper px-3 pb-2 flex-grow-1">
             <v-row no-gutters class="quick-access-grid h-100">
               <v-col v-for="qa in quickAccessItems.slice(0, 9)" :key="qa.id" cols="4" class="pa-1">
                 <v-btn variant="tonal" color="primary" block class="quick-access-chip rounded-lg"
                   @click="quickAccessAction(qa)">
-                  <!-- Icon -->
-                  <v-icon size="21" color="primary" class="quick-access-icon">
+                  <v-icon size="20" color="primary" class="quick-access-icon">
                     {{ qa.icon }}
                   </v-icon>
-
-                  <!-- Text -->
                   <span class="quick-access-label">
                     {{ qa.label }}
                   </span>
@@ -233,7 +192,6 @@
               </v-col>
             </v-row>
           </div>
-
         </v-card>
       </v-col>
     </v-row>
@@ -241,7 +199,7 @@
     <!-- Row 2: Pending Action | Recent Activities (50:50) -->
     <v-row class="mt-4" no-gutters>
 
-      <!-- PENDING ACTION -->
+      <!-- PENDING ACTION SECTION -->
       <v-col cols="12" lg="6" class="pr-0 pr-lg-3">
         <v-card class="rounded-xl h-100 d-flex flex-column dashboard-section-card" elevation="0" border>
 
@@ -398,7 +356,7 @@
       </v-col>
 
 
-      <!-- RECENT ACTIVITIES -->
+      <!-- RECENT ACTIVITIES SECTION -->
       <v-col cols="12" lg="6" class="pl-0 pl-lg-3 pt-3 pt-lg-0">
         <v-card class="rounded-xl h-100 d-flex flex-column dashboard-section-card" elevation="0" border>
 
@@ -466,7 +424,7 @@
 
     <!-- Row 3: Calendar Agenda | Phone Directory (50:50) -->
     <v-row class="mt-4" no-gutters>
-      <!-- Calendar Agenda -->
+      <!-- CALENDAR AGENDA SECTION -->
       <v-col cols="12" lg="6" class="pr-0 pr-lg-3">
         <v-card class="calendar-agenda-mobile rounded-xl h-100" elevation="0" border>
           <!-- Calendar Header -->
@@ -527,7 +485,7 @@
         </v-card>
       </v-col>
 
-      <!-- Phone Directory -->
+      <!-- PHONE DIRECTORY SECTION -->
       <v-col cols="12" lg="6" class="pt-3 pt-lg-0">
         <v-card class="rounded-xl h-100 d-flex flex-column" elevation="0" border
           style="min-height: 560px; height: 560px;">
@@ -634,18 +592,18 @@
                         </span>
                       </v-avatar>
 
-                      <div class="min-width-0 flex-grow-1">
-                        <div class="d-flex align-center ga-1 text-caption text-primary">
-                          <v-icon size="13">mdi-phone</v-icon>
-                          <span>Ext. {{ contact.ext || '-' }}</span>
-                        </div>
+                      <div class="d-flex align-center ga-1 text-caption"
+                        style="color: rgb(var(--v-theme-on-surface)) !important;">
+                        <v-icon size="13" color="primary">mdi-phone</v-icon>
+                        <span>Ext. {{ contact.ext || '-' }}</span>
+                      </div>
 
-                        <div class="d-flex align-center ga-1 text-caption text-primary text-truncate">
-                          <v-icon size="13">mdi-email-outline</v-icon>
-                          <span class="text-truncate">
-                            {{ contact.email || '-' }}
-                          </span>
-                        </div>
+                      <div class="d-flex align-center ga-1 text-caption text-truncate"
+                        style="color: rgb(var(--v-theme-on-surface)) !important;">
+                        <v-icon size="13" color="primary">mdi-email-outline</v-icon>
+                        <span class="text-truncate">
+                          {{ contact.email || '-' }}
+                        </span>
                       </div>
 
                     </div>
@@ -693,15 +651,14 @@
 
                 <!-- Contact Details -->
                 <template #append>
-                  <div class="d-none d-md-flex flex-column align-end text-caption text-primary text-right"
-                    style="min-width: 200px;">
+                  <div class="d-none d-md-flex flex-column align-end text-caption text-right"
+                    style="min-width: 200px; color: rgb(var(--v-theme-on-surface)) !important;">
                     <span>
-                      <v-icon size="12">mdi-phone</v-icon>
+                      <v-icon size="12" color="primary">mdi-phone</v-icon>
                       Ext. {{ contact.ext || '-' }}
                     </span>
-
                     <span class="text-truncate" style="max-width: 200px;">
-                      <v-icon size="12">mdi-email-outline</v-icon>
+                      <v-icon size="12" color="primary">mdi-email-outline</v-icon>
                       {{ contact.email || '-' }}
                     </span>
                   </div>
@@ -1109,18 +1066,27 @@ onBeforeUnmount(() => {
 /* Announcement */
 .announcement-content {
   min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
-/* Fixed-size announcement card */
 .announcement-slide-card {
-  height: 365px !important;
-  min-height: 365px !important;
-  max-height: 365px !important;
+  width: 100%;
+  min-height: 320px;
+  height: 320px;
   cursor: pointer;
   overflow: hidden;
-  transition:
-    box-shadow 0.2s ease,
-    transform 0.2s ease;
+  position: relative;
+  z-index: 1;
+  background-color: var(--v-theme-primaryBg) !important;
+  border-color: rgb(var(--v-theme-primaryLight)) !important;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.announcement-slide-bg {
+  background-color: var(--v-theme-primaryBg) !important;
+  border-color: rgb(var(--v-theme-primaryLight)) !important;
 }
 
 .announcement-slide-card:hover {
@@ -1134,7 +1100,17 @@ onBeforeUnmount(() => {
   overflow: hidden;
 }
 
-/* Title */
+:deep(.dark) .announcement-slide-bg {
+  background-color: rgba(15, 157, 154, 0.12) !important;
+  border-color: rgba(15, 157, 154, 0.2) !important;
+}
+
+.announcement-navigation {
+  position: relative;
+  z-index: 2;
+  flex-shrink: 0;
+}
+
 .announcement-title {
   color: rgb(var(--v-theme-on-surface)) !important;
   display: -webkit-box;
@@ -1143,49 +1119,74 @@ onBeforeUnmount(() => {
   line-clamp: 2;
   overflow: hidden;
   line-height: 1.3;
-  min-height: 40px;
+  min-height: 44px;
+  font-size: 20px !important;
 }
 
-/* Date / time */
 .announcement-meta {
   color: rgb(var(--v-theme-textMuted)) !important;
   flex-shrink: 0;
+  font-size: 14px !important;
+  gap: 10px !important;
 }
 
-/* Detail box */
+.announcement-meta .v-icon {
+  font-size: 16px !important;
+}
+
 .announcement-detail-box {
-  flex: 1 1 auto;
+  flex: 0 0 auto;
   min-height: 0;
   overflow: hidden;
   transition: all 0.2s ease;
+  background: rgb(var(--v-theme-surface)) !important;
+  border-radius: 8px !important;
+  border: 1px solid rgba(15, 157, 154, 0.15) !important;
 }
 
-/* Details container */
 .announcement-details {
   overflow: hidden;
 }
 
-/* Individual detail */
 .announcement-detail-item {
   overflow: hidden;
+  position: relative;
 }
 
-/* Detail value */
 .announcement-detail-value {
-  font-size: 14px !important;
+  font-size: 17px !important;
   color: rgb(var(--v-theme-on-surface)) !important;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-/* Detail sub-value */
 .announcement-detail-subvalue {
   color: rgb(var(--v-theme-textGrey)) !important;
   font-size: 13px !important;
 }
 
-/* Excerpt */
+.announcement-detail-separator {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 2px;
+  height: 70%;
+  background: rgb(var(--v-theme-borderLight));
+  border-radius: 2px;
+}
+
+.announcement-detail-grid {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.announcement-detail-grid .col-6 {
+  flex: 0 0 50%;
+  max-width: 50%;
+}
+
 .announcement-excerpt {
   color: rgb(var(--v-theme-textGrey)) !important;
   display: -webkit-box;
@@ -1193,27 +1194,34 @@ onBeforeUnmount(() => {
   -webkit-line-clamp: 3;
   line-clamp: 3;
   overflow: hidden;
+  font-size: 15px !important;
+  line-height: 1.5;
 }
 
-/* Navigation buttons */
-.announcement-nav-btn {
-  border-color: rgb(var(--v-theme-lightprimary)) !important;
-  background: rgb(var(--v-theme-surface)) !important;
-  color: rgb(var(--v-theme-primary)) !important;
-}
-
-/* Navigation dots */
 .announcement-dot {
-  width: 10px;
-  height: 10px;
+  width: 12px;
+  height: 12px;
   background-color: rgb(var(--v-theme-textMuted));
   cursor: pointer;
   transition: all 0.2s ease;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1.5px solid rgba(255, 255, 255, 0.1);
 }
 
 .announcement-dot-active {
   background-color: rgb(var(--v-theme-primary)) !important;
+  transform: scale(1.2);
+}
+
+.announcement-nav-btn {
+  border-color: rgb(var(--v-theme-lightprimary)) !important;
+  background: rgb(var(--v-theme-surface)) !important;
+  color: rgb(var(--v-theme-primary)) !important;
+  width: 32px !important;
+  height: 32px !important;
+}
+
+.announcement-nav-btn .v-icon {
+  font-size: 18px !important;
 }
 
 /* Quick Access */
@@ -1223,27 +1231,22 @@ onBeforeUnmount(() => {
 }
 
 .quick-access-grid {
-  margin: -4px;
+  margin: -3px;
 }
 
 .quick-access-grid>.v-col {
   display: flex;
 }
 
-/* Quick Access Button */
 .quick-access-chip {
   width: 100% !important;
   height: 100% !important;
-  min-height: 68px !important;
-  padding: 8px 4px !important;
+  min-height: 56px !important;
+  padding: 6px 3px !important;
   background-color: var(--v-theme-primaryBg) !important;
-  border: 1px solid rgba(15, 23, 42, 0.25) !important;
-  border-radius: 10px !important;
-  transition:
-    transform 0.2s ease,
-    box-shadow 0.2s ease,
-    background-color 0.2s ease,
-    border-color 0.2s ease !important;
+  border: 1px solid rgba(15, 23, 42, 0.15) !important;
+  border-radius: 8px !important;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease, border-color 0.2s ease !important;
 }
 
 .quick-access-chip :deep(.v-btn__content) {
@@ -1252,17 +1255,17 @@ onBeforeUnmount(() => {
   flex-direction: column !important;
   align-items: center !important;
   justify-content: center !important;
-  gap: 3px !important;
+  gap: 2px !important;
 }
 
-/* Icon */
+/* Icon - Smaller */
 .quick-access-icon {
   display: block !important;
   flex: 0 0 auto !important;
   margin: 0 !important;
+  font-size: 18px !important;
 }
 
-/* Text */
 .quick-access-label {
   display: block !important;
   width: 100% !important;
@@ -1271,18 +1274,61 @@ onBeforeUnmount(() => {
   text-overflow: ellipsis;
   text-align: center;
   white-space: normal;
-  font-size: 12px;
-  line-height: 1.15;
+  font-size: 11px;
+  line-height: 1.1;
   font-weight: 600;
   color: rgb(var(--v-theme-on-surface)) !important;
 }
 
-/* Hover */
 .quick-access-chip:hover {
   transform: translateY(-1px);
   background-color: rgb(var(--v-theme-primaryHover)) !important;
-  border-color: rgba(15, 23, 42, 0.40) !important;
-  box-shadow: 0 3px 8px rgba(15, 23, 42, 0.10);
+  border-color: rgba(15, 23, 42, 0.30) !important;
+  box-shadow: 0 3px 8px rgba(15, 23, 42, 0.08);
+}
+
+/* Mobile Responsive */
+@media (max-width: 767px) {
+  .announcement-slide-card {
+    min-height: 380px;
+  }
+
+  .announcement-detail-grid .col-6 {
+    flex: 0 0 100%;
+    max-width: 100%;
+  }
+
+  .announcement-detail-separator {
+    display: none !important;
+  }
+
+  .announcement-title {
+    font-size: 17px !important;
+    min-height: 40px;
+  }
+
+  .announcement-slide-content {
+    padding: 16px !important;
+  }
+
+  .quick-access-chip {
+    min-height: 48px !important;
+    padding: 4px 2px !important;
+  }
+
+  .quick-access-icon {
+    font-size: 16px !important;
+  }
+
+  .quick-access-label {
+    font-size: 9px !important;
+  }
+}
+
+@media (max-width: 600px) {
+  .announcement-slide-card {
+    min-height: 400px;
+  }
 }
 
 /* Pending Action Items */
