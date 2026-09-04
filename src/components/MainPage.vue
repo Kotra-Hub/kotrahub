@@ -1,4 +1,4 @@
-<!-- src\components\MainPage.vue -->
+<!-- src/components/MainPage.vue -->
 <template>
   <v-app>
     <!-- Header -->
@@ -26,6 +26,13 @@
     <v-footer elevation="0" class="footer-wrapper">
       <Footer />
     </v-footer>
+
+    <!-- AI Assistant -->
+    <AiAssistant
+      @navigate="navigate"
+      @toggle-theme="toggleTheme"
+      @logout="handleLogout"
+    />
   </v-app>
 </template>
 
@@ -36,6 +43,7 @@ import { useTheme } from 'vuetify'
 import Header from '@/components/Header.vue'
 import Sidebar from '@/components/Sidebar.vue'
 import Footer from '@/components/Footer.vue'
+import AiAssistant from '@/components/AiAssistant.vue'
 import { useAuth } from '@/composables/useAuth'
 import { AppTheme } from '@/interfaces/common.interface'
 
@@ -49,7 +57,6 @@ const sidebarOpen = ref(true)
 
 const currentRouteName = computed(() => route.name as string)
 
-// Watch for user changes and redirect if logged out
 watch(user, (newUser) => {
   if (!newUser && route.name !== 'login') {
     router.push({ name: 'login' })
@@ -84,8 +91,6 @@ const openDrawer = () => console.log('Open search drawer')
 const openSettings = () => console.log('Open settings')
 
 const navigate = (page: string) => {
-  // If the page is 'profile' or any other nested route, navigate to it
-  // The router will handle the nested route structure
   router.push({ name: page })
   if (window.innerWidth < 600) sidebarOpen.value = false
 }
