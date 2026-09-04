@@ -6,7 +6,7 @@
         <v-row align="center" justify="center">
           <v-col cols="12" sm="8" md="6" lg="4" xl="3">
             <v-card class="pa-5 pa-sm-6 pa-md-7 rounded-xl elevation-12" :style="{
-              background: `rgba(255,255,255,${isDark ? 0.92 : 0.96})`,
+              background: `rgba(255,255,255)`,
               backdropFilter: 'blur(8px)',
               borderRadius: '24px !important',
               maxWidth: '440px',
@@ -221,7 +221,6 @@ const emit = defineEmits<{
 
 // Theme
 const theme = useTheme()
-const isDark = computed(() => theme.global.name.value === 'DARK')
 const themeColors = computed(() => theme.current.value.colors)
 
 // Data

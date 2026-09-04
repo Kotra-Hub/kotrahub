@@ -57,5 +57,10 @@ export type ThemeTypes = {
     bgLight?: string;
     bgHover?: string;
     bgGrey?: string;
+    viewAllBg?: string;
+    viewAllHoverBg?: string;
+    viewAllText?: string;
+    viewAllBorder?: string;
+    black?: string;
   };
 };

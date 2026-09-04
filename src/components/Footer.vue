@@ -1,11 +1,11 @@
-<!-- src/components/Footer.vue -->
+<!-- src\components\Footer.vue -->
 <template>
-  <div id="kotra-footer-final" class="w-full py-3 text-center" :style="{
+  <div id="kotra-footer-final" class="w-full text-center" :style="{
     backgroundColor: themeColors.surface,
     borderTop: `1px solid ${themeColors.border}`,
     color: themeColors.textMuted,
-    fontSize: '0.875rem',
-    lineHeight: '1.5rem'
+    fontSize: '0.75rem',
+    lineHeight: '32px'
   }">
     © {{ new Date().getFullYear() }} Kotra Pharma (M) Sdn Bhd (90082-V). All Rights Reserved.
   </div>
@@ -22,6 +22,7 @@ const themeColors = computed(() => theme.current.value.colors)
 <style scoped>
 #kotra-footer-final {
   width: 100%;
+  height: 32px;
   flex-shrink: 0;
 }
 </style>

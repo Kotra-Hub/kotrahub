@@ -1,21 +1,29 @@
 <!-- src\components\MainPage.vue -->
 <template>
   <v-app>
+    <!-- Header -->
     <Header v-if="user" :user="user" :is-dark="isDark" @logout="handleLogout" @toggle-sidebar="toggleSidebar"
       @toggle-theme="toggleTheme" @open-drawer="openDrawer" @open-settings="openSettings" @navigate="navigate" />
 
-    <v-navigation-drawer v-model="sidebarOpen" app :permanent="false" location="left" :width="76" :elevation="0"
-      :color="'transparent'" class="sidebar-drawer" style="border-right: none !important;">
-      <Sidebar :is-open="sidebarOpen" :current-page="currentRouteName" @navigate="navigate" />
-    </v-navigation-drawer>
+    <!-- Sidebar + Main Content -->
+    <div class="page-body">
 
-    <v-main>
-      <v-container fluid class="pa-4">
-        <router-view />
-      </v-container>
-    </v-main>
+      <!-- Sidebar -->
+      <aside v-if="sidebarOpen" class="sidebar-wrapper">
+        <Sidebar :is-open="sidebarOpen" :current-page="currentRouteName" @navigate="navigate" />
+      </aside>
 
-    <v-footer app elevation="0">
+      <!-- Main Content -->
+      <main class="content-wrapper">
+        <v-container fluid class="pa-4">
+          <router-view />
+        </v-container>
+      </main>
+
+    </div>
+
+    <!-- Footer -->
+    <v-footer elevation="0" class="footer-wrapper">
       <Footer />
     </v-footer>
   </v-app>
@@ -49,14 +57,6 @@ watch(user, (newUser) => {
 })
 
 onMounted(() => {
-  const savedTheme = localStorage.getItem('theme')
-  const validThemes: string[] = [AppTheme.LIGHT, AppTheme.DARK]
-  const selectedTheme = validThemes.includes(savedTheme ?? '')
-    ? (savedTheme as string)
-    : AppTheme.LIGHT
-  theme.global.name.value = selectedTheme
-  isDark.value = selectedTheme === AppTheme.DARK
-
   const handleResize = () => {
     sidebarOpen.value = window.innerWidth >= 600
   }
@@ -72,7 +72,7 @@ const handleLogout = () => {
 const toggleTheme = () => {
   isDark.value = !isDark.value
   const newTheme = isDark.value ? AppTheme.DARK : AppTheme.LIGHT
-  theme.global.name.value = newTheme
+  theme.change(newTheme)
   localStorage.setItem('theme', newTheme)
 }
 
@@ -92,30 +92,29 @@ const navigate = (page: string) => {
 </script>
 
 <style scoped>
-.sidebar-drawer :deep(.v-navigation-drawer__content) {
+.page-body {
+  display: flex;
+  width: 100%;
+  align-items: stretch;
+}
+
+.sidebar-wrapper {
+  flex: 0 0 76px;
+  width: 76px;
+  align-self: stretch;
+  display: flex;
+}
+
+.content-wrapper {
+  flex: 1;
+  min-width: 0;
+}
+
+.footer-wrapper {
+  width: 100%;
+  min-height: 32px !important;
+  height: 32px !important;
   padding: 0 !important;
-  overflow: hidden !important;
-}
-
-.sidebar-drawer :deep(.v-navigation-drawer__content > *) {
-  height: 100%;
-}
-
-.sidebar-drawer {
-  height: 100% !important;
-  max-height: 100vh !important;
-}
-
-.sidebar-drawer :deep(.v-navigation-drawer) {
-  border-right: none !important;
-  box-shadow: none !important;
-}
-
-.sidebar-drawer :deep(.v-navigation-drawer__scrim) {
-  background: transparent !important;
-}
-
-.sidebar-drawer :deep(.v-navigation-drawer__border) {
-  display: none !important;
+  flex-shrink: 0;
 }
 </style>

@@ -8,9 +8,9 @@
     ]" :style="{
       borderRight: `1px solid ${themeColors.border}`,
       position: 'relative',
-      top: '0'
+      top: '0',
     }">
-    <div class="flex-1 flex flex-col items-center gap-0.5 py-2 px-0.5 overflow-y-auto sidebar-scroll">
+    <div class="flex-1 flex flex-col items-center gap-0.5 px-0.5 overflow-y-auto sidebar-scroll">
       <!-- HR DETAIL SIDEBAR -->
       <template v-if="currentPage === 'hr'">
         <v-btn v-for="item in hrSidebarItems" :key="item.page" @click="$emit('navigate', item.page)" class="sidebar-btn"

@@ -1,9 +1,69 @@
 <!-- src/components/Header.vue -->
 <template>
-  <v-app-bar elevation="0" :color="themeColors.surface" class="header-bar"
-    style="height: 64px; border-bottom: 1px solid var(--border-color);">
+  <!-- IMPORTANT NOTICE SECTION -->
+  <div v-if="importantNoticeList.length > 0 && showImportantNotice" class="important-notice-wrapper">
+    <div class="important-notice-banner">
+      <v-container fluid class="pa-0">
+        <v-row no-gutters align="center" class="pa-1 pa-sm-2" style="min-height: 56px;">
+          <!-- Bell Icon -->
+          <v-col cols="auto" class="pr-2">
+            <v-avatar size="32" color="white" class="bell-avatar">
+              <v-icon size="18" class="bell-icon">
+                mdi-bell
+              </v-icon>
+            </v-avatar>
+          </v-col>
+
+          <!-- Notice Content -->
+          <v-col class="flex-grow-1 overflow-hidden">
+            <div class="d-flex align-center ga-2">
+              <v-icon size="12" color="#d97706">mdi-alert</v-icon>
+              <h4 class="text-truncate font-weight-bold mb-0"
+                style="font-size: 14px; line-height: 1.2; color: #071832;">
+                {{ importantNoticeList[0].title }}
+              </h4>
+            </div>
+
+            <div class="d-flex align-center ga-2 mt-0" style="font-size: 11px;">
+              <v-icon size="10" color="#d97706">mdi-calendar</v-icon>
+              <span class="text-truncate" style="color: #20314d;">
+                {{ importantNoticeList[0].fullDate || importantNoticeList[0].date }}
+              </span>
+              <span style="color: #20314d;">•</span>
+              <v-btn variant="text" color="#d97706" size="x-small" class="font-weight-bold px-0"
+                style="font-size: 11px; min-width: auto;"
+                @click="activeNoticeId = importantNoticeList[0].id; noticeModalOpen = true">
+                Read more
+              </v-btn>
+            </div>
+          </v-col>
+
+          <!-- Right Actions -->
+          <v-col cols="auto" class="d-flex align-center ga-2">
+            <v-chip color="#d97706" size="x-small" class="font-weight-bold text-uppercase"
+              style="font-size: 8px; height: 18px;">
+              NEW
+            </v-chip>
+            <v-btn icon size="x-small" @click="showImportantNotice = false" class="close-btn-3d">
+              <v-icon size="14">mdi-close</v-icon>
+            </v-btn>
+          </v-col>
+        </v-row>
+      </v-container>
+    </div>
+  </div>
+
+  <!-- HEADER SECTION -->
+  <div class="header-bar" :style="{
+    height: '64px',
+    backgroundColor: themeColors.surface,
+    borderBottom: '1px solid var(--border-color)'
+  }">
+
+    <!-- Header Content Wrapper -->
     <div class="d-flex align-center justify-space-between w-100 px-3 px-md-6" style="height: 100%;">
-      <!-- Left Section -->
+
+      <!-- LEFT SECTION -->
       <div class="d-flex align-center gap-1 flex-shrink-0">
         <v-btn icon variant="text" class="menu-btn" @click="$emit('toggle-sidebar')">
           <v-icon>mdi-menu</v-icon>
@@ -23,16 +83,14 @@
         </a>
       </div>
 
-      <!-- Center: Search Bar -->
+      <!-- CENTER SECTION - Search Bar -->
       <div ref="searchActivator" class="search-container hidden-md-and-down">
         <v-text-field v-model="searchQuery" placeholder="Search apps, services, actions..." density="compact"
           variant="outlined" rounded="lg" prepend-inner-icon="mdi-magnify" hide-details class="search-field"
           @focus="searchOpen = true" @input="searchOpen = true" @blur="handleBlur" @keydown.ctrl.k.prevent="focusSearch"
           :color="themeColors.primary">
           <template #append-inner>
-            <kbd class="text-caption font-weight-medium" :style="kbdStyle">
-              Ctrl+K
-            </kbd>
+            <kbd class="text-caption font-weight-medium" :style="kbdStyle">Ctrl+K</kbd>
           </template>
         </v-text-field>
 
@@ -77,8 +135,9 @@
         </v-menu>
       </div>
 
-      <!-- Right Section -->
+      <!-- RIGHT SECTION -->
       <div class="d-flex align-center flex-shrink-0 action-cluster" style="gap: 18px;">
+
         <!-- Mobile Search -->
         <v-btn icon variant="text" class="action-btn d-md-none" @click="$emit('open-drawer')">
           <v-icon size="20">mdi-magnify</v-icon>
@@ -106,8 +165,8 @@
                   <template v-else>You're all caught up</template>
                 </div>
               </div>
-              <v-btn v-if="unreadNotifications > 0" size="small" variant="tonal" :color="themeColors.primary"
-                @click="markAllRead" class="text-caption font-weight-semibold" style="text-transform: none;">
+              <v-btn v-if="unreadNotifications > 0" size="small" variant="tonal" :color="themeColors.primary" @click=""
+                class="text-caption font-weight-semibold" style="text-transform: none;">
                 Mark all read
               </v-btn>
             </div>
@@ -142,7 +201,7 @@
           </v-card>
         </v-menu>
 
-        <!-- Profile Section - Only show when user is logged in -->
+        <!-- Profile Section -->
         <div v-if="user">
           <v-menu v-model="profileOpen" location="bottom end" offset="10" min-width="240">
             <template #activator="{ props: menuProps }">
@@ -221,13 +280,14 @@
         </div>
       </div>
     </div>
-  </v-app-bar>
+  </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useTheme } from 'vuetify'
 
+// PROPS & EMITS
 const props = defineProps<{
   user: { name: string; email: string; role: string }
   isDark: boolean
@@ -242,23 +302,21 @@ const emit = defineEmits<{
   (e: 'navigate', page: string): void
 }>()
 
-// Theme
+// THEME
 const theme = useTheme()
 const themeColors = computed(() => theme.current.value.colors)
-const toggleTheme = () => {
-  emit('toggle-theme')
-}
+const toggleTheme = () => { emit('toggle-theme') }
 
-// Refs for menu activators
+// MENU ACTIVATORS
 const searchActivator = ref<HTMLElement>()
 
-// User data
+// USER DATA
 const userInitials = computed(() => {
   if (!props.user) return ''
   return props.user.name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
 })
 
-// Notifications
+// NOTIFICATIONS
 const notifications = ref([
   { title: 'System Maintenance / Security Alert', time: 'Today, 12:00 PM', read: false, type: 'alert' },
   { title: 'Annual leave application submitted', time: 'Today, 11:45 AM', read: false, type: 'leave' },
@@ -266,9 +324,7 @@ const notifications = ref([
   { title: 'New employee record created', time: 'Yesterday, 3:00 PM', read: true, type: 'hr' }
 ])
 
-const unreadNotifications = computed(() => {
-  return notifications.value.filter(n => !n.read).length
-})
+const unreadNotifications = computed(() => notifications.value.filter(n => !n.read).length)
 
 const notificationIcon = (notif: { type?: string }) => {
   switch (notif.type) {
@@ -282,10 +338,11 @@ const notificationIcon = (notif: { type?: string }) => {
 
 const notificationOpen = ref(false)
 const profileOpen = ref(false)
+
+// SEARCH
 const searchQuery = ref('')
 const searchOpen = ref(false)
 
-// Search data
 const searchItems = [
   { id: 'dashboard', label: 'Dashboard', icon: 'mdi-view-dashboard', meta: 'Home page', category: 'Navigation' },
   { id: 'tasks', label: 'My Tasks', icon: 'mdi-check-all', meta: 'Tasks and to-dos', category: 'Navigation' },
@@ -312,22 +369,11 @@ const groupedSearchResults = computed(() => {
   return groups
 })
 
-const handleBlur = () => {
-  setTimeout(() => {
-    searchOpen.value = false
-  }, 200)
-}
+const handleBlur = () => { setTimeout(() => { searchOpen.value = false }, 200) }
 
 const focusSearch = () => {
   const input = document.querySelector('.search-field input') as HTMLInputElement
-  if (input) {
-    input.focus()
-    input.select()
-  }
-}
-
-const markAllRead = () => {
-  notifications.value = notifications.value.map(n => ({ ...n, read: true }))
+  if (input) { input.focus(); input.select() }
 }
 
 const selectSearchResult = (item: any) => {
@@ -342,12 +388,45 @@ const openFullSearch = () => {
   emit('navigate', 'all-services')
 }
 
+// IMPORTANT NOTICE
+const importantNoticeList = ref([
+  {
+    id: "important-1",
+    title: "Ad Hoc Preventive System Downtime",
+    date: "15-16 Aug 2026",
+    fullDate: "Saturday, 15 August 2026",
+    type: "important",
+    body: [
+      "Please be informed that an ad hoc preventive system downtime will be carried out on <strong>Saturday, 15 August 2026, starting at 10:00PM</strong>. This activity is a precautionary measure following the server issue experienced earlier this week.",
+      "The following systems will be temporarily unavailable:",
+      '<ul class="list-disc pl-6 mt-2 space-y-1"><li><strong>E-Service</strong></li><li><strong>Kotra File Server</strong></li><li><strong>SAP</strong></li><li><strong>SIS</strong></li></ul>',
+      "Services are expected to be restored by <strong>Sunday 10:00PM, 16 August 2026</strong>. An update will be provided once all systems are confirmed operational. We apologize for the short notice and any inconvenience caused.",
+      "Thank you for your understanding.",
+    ],
+    warning: "Employees are advised not to perform critical transactions during the maintenance window. If you experience access issues after the maintenance period, please contact the relevant support team.",
+    signoff: "<em>Best regards,</em><br><br><strong>Idzni</strong><br>Associate Infrastructure Engineer (IT)<br>KOTRA PHARMA (M) Sdn Bhd",
+    bm: {
+      title: "Notis Gangguan Sistem Pencegahan Ad Hoc",
+      body: [
+        "Dimaklumkan bahawa kerja gangguan sistem pencegahan ad hoc akan dijalankan pada <strong>Sabtu, 15 Ogos 2026, bermula jam 10:00 malam</strong>.",
+        "Sepanjang tempoh ini, beberapa perkhidmatan portal mungkin tidak dapat diakses buat sementara waktu. Sila simpan kerja anda sebelum aktiviti penyelenggaraan bermula.",
+        "Sekiranya terdapat masalah akses selepas penyelenggaraan selesai, sila hubungi pasukan sokongan yang berkaitan."
+      ]
+    },
+  }
+])
+
+const showImportantNotice = ref(true)
+const activeNoticeId = ref('')
+const noticeModalOpen = ref(false)
+
+// LOGOUT
 const handleLogout = () => {
   profileOpen.value = false
   emit('logout')
 }
 
-// Computed styles for inline usage
+// COMPUTED STYLES
 const kbdStyle = computed(() => ({
   color: themeColors.value.textMuted,
   background: themeColors.value.bgGrey,
@@ -370,10 +449,72 @@ const profileHeaderStyle = computed(() => ({
 </script>
 
 <style scoped>
-.header-bar {
-  border-bottom: 1px solid var(--border-color) !important;
+/* IMPORTANT NOTICE */
+.important-notice-wrapper {
+  position: relative;
+  top: auto;
+  left: auto;
+  right: auto;
+  width: 100%;
+  z-index: auto;
+  background: #fef7e8;
+  border-bottom: 1px solid #fde3b8;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
 }
 
+.important-notice-banner {
+  width: 100%;
+  background: #fef7e8;
+}
+
+/* HEADER */
+.header-bar {
+  width: 100%;
+  height: 64px;
+  margin: 0;
+  position: relative;
+  z-index: 10;
+  border-bottom: 1px solid var(--border-color);
+  box-sizing: border-box;
+}
+
+/* 3D CLOSE BUTTON */
+.close-btn-3d {
+  width: 24px !important;
+  height: 24px !important;
+  min-width: 24px !important;
+  background: #fde3b8 !important;
+  color: #92400e !important;
+  border: none !important;
+  border-radius: 6px !important;
+  box-shadow:
+    0 2px 0 #d97706,
+    0 3px 6px rgba(0, 0, 0, 0.08) !important;
+  transition: all 0.08s ease !important;
+}
+
+.close-btn-3d:hover {
+  transform: translateY(1px);
+  box-shadow:
+    0 1px 0 #d97706,
+    0 2px 4px rgba(0, 0, 0, 0.08) !important;
+  background: #fddba8 !important;
+}
+
+.close-btn-3d:active {
+  transform: translateY(2px);
+  box-shadow:
+    0 0px 0 #d97706,
+    0 1px 2px rgba(0, 0, 0, 0.06) !important;
+}
+
+.close-btn-3d :deep(.v-btn__content) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* MENU BUTTON */
 .menu-btn {
   width: 36px !important;
   height: 36px !important;
@@ -396,6 +537,7 @@ const profileHeaderStyle = computed(() => ({
   }
 }
 
+/* LOGO */
 .logo-wrapper {
   width: 32px;
   height: 32px;
@@ -438,6 +580,7 @@ const profileHeaderStyle = computed(() => ({
   }
 }
 
+/* SEARCH */
 .search-container {
   flex: 1;
   max-width: 576px;
@@ -462,6 +605,7 @@ const profileHeaderStyle = computed(() => ({
   border-color: var(--primary);
 }
 
+/* ACTION BUTTONS */
 .action-btn {
   width: 36px !important;
   height: 36px !important;
@@ -493,6 +637,7 @@ const profileHeaderStyle = computed(() => ({
   }
 }
 
+/* NOTIFICATION BADGE */
 .notification-badge :deep(.v-badge__badge) {
   font-size: 9px !important;
   min-width: 17px !important;
@@ -501,6 +646,7 @@ const profileHeaderStyle = computed(() => ({
   box-shadow: 0 0 0 2px var(--surface);
 }
 
+/* DROPDOWN CARDS */
 .dropdown-card {
   border: 1px solid var(--border-light);
   overflow: hidden;
@@ -510,6 +656,7 @@ const profileHeaderStyle = computed(() => ({
   width: 100%;
 }
 
+/* NOTIFICATION ITEMS */
 .notif-item {
   padding-top: 10px !important;
   padding-bottom: 10px !important;
@@ -533,6 +680,7 @@ const profileHeaderStyle = computed(() => ({
   margin-top: 6px;
 }
 
+/* PROFILE BUTTON */
 .profile-btn {
   border-radius: 100px !important;
   padding: 3px 10px 3px 3px !important;
@@ -588,6 +736,21 @@ const profileHeaderStyle = computed(() => ({
   transform: rotate(180deg);
 }
 
+.bell-avatar {
+  box-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.12),
+    0 4px 8px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 12px;
+}
+
+.bell-icon {
+  color: #fff;
+  -webkit-text-stroke: 1.5px #d97706;
+}
+
+/* PROFILE CARD */
 .profile-card-header {
   display: flex;
   align-items: center;
@@ -610,6 +773,7 @@ const profileHeaderStyle = computed(() => ({
   background: var(--lighterror);
 }
 
+/* SEARCH RESULTS */
 .result-item {
   transition: background 0.12s ease;
 }
@@ -622,6 +786,7 @@ const profileHeaderStyle = computed(() => ({
   border-bottom: 1px solid var(--border-light);
 }
 
+/* RESPONSIVE BREAKPOINTS */
 @media (max-width: 600px) {
   .hidden-sm-and-down {
     display: none !important;

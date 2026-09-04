@@ -44,7 +44,7 @@
     <v-window v-model="activeTab">
       <!-- Overview -->
       <v-window-item value="overview">
-        <v-container class="py-8">
+        <v-container fluid class="py-8 px-6">
           <v-row>
             <v-col cols="12" lg="8">
               <h2 class="text-subtitle-1 font-weight-bold mb-2">Personal information</h2>
@@ -88,7 +88,7 @@
 
       <!-- Security -->
       <v-window-item value="security">
-        <v-container class="py-8">
+        <v-container fluid class="py-8 px-6">
           <h2 class="text-subtitle-1 font-weight-bold mb-2">Security settings</h2>
           <v-card variant="flat" border rounded="lg">
             <v-list density="comfortable" lines="two" class="py-0">
@@ -116,7 +116,7 @@
 
       <!-- Activity -->
       <v-window-item value="activity">
-        <v-container class="py-8">
+        <v-container fluid class="py-8 px-6">
           <div class="d-flex align-center justify-space-between mb-4">
             <h2 class="text-subtitle-1 font-weight-bold">Recent activity</h2>
             <v-chip color="primary" variant="tonal" size="small">{{ activityLog.length }} events</v-chip>
@@ -295,9 +295,9 @@ watch(
 </script>
 
 <style scoped>
-/* Only what Vuetify's utility classes and props genuinely can't express. */
 .profile-page {
-  min-height: 100vh;
+  width: 100%;
+  min-height: 100%;
   background: rgb(var(--v-theme-background));
 }
 </style>

@@ -39,6 +39,9 @@ const colors = {
   bgGrey: '#f1f5f9',
   bgSuccess: '#f0fdf4',
   bgError: '#fef2f2',
+
+  // Black
+  black: '#000000',
 };
 
 // Light Theme (Default: Turquoise)
@@ -128,6 +131,15 @@ const LightTheme: ThemeTypes = {
     gray100: colors.bgLight,
     primaryBg: colors.primaryBg,
     primaryHover: colors.primaryHover,
+
+    // View All Button
+    viewAllBg: '#f0fbfa',
+    viewAllHoverBg: '#f1f9f8',
+    viewAllText: '#0f9d9a',
+    viewAllBorder: '#8bd1cc',
+
+    // Black
+    black: colors.black,
   }
 };
 
@@ -178,8 +190,8 @@ const DarkTheme: ThemeTypes = {
     textGrey: '#94a3b8',
 
     // KOTRAHUB specific colors for dark mode
-    kotraText: '#f1f5f9',  // Light text for KOTRA
-    hubText: colors.primary, // Keep turquoise for HUB
+    kotraText: '#f1f5f9',
+    hubText: colors.primary,
 
     // Backgrounds - dark
     containerBg: '#0f172a',
@@ -215,11 +227,20 @@ const DarkTheme: ThemeTypes = {
     // Toolbar
     toolbarBg: '#0f172a',
 
+    // View All Button
+    viewAllBg: '#183c3b',
+    viewAllHoverBg: '#20504e',
+    viewAllText: '#ffffff',
+    viewAllBorder: '#6fd6c9',
+
     // Additional
     accent: colors.primary,
     gray100: '#1e293b',
     primaryBg: '#0f9d9a22',
     primaryHover: '#0f9d9a33',
+
+    // Black
+    black: colors.black,
   }
 };
 
