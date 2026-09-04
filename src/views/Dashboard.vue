@@ -12,7 +12,7 @@
               <v-avatar size="36" rounded="lg" color="primary" variant="tonal">
                 <v-icon size="20" color="primary">mdi-bullhorn</v-icon>
               </v-avatar>
-              <span class="text-h6 font-weight-bold text-uppercase tracking-tight">
+              <span class="text-subtitle-1 font-weight-bold text-uppercase tracking-tight">
                 Announcement
               </span>
             </div>
@@ -166,7 +166,7 @@
               <v-avatar size="36" rounded="lg" color="primary" variant="tonal">
                 <v-icon size="20" color="primary">mdi-lightning-bolt</v-icon>
               </v-avatar>
-              <span class="text-h6 font-weight-bold text-uppercase tracking-tight">
+              <span class="text-subtitle-1 font-weight-bold text-uppercase tracking-tight">
                 Quick Access
               </span>
             </div>
@@ -433,7 +433,7 @@
               <v-avatar size="36" rounded="lg" color="primary" variant="tonal">
                 <v-icon size="20" color="primary">mdi-calendar-outline</v-icon>
               </v-avatar>
-              <span class="text-h6 font-weight-bold text-uppercase tracking-tight">Calendar Agenda</span>
+              <span class="text-subtitle-1 font-weight-bold text-uppercase tracking-tight">Calendar Agenda</span>
             </div>
             <v-btn variant="outlined" size="small" class="dashboard-view-all-btn" @click="emit('navigate', 'calendar')"
               rounded="lg">
