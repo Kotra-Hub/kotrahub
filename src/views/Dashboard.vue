@@ -182,7 +182,7 @@
               <v-col v-for="qa in quickAccessItems.slice(0, 9)" :key="qa.id" cols="4" class="pa-1">
                 <v-btn variant="tonal" color="primary" block class="quick-access-chip rounded-lg"
                   @click="quickAccessAction(qa)">
-                  <v-icon size="20" color="primary" class="quick-access-icon">
+                  <v-icon size="20" class="quick-access-icon">
                     {{ qa.icon }}
                   </v-icon>
                   <span class="quick-access-label">
@@ -517,7 +517,7 @@
 
               <!-- Expanded Search -->
               <v-text-field v-if="searchExpanded" v-model="contactSearch" density="compact" variant="outlined"
-                placeholder="Search..." hide-details single-line class="phone-directory-search" />
+                placeholder="Search by name, job title, and email..." hide-details single-line class="phone-directory-search" />
 
               <!-- Filters -->
               <v-btn variant="text" size="small" color="primary" class="phone-directory-action-btn" rounded="lg"
@@ -543,37 +543,29 @@
           </div>
 
           <!-- Filters -->
-          <v-expand-transition>
-            <div v-if="directoryFiltersOpen" class="px-3 pb-2">
-
-              <v-card rounded="lg" class="pa-3 phone-directory-filters" elevation="0">
-                <v-row dense>
-
-                  <v-col cols="12" sm="6">
-                    <v-select v-model="selectedDepartment" :items="uniqueDepartments" label="Department"
-                      density="compact" variant="outlined" hide-details />
-                  </v-col>
-
-                  <v-col cols="12" sm="6">
-                    <v-select v-model="selectedTeam" :items="uniqueTeams" label="Team" density="compact"
-                      variant="outlined" hide-details />
-                  </v-col>
-
-                </v-row>
-
-                <div class="d-flex justify-end mt-2">
-                  <v-btn size="small" variant="text" @click="
-                    selectedDepartment = 'All';
+          <div v-if="directoryFiltersOpen" class="px-3 pb-2">
+            <v-card rounded="lg" class="pa-3 phone-directory-filters" elevation="0">
+              <v-row dense>
+                <v-col cols="12" sm="6">
+                  <v-select v-model="selectedDepartment" :items="uniqueDepartments" label="Department"
+                    density="compact" variant="outlined" hide-details />
+                </v-col>
+                <v-col cols="12" sm="6">
+                  <v-select v-model="selectedTeam" :items="uniqueTeams" label="Team" density="compact"
+                    variant="outlined" hide-details />
+                </v-col>
+              </v-row>
+              <div class="d-flex justify-end mt-2">
+                <v-btn size="small" variant="text" @click="
+                  selectedDepartment = 'All';
                   selectedTeam = 'All';
-                  ">
-                    <v-icon size="14" class="mr-1">mdi-restore</v-icon>
-                    Reset
-                  </v-btn>
-                </div>
-              </v-card>
-
-            </div>
-          </v-expand-transition>
+                ">
+                  <v-icon size="14" class="mr-1">mdi-restore</v-icon>
+                  Reset
+                </v-btn>
+              </div>
+            </v-card>
+          </div>
 
           <!-- Contacts -->
           <div class="px-3 pb-3 flex-grow-1 overflow-y-auto" style="min-height: 0;">
@@ -1255,12 +1247,17 @@ onBeforeUnmount(() => {
   gap: 2px !important;
 }
 
-/* Icon - Smaller */
 .quick-access-icon {
   display: block !important;
   flex: 0 0 auto !important;
   margin: 0 !important;
   font-size: 18px !important;
+  color: rgb(var(--v-theme-primary)) !important;
+  transition: color 0.2s ease !important;
+}
+
+.quick-access-chip:hover .quick-access-icon {
+  color: rgb(var(--v-theme-on-surface)) !important;
 }
 
 .quick-access-label {
@@ -1275,6 +1272,7 @@ onBeforeUnmount(() => {
   line-height: 1.1;
   font-weight: 600;
   color: rgb(var(--v-theme-on-surface)) !important;
+  transition: color 0.2s ease !important;
 }
 
 .quick-access-chip:hover {
@@ -1282,6 +1280,24 @@ onBeforeUnmount(() => {
   background-color: rgb(var(--v-theme-primaryHover)) !important;
   border-color: rgba(15, 23, 42, 0.30) !important;
   box-shadow: 0 3px 8px rgba(15, 23, 42, 0.08);
+}
+
+:deep(.dark) .quick-access-chip {
+  background-color: rgba(15, 157, 154, 0.12) !important;
+  border-color: rgba(15, 157, 154, 0.2) !important;
+}
+
+:deep(.dark) .quick-access-chip:hover {
+  background-color: rgba(15, 157, 154, 0.25) !important;
+  border-color: rgba(15, 157, 154, 0.4) !important;
+}
+
+:deep(.dark) .quick-access-icon {
+  color: rgb(var(--v-theme-primary)) !important;
+}
+
+:deep(.dark) .quick-access-chip:hover .quick-access-icon {
+  color: #ffffff !important;
 }
 
 /* Mobile Responsive */
