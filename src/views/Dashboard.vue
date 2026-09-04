@@ -451,7 +451,7 @@
                     <span class="text-h6 font-weight-bold text-primary" style="font-size: 18px; line-height: 1.2;">{{
                       String(event.day).padStart(2, '0') }}</span>
                     <span class="text-caption text-medium-emphasis" style="font-size: 8px;">{{ event.monthLabel
-                    }}</span>
+                      }}</span>
                   </div>
                 </template>
 
@@ -581,11 +581,10 @@
             <!-- GRID -->
             <v-row v-if="directoryView === 'grid'" dense>
               <v-col v-for="contact in filteredContacts.slice(0, 6)" :key="contact.name" cols="12" sm="6">
-                <v-card class="rounded-lg h-100 phone-directory-item" elevation="0">
+                <v-card class="rounded-lg phone-directory-grid-item" elevation="0" border>
                   <v-card-text class="pa-3">
                     <!-- Avatar + Contact -->
                     <div class="d-flex align-center ga-3">
-
                       <v-avatar size="44" color="primary" variant="tonal" class="flex-shrink-0">
                         <span class="font-weight-bold text-primary">
                           {{ initials(contact.name) }}
@@ -605,7 +604,6 @@
                           {{ contact.email || '-' }}
                         </span>
                       </div>
-
                     </div>
 
                     <!-- Name -->
@@ -617,7 +615,6 @@
                     <div class="text-caption text-medium-emphasis text-truncate">
                       {{ contact.jobTitle || '-' }}
                     </div>
-
                   </v-card-text>
                 </v-card>
               </v-col>
@@ -1353,18 +1350,33 @@ onBeforeUnmount(() => {
 }
 
 /* Phone Directory */
-.phone-directory-list-item {
-  border-bottom: 1px solid var(--v-theme-borderLight) !important;
-  border-radius: 0 !important;
-}
-
-.phone-directory-list-last {
-  border-bottom: none !important;
-}
-
-.phone-directory-item {
-  border: 1px solid var(--v-theme-borderLight) !important;
+.phone-directory-grid-item {
+  border: 1.5px solid rgba(var(--v-theme-on-surface), 0.08) !important;
   background: var(--v-theme-surface) !important;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.phone-directory-grid-item:hover {
+  background: rgba(var(--v-theme-on-surface), 0.03);
+  border-color: rgba(var(--v-theme-on-surface), 0.15);
+}
+
+.phone-directory-list-item {
+  min-height: 80px !important;
+  padding-top: 12px !important;
+  padding-bottom: 12px !important;
+  border-bottom: 1px solid rgba(var(--v-theme-on-surface), 0.06);
+  border-radius: 0 !important;
+  cursor: pointer;
+}
+
+.phone-directory-list-item:last-child {
+  border-bottom: none;
+}
+
+.phone-directory-list-item:hover {
+  background: rgba(var(--v-theme-on-surface), 0.03);
 }
 
 .phone-directory-action-btn {
