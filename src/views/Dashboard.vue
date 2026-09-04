@@ -426,60 +426,75 @@
     <v-row class="mt-4" no-gutters>
       <!-- CALENDAR AGENDA SECTION -->
       <v-col cols="12" lg="6" class="pr-0 pr-lg-3">
-        <v-card class="calendar-agenda-mobile rounded-xl h-100" elevation="0" border>
+        <v-card class="rounded-xl h-100 d-flex flex-column dashboard-section-card" elevation="0" border>
           <!-- Calendar Header -->
-          <div class="d-flex align-center justify-space-between pa-4 pb-2">
+          <div class="d-flex align-center justify-space-between pa-3 pb-2">
             <div class="d-flex align-center gap-2">
-              <v-avatar size="36" rounded="lg" color="primary" variant="tonal">
-                <v-icon size="20" color="primary">mdi-calendar-outline</v-icon>
+              <v-avatar size="32" rounded="lg" color="primary" variant="tonal">
+                <v-icon size="17" color="primary">mdi-calendar-outline</v-icon>
               </v-avatar>
               <span class="text-subtitle-1 font-weight-bold text-uppercase tracking-tight">Calendar Agenda</span>
             </div>
-            <v-btn variant="outlined" size="small" class="dashboard-view-all-btn" @click="emit('navigate', 'calendar')"
-              rounded="lg">
+            <v-btn variant="outlined" size="small" class="dashboard-view-all-btn" @click="emit('navigate', 'calendar')" rounded="lg">
               View All
             </v-btn>
           </div>
 
           <!-- Agenda Items -->
-          <div class="px-3 pb-3">
-            <v-list density="compact" lines="two" class="bg-transparent">
-              <v-list-item v-for="event in calendarAgendaEvents" :key="event.dateStr + '-' + event.title"
-                class="calendar-agenda-item rounded-xl mb-2 border pa-0" @click="emit('navigate', 'calendar')">
-                <template v-slot:prepend>
-                  <div class="d-flex flex-column align-center justify-center px-2" style="min-width: 52px;">
-                    <span class="text-h6 font-weight-bold text-primary" style="font-size: 18px; line-height: 1.2;">{{
-                      String(event.day).padStart(2, '0') }}</span>
-                    <span class="text-caption text-medium-emphasis" style="font-size: 8px;">{{ event.monthLabel
-                      }}</span>
-                  </div>
+          <div class="px-3 pb-3 flex-grow-1 overflow-y-auto" style="min-height: 0;">
+            <v-list density="compact" class="bg-transparent">
+              <v-list-item v-for="(event, index) in calendarAgendaEvents" :key="event.dateStr + '-' + event.title"
+                class="calendar-agenda-list-item"
+                :class="{ 'calendar-agenda-list-last': index === calendarAgendaEvents.length - 1 }"
+                @click="emit('navigate', 'calendar')">
+
+                <!-- Date Badge -->
+                <template #prepend>
+                  <v-avatar size="48" rounded="lg" color="primary" variant="tonal" class="calendar-date-avatar">
+                    <div class="d-flex flex-column align-center justify-center" style="line-height: 1.2;">
+                      <span class="calendar-date-day font-weight-bold" style="font-size: 20px; color: rgb(var(--v-theme-primary));">
+                        {{ String(event.day).padStart(2, '0') }}
+                      </span>
+                      <span class="calendar-date-month text-caption" style="font-size: 8px; text-transform: uppercase; color: rgb(var(--v-theme-textMuted));">
+                        {{ event.monthLabel }} {{ event.year }}
+                      </span>
+                    </div>
+                  </v-avatar>
                 </template>
 
-                <v-list-item-title class="text-body-2 font-weight-bold d-flex align-center ga-1">
+                <!-- Event Info -->
+                <v-list-item-title class="text-subtitle-1 font-weight-bold d-flex align-center ga-1">
                   <span class="rounded-circle d-inline-block" :class="getCalendarDotColor(event.type)"
                     style="width: 8px; height: 8px; flex-shrink: 0;"></span>
                   {{ event.title }}
                 </v-list-item-title>
 
                 <v-list-item-subtitle>
-                  <div class="d-flex flex-column ga-0">
-                    <span class="text-caption d-flex align-center ga-1">
+                  <!-- Empty subtitle to maintain spacing -->
+                </v-list-item-subtitle>
+
+                <!-- Category + Time (Right aligned) -->
+                <template #append>
+                  <div class="d-none d-md-flex flex-column align-end text-right" style="min-width: 150px;">
+                    <span class="text-caption d-flex align-center ga-1" style="color: rgb(var(--v-theme-textMuted));">
                       <v-icon size="12" color="primary">{{ getCalendarAgendaIcon(event.type) }}</v-icon>
                       {{ event.category }}
                     </span>
-                    <span class="text-caption d-flex align-center ga-1">
+                    <span class="text-caption font-weight-medium" style="color: rgb(var(--v-theme-primary));">
                       <v-icon size="12" color="primary">mdi-clock-outline</v-icon>
                       {{ event.time || 'All Day' }}
                     </span>
                   </div>
-                </v-list-item-subtitle>
+                </template>
+
               </v-list-item>
             </v-list>
 
             <!-- Empty State -->
-            <div v-if="calendarAgendaEvents.length === 0" class="text-center py-6 text-medium-emphasis">
-              <v-icon size="32" color="primary" class="mb-2">mdi-calendar-blank-outline</v-icon>
-              <div class="text-caption">No upcoming calendar events</div>
+            <div v-if="calendarAgendaEvents.length === 0" class="d-flex flex-column align-center justify-center h-100 text-medium-emphasis">
+              <v-icon size="42" color="primary" class="mb-2">mdi-calendar-blank-outline</v-icon>
+              <div class="text-body-2 font-weight-bold">No upcoming calendar events</div>
+              <div class="text-caption">Check back later for scheduled events</div>
             </div>
           </div>
         </v-card>
@@ -865,12 +880,12 @@ const recentActivities = [
 
 // Calendar Agenda Events
 const customEvents: Record<string, any[]> = {
-  '2026-08-01': [{ title: 'Admin Duty Group A', type: 'schedule', time: 'All Day', category: 'Schedule' }],
-  '2026-08-07': [
+  '2026-09-19': [{ title: 'Admin Duty Group B', type: 'schedule', time: 'All Day', category: 'Schedule' }],
+  '2026-09-22': [
     { title: 'Annual Leave', type: 'leave', time: 'All Day', category: 'My Leave' },
     { title: 'Annual Dinner', type: 'company', time: '6:00 PM – 10:00 PM', category: 'Company Event' }
   ],
-  '2026-08-12': [{ title: 'IT Training', type: 'department', time: '9:00 AM – 12:00 PM', category: 'Department Event' }]
+  '2026-09-25': [{ title: 'IT Training', type: 'department', time: '9:00 AM – 12:00 PM', category: 'Department Event' }]
 }
 
 const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
@@ -1069,13 +1084,17 @@ onBeforeUnmount(() => {
   position: relative;
   z-index: 1;
   background-color: var(--v-theme-primaryBg) !important;
-  border-color: rgb(var(--v-theme-primaryLight)) !important;
+  border-color: rgba(var(--v-theme-primary), 0.12) !important;
   transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.announcement-slide-card .v-card__text {
+  background-color: transparent !important;
 }
 
 .announcement-slide-bg {
   background-color: var(--v-theme-primaryBg) !important;
-  border-color: rgb(var(--v-theme-primaryLight)) !important;
+  border-color: rgba(var(--v-theme-primary), 0.12) !important;
 }
 
 .announcement-slide-card:hover {
@@ -1087,9 +1106,11 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  background-color: transparent !important;
 }
 
-:deep(.dark) .announcement-slide-bg {
+:deep(.dark) .announcement-slide-bg,
+:deep(.dark) .announcement-slide-card {
   background-color: rgba(15, 157, 154, 0.12) !important;
   border-color: rgba(15, 157, 154, 0.2) !important;
 }
@@ -1354,15 +1375,62 @@ onBeforeUnmount(() => {
   background: rgba(15, 157, 154, 0.05);
 }
 
-/* Calendar Agenda Items */
-.calendar-agenda-item {
-  transition: all 0.2s ease;
+/* Calendar Agenda */
+.calendar-agenda-list-item {
+  min-height: 80px !important;
+  padding-top: 12px !important;
+  padding-bottom: 12px !important;
+  border-bottom: 1px solid rgba(var(--v-theme-on-surface), 0.06);
+  border-radius: 0 !important;
   cursor: pointer;
 }
 
-.calendar-agenda-item:hover {
-  background: rgba(15, 157, 154, 0.05);
-  border-color: rgba(15, 157, 154, 0.3);
+.calendar-agenda-list-item:last-child {
+  border-bottom: none;
+}
+
+.calendar-agenda-list-item:hover {
+  background: rgba(var(--v-theme-on-surface), 0.03);
+}
+
+.calendar-date-badge {
+  min-width: 58px !important;
+  width: 58px !important;
+  height: 58px !important;
+  background: var(--v-theme-primaryBg) !important;
+  border-radius: 10px !important;
+  border: 1.5px solid rgba(var(--v-theme-primary), 0.12) !important;
+  flex-shrink: 0 !important;
+  margin-right: 12px !important;
+  padding: 6px 0 !important;
+}
+
+.calendar-date-avatar {
+  background: var(--v-theme-primaryBg) !important;
+  border: 1.5px solid rgba(var(--v-theme-primary), 0.12) !important;
+  flex-shrink: 0 !important;
+  margin-right: 12px !important;
+}
+
+.calendar-date-day {
+  font-size: 20px !important;
+  line-height: 1.2 !important;
+  color: rgb(var(--v-theme-primary)) !important;
+  font-weight: 700 !important;
+}
+
+.calendar-date-month {
+  font-size: 8px !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.3px !important;
+  color: rgb(var(--v-theme-textMuted)) !important;
+  font-weight: 600 !important;
+  line-height: 1.2 !important;
+}
+
+:deep(.dark) .calendar-date-avatar {
+  background: rgba(15, 157, 154, 0.12) !important;
+  border-color: rgba(15, 157, 154, 0.2) !important;
 }
 
 /* Phone Directory */
