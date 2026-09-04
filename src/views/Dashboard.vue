@@ -7,7 +7,7 @@
       <v-col cols="12" lg="6" class="pr-0 pr-lg-3">
         <v-card class="dashboard-card rounded-xl h-100 d-flex flex-column" elevation="0" border>
           <!-- Announcement Header -->
-          <div class="d-flex align-center justify-space-between pa-4 pb-1 flex-shrink-0">
+          <div class="d-flex align-center justify-space-between pa-4 pb-2 flex-shrink-0">
             <div class="d-flex align-center gap-2">
               <v-avatar size="36" rounded="lg" color="primary" variant="tonal">
                 <v-icon size="20" color="primary">mdi-bullhorn</v-icon>
@@ -161,7 +161,7 @@
       <v-col cols="12" lg="6" class="pt-3 pt-lg-0">
         <v-card class="dashboard-card rounded-xl h-100 d-flex flex-column" elevation="0" border>
           <!-- Quick Access Header -->
-          <div class="d-flex align-center justify-space-between pa-4 pb-1 flex-shrink-0">
+          <div class="d-flex align-center justify-space-between pa-4 pb-2 flex-shrink-0">
             <div class="d-flex align-center ga-2">
               <v-avatar size="36" rounded="lg" color="primary" variant="tonal">
                 <v-icon size="20" color="primary">mdi-lightning-bolt</v-icon>
@@ -204,30 +204,25 @@
         <v-card class="rounded-xl h-100 d-flex flex-column dashboard-section-card" elevation="0" border>
 
           <!-- Header -->
-          <div class="d-flex align-center justify-space-between pa-3 pb-2">
-
+          <div class="d-flex align-center justify-space-between pa-3 pb-2 flex-shrink-0">
             <!-- Title -->
             <div class="d-flex align-center ga-2">
               <v-avatar size="32" rounded="lg" color="primary" variant="tonal">
                 <v-icon size="17">mdi-format-list-checks</v-icon>
               </v-avatar>
-
               <span class="text-subtitle-1 font-weight-bold text-uppercase">
                 Pending Action
               </span>
             </div>
-
             <!-- View All -->
             <v-btn variant="outlined" size="small" class="dashboard-view-all-btn" rounded="lg"
               @click="emit('navigate', 'pending')">
               View All
             </v-btn>
-
           </div>
 
           <!-- Progress Summary -->
           <div class="px-3 pb-3">
-
             <!-- Summary -->
             <div class="d-flex align-center justify-space-between mb-2">
 
@@ -239,7 +234,6 @@
                 <v-icon size="14">mdi-alert-circle</v-icon>
                 2 urgent
               </span>
-
             </div>
 
             <!-- Progress Bar -->
@@ -280,16 +274,12 @@
                 <span class="pending-dot pending-dot-low"></span>
                 Low <strong>1</strong>
               </span>
-
             </div>
-
           </div>
 
           <!-- Pending Items -->
           <div class="px-3 pb-3 flex-grow-1 overflow-y-auto pending-action-list" style="min-height: 0;">
-
             <v-list density="compact" class="bg-transparent">
-
               <v-list-item v-for="action in pendingActions" :key="action.id" class="pending-action-list-item"
                 @click="emit('navigate', 'pending')">
 
@@ -308,7 +298,6 @@
                 </v-list-item-title>
 
                 <v-list-item-subtitle class="d-flex align-center ga-2 flex-wrap">
-
                   <span class="text-caption text-medium-emphasis">
                     {{ action.ref }}
                   </span>
@@ -328,30 +317,21 @@
                 <!-- Status + Date -->
                 <template #append>
                   <div class="d-none d-md-flex flex-column align-end text-right" style="min-width: 150px;">
-
                     <!-- Status -->
                     <div class="text-caption text-error d-flex align-center ga-1">
-
                       <span class="pending-status-dot"></span>
-
                       {{ action.status }}
-
                     </div>
 
                     <!-- Date -->
                     <div class="text-caption text-medium-emphasis">
                       {{ action.date }}
                     </div>
-
                   </div>
                 </template>
-
               </v-list-item>
-
             </v-list>
-
           </div>
-
         </v-card>
       </v-col>
 
@@ -361,34 +341,27 @@
         <v-card class="rounded-xl h-100 d-flex flex-column dashboard-section-card" elevation="0" border>
 
           <!-- Header -->
-          <div class="d-flex align-center justify-space-between pa-3 pb-2">
-
+          <div class="d-flex align-center justify-space-between pa-3 pb-2 flex-shrink-0">
             <!-- Title -->
             <div class="d-flex align-center ga-2">
               <v-avatar size="32" rounded="lg" color="primary" variant="tonal">
                 <v-icon size="17">mdi-clock-outline</v-icon>
               </v-avatar>
-
               <span class="text-subtitle-1 font-weight-bold text-uppercase">
                 Recent Activities
               </span>
             </div>
-
             <!-- View All -->
             <v-btn variant="outlined" size="small" class="dashboard-view-all-btn" rounded="lg"
               @click="emit('navigate', 'recent-activities')">
               View All
             </v-btn>
-
           </div>
 
           <!-- Activity Items -->
           <div class="px-3 pb-3 flex-grow-1 overflow-y-auto recent-activity-list" style="min-height: 0;">
-
             <v-list density="compact" class="bg-transparent">
-
               <v-list-item v-for="activity in recentActivities" :key="activity.action" class="recent-activity-item">
-
                 <!-- Icon -->
                 <template #prepend>
                   <v-avatar size="44" color="primary" variant="tonal">
@@ -410,16 +383,11 @@
                   •
                   {{ activity.relativeTime }}
                 </v-list-item-subtitle>
-
               </v-list-item>
-
             </v-list>
-
           </div>
-
         </v-card>
       </v-col>
-
     </v-row>
 
     <!-- Row 3: Calendar Agenda | Phone Directory (50:50) -->
@@ -428,7 +396,7 @@
       <v-col cols="12" lg="6" class="pr-0 pr-lg-3">
         <v-card class="rounded-xl h-100 d-flex flex-column dashboard-section-card" elevation="0" border>
           <!-- Calendar Header -->
-          <div class="d-flex align-center justify-space-between pa-3 pb-2">
+          <div class="d-flex align-center justify-space-between pa-3 pb-2 flex-shrink-0">
             <div class="d-flex align-center gap-2">
               <v-avatar size="32" rounded="lg" color="primary" variant="tonal">
                 <v-icon size="17" color="primary">mdi-calendar-outline</v-icon>
@@ -486,7 +454,6 @@
                     </span>
                   </div>
                 </template>
-
               </v-list-item>
             </v-list>
 
@@ -504,24 +471,19 @@
       <v-col cols="12" lg="6" class="pt-3 pt-lg-0">
         <v-card class="rounded-xl h-100 d-flex flex-column" elevation="0" border
           style="min-height: 560px; height: 560px;">
-
           <!-- Header -->
-          <div class="d-flex align-center justify-space-between pa-3 pb-2">
-
+          <div class="d-flex align-center justify-space-between pa-3 pb-2 flex-shrink-0">
             <!-- Title -->
             <div class="d-flex align-center ga-2">
               <v-avatar size="32" rounded="lg" color="primary" variant="tonal">
                 <v-icon size="17">mdi-phone</v-icon>
               </v-avatar>
-
               <span class="text-subtitle-1 font-weight-bold text-uppercase">
                 Phone Directory
               </span>
             </div>
-
             <!-- Actions -->
             <div class="d-flex align-center ga-2">
-
               <!-- Search -->
               <v-btn icon size="small" variant="text" color="primary" class="phone-directory-action-btn" @click="
                 searchExpanded = !searchExpanded;
@@ -553,7 +515,6 @@
 
                 {{ directoryView === 'grid' ? 'List' : 'Grid' }}
               </v-btn>
-
             </div>
           </div>
 
@@ -667,7 +628,6 @@
                     </span>
                   </div>
                 </template>
-
               </v-list-item>
             </v-list>
 
@@ -677,16 +637,13 @@
               <v-icon size="42" color="primary">
                 mdi-account-off-outline
               </v-icon>
-
               <div class="text-body-2 font-weight-bold mt-2">
                 No contacts found
               </div>
-
               <div class="text-caption">
                 Try adjusting your search or filter
               </div>
             </div>
-
           </div>
 
         </v-card>
