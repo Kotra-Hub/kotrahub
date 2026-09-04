@@ -391,7 +391,7 @@
     </v-row>
 
     <!-- Row 3: Calendar Agenda | Phone Directory (50:50) -->
-    <v-row class="mt-4" no-gutters>
+    <v-row class="mt-4" no-gutters style="align-items: stretch;">
       <!-- CALENDAR AGENDA SECTION -->
       <v-col cols="12" lg="6" class="pr-0 pr-lg-3">
         <v-card class="rounded-xl h-100 d-flex flex-column dashboard-section-card" elevation="0" border>
@@ -469,8 +469,7 @@
 
       <!-- PHONE DIRECTORY SECTION -->
       <v-col cols="12" lg="6" class="pt-3 pt-lg-0">
-        <v-card class="rounded-xl h-100 d-flex flex-column" elevation="0" border
-          style="min-height: 560px; height: 560px;">
+        <v-card class="rounded-xl h-100 d-flex flex-column dashboard-section-card" elevation="0" border>
           <!-- Header -->
           <div class="d-flex align-center justify-space-between pa-3 pb-2 flex-shrink-0">
             <!-- Title -->
@@ -551,37 +550,35 @@
               <v-col v-for="contact in filteredContacts.slice(0, 6)" :key="contact.name" cols="12" sm="6">
                 <v-card class="rounded-lg phone-directory-grid-item" elevation="0" border>
                   <v-card-text class="pa-3">
-                    <!-- Avatar + Contact -->
                     <div class="d-flex align-center ga-3">
+                      <!-- Avatar -->
                       <v-avatar size="44" color="primary" variant="tonal" class="flex-shrink-0">
-                        <span class="font-weight-bold text-primary">
+                        <span class="font-weight-bold text-primary" style="font-size: 16px;">
                           {{ initials(contact.name) }}
                         </span>
                       </v-avatar>
 
-                      <div class="d-flex align-center ga-1 text-caption"
-                        style="color: rgb(var(--v-theme-on-surface)) !important;">
-                        <v-icon size="13" color="primary">mdi-phone</v-icon>
-                        <span>Ext. {{ contact.ext || '-' }}</span>
+                      <!-- Name and Position -->
+                      <div class="flex-grow-1" style="min-width: 0;">
+                        <div class="text-body-1 font-weight-bold text-truncate" style="font-size: 14px;">
+                          {{ contact.name }}
+                        </div>
+                        <div class="text-caption text-medium-emphasis text-truncate" style="font-size: 12px;">
+                          {{ contact.jobTitle || '-' }}
+                        </div>
                       </div>
 
-                      <div class="d-flex align-center ga-1 text-caption text-truncate"
-                        style="color: rgb(var(--v-theme-on-surface)) !important;">
-                        <v-icon size="13" color="primary">mdi-email-outline</v-icon>
-                        <span class="text-truncate">
-                          {{ contact.email || '-' }}
+                      <!-- Contact Details -->
+                      <div class="d-flex flex-column align-end text-right" style="flex-shrink: 0; gap: 2px;">
+                        <span class="text-caption d-flex align-center ga-1" style="color: rgb(var(--v-theme-on-surface)) !important; font-size: 11px;">
+                          <v-icon size="12" color="primary">mdi-phone</v-icon>
+                          <span>Ext. {{ contact.ext || '-' }}</span>
+                        </span>
+                        <span class="text-caption text-truncate" style="color: rgb(var(--v-theme-on-surface)) !important; max-width: 120px; font-size: 11px;">
+                          <v-icon size="12" color="primary">mdi-email-outline</v-icon>
+                          <span class="text-truncate">{{ contact.email || '-' }}</span>
                         </span>
                       </div>
-                    </div>
-
-                    <!-- Name -->
-                    <div class="text-body-2 font-weight-bold text-truncate mt-3">
-                      {{ contact.name }}
-                    </div>
-
-                    <!-- Position -->
-                    <div class="text-caption text-medium-emphasis text-truncate">
-                      {{ contact.jobTitle || '-' }}
                     </div>
                   </v-card-text>
                 </v-card>
@@ -1396,11 +1393,24 @@ onBeforeUnmount(() => {
   background: var(--v-theme-surface) !important;
   transition: all 0.2s ease;
   cursor: pointer;
+  min-height: 76px !important;
+  height: 100% !important;
 }
 
 .phone-directory-grid-item:hover {
   background: rgba(var(--v-theme-on-surface), 0.03);
   border-color: rgba(var(--v-theme-on-surface), 0.15);
+}
+
+.phone-directory-grid-item .v-card-text {
+  padding: 12px 16px !important;
+  height: 100% !important;
+  display: flex !important;
+  align-items: center !important;
+}
+
+.phone-directory-card {
+  min-height: 400px !important;
 }
 
 .phone-directory-list-item {
@@ -1471,6 +1481,7 @@ onBeforeUnmount(() => {
 
 .dashboard-section-card {
   min-height: 520px;
+  height: 100% !important;
 }
 
 .pending-action-list-item,
@@ -1605,6 +1616,18 @@ onBeforeUnmount(() => {
   .announcement-slide-card {
     margin-left: 0;
     margin-right: 0;
+  }
+}
+
+@media (min-width: 992px) {
+  .dashboard-section-card {
+    min-height: 480px;
+  }
+}
+
+@media (max-width: 991px) {
+  .dashboard-section-card {
+    min-height: 400px;
   }
 }
 
