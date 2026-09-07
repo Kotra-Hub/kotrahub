@@ -151,6 +151,8 @@ const handleNavigate = (page: string) => {
   transition: all 0.3s ease-in-out;
   overflow: hidden;
   flex-shrink: 0;
+  height: 100%;
+  min-height: 100%;
 }
 
 .sidebar-desktop.sidebar-open {
@@ -169,6 +171,8 @@ const handleNavigate = (page: string) => {
 .sidebar-scroll {
   scrollbar-width: thin;
   scrollbar-color: v-bind('themeColors.border') transparent;
+  height: 100%;
+  flex: 1;
 }
 
 .sidebar-scroll::-webkit-scrollbar {

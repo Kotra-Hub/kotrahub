@@ -37,9 +37,9 @@
     </div>
 
     <!-- Footer -->
-    <v-footer elevation="0" class="footer-wrapper">
+    <div class="footer-wrapper">
       <Footer />
-    </v-footer>
+    </div>
 
     <!-- AI Assistant -->
     <AiAssistant
@@ -133,10 +133,27 @@ const openSettings = () => console.log('Open settings')
 </script>
 
 <style scoped>
+:deep(.v-application) {
+  min-height: 100vh !important;
+  height: 100% !important;
+}
+
+.v-app {
+  display: flex !important;
+  flex-direction: column !important;
+  min-height: 100vh !important;
+}
+
+.header-bar {
+  flex-shrink: 0;
+}
+
 .page-body {
   display: flex;
   width: 100%;
   align-items: stretch;
+  flex: 1 1 auto;
+  min-height: 0;
 }
 
 .sidebar-wrapper {
@@ -149,13 +166,27 @@ const openSettings = () => console.log('Open settings')
 .content-wrapper {
   flex: 1;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.content-wrapper .v-container {
+  flex: 1;
 }
 
 .footer-wrapper {
   width: 100%;
   min-height: 32px !important;
-  height: 32px !important;
-  padding: 0 !important;
+  height: auto !important;
+  padding: 4px 8px !important;
   flex-shrink: 0;
+  margin-top: auto;
+}
+
+@media (min-width: 601px) {
+  .footer-wrapper {
+    height: 32px !important;
+    padding: 0 !important;
+  }
 }
 </style>

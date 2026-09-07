@@ -75,7 +75,7 @@
             <div class="logo-wrapper">
               <img src="@/assets/images/kotra.png" alt="Kotra" class="logo-image" />
             </div>
-            <span class="wordmark hidden-sm-and-down">
+            <span class="wordmark">
               <span class="wordmark-kotra" :style="{ color: themeColors.kotraText }">KOTRA</span>
               <span class="wordmark-hub" :style="{ color: themeColors.hubText }">HUB</span>
             </span>
