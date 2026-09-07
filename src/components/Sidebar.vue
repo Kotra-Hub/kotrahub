@@ -12,45 +12,72 @@
     }">
     <div class="flex-1 flex flex-col items-center gap-0.5 px-0.5 overflow-y-auto sidebar-scroll">
       <!-- HR DETAIL SIDEBAR -->
-      <template v-if="currentPage === 'hr'">
-        <v-btn v-for="item in hrSidebarItems" :key="item.page" @click="$emit('navigate', item.page)" class="sidebar-btn"
+      <template v-if="isHRPage">
+        <v-btn
+          v-for="item in hrSidebarItems"
+          :key="item.page"
+          @click="handleNavigate(item.page)"
+          class="sidebar-btn"
           :class="[
             currentPage === item.page ? 'active' : '',
             isDark ? 'dark' : ''
-          ]" variant="text" block>
+          ]"
+          variant="text"
+          block
+        >
           <div class="sidebar-btn-content" :class="[currentPage === item.page ? 'active-content' : '']">
-            <v-icon :icon="item.icon" :size="20"
+            <v-icon
+              :icon="item.icon"
+              :size="20"
               :color="currentPage === item.page ? themeColors.primary : (isDark ? themeColors.textMuted : themeColors.textGrey)"
-              class="sidebar-icon" />
-            <span class="text-center leading-tight sidebar-label" :style="{
-              fontSize: '8px',
-              fontWeight: currentPage === item.page ? '600' : '500',
-              color: currentPage === item.page ? themeColors.primary : (isDark ? themeColors.textMuted : themeColors.textGrey),
-              lineHeight: '1.1',
-              marginTop: '1px'
-            }" v-html="item.label"></span>
+              class="sidebar-icon"
+            />
+            <span
+              class="text-center leading-tight sidebar-label"
+              :style="{
+                fontSize: '8px',
+                fontWeight: currentPage === item.page ? '600' : '500',
+                color: currentPage === item.page ? themeColors.primary : (isDark ? themeColors.textMuted : themeColors.textGrey),
+                lineHeight: '1.1',
+                marginTop: '1px'
+              }"
+              v-html="item.label"
+            ></span>
           </div>
         </v-btn>
       </template>
 
       <!-- DEFAULT SIDEBAR -->
       <template v-else>
-        <v-btn v-for="item in defaultSidebarItems" :key="item.page" @click="$emit('navigate', item.page)"
-          class="sidebar-btn" :class="[
-            currentPage === item.page ? 'active' : '',
+        <v-btn
+          v-for="item in defaultSidebarItems"
+          :key="item.page"
+          @click="handleNavigate(item.page)"
+          class="sidebar-btn"
+          :class="[
+            isActivePage(item.page) ? 'active' : '',
             isDark ? 'dark' : ''
-          ]" variant="text" block>
-          <div class="sidebar-btn-content" :class="[currentPage === item.page ? 'active-content' : '']">
-            <v-icon :icon="item.icon" :size="22"
-              :color="currentPage === item.page ? themeColors.primary : (isDark ? themeColors.textMuted : themeColors.textGrey)"
-              class="sidebar-icon" />
-            <span class="text-center uppercase tracking-wide sidebar-label" :style="{
-              fontSize: '8px',
-              fontWeight: currentPage === item.page ? '600' : '500',
-              color: currentPage === item.page ? themeColors.primary : (isDark ? themeColors.textMuted : themeColors.textGrey),
-              lineHeight: '1.1',
-              marginTop: '1px'
-            }">{{ item.label }}</span>
+          ]"
+          variant="text"
+          block
+        >
+          <div class="sidebar-btn-content" :class="[isActivePage(item.page) ? 'active-content' : '']">
+            <v-icon
+              :icon="item.icon"
+              :size="22"
+              :color="isActivePage(item.page) ? themeColors.primary : (isDark ? themeColors.textMuted : themeColors.textGrey)"
+              class="sidebar-icon"
+            />
+            <span
+              class="text-center uppercase tracking-wide sidebar-label"
+              :style="{
+                fontSize: '8px',
+                fontWeight: isActivePage(item.page) ? '600' : '500',
+                color: isActivePage(item.page) ? themeColors.primary : (isDark ? themeColors.textMuted : themeColors.textGrey),
+                lineHeight: '1.1',
+                marginTop: '1px'
+              }"
+            >{{ item.label }}</span>
           </div>
         </v-btn>
       </template>
@@ -76,22 +103,46 @@ const theme = useTheme()
 const isDark = computed(() => theme.global.name.value === 'DARK')
 const themeColors = computed(() => theme.current.value.colors)
 
+// Check if a page is active
+const isActivePage = (page: string): boolean => {
+  // Exact match
+  if (props.currentPage === page) return true
+
+  // Check if current page is a service route (e.g., 'service/plant')
+  if (props.currentPage.startsWith('service/')) {
+    const serviceId = props.currentPage.split('/')[1]
+    return page === serviceId
+  }
+
+  return false
+}
+
+const isHRPage = computed(() => {
+  return ['hr', 'hr-handbook', 'leave'].includes(props.currentPage)
+})
+
+// Default sidebar items
 const defaultSidebarItems = [
   { page: 'dashboard', label: 'Home', icon: 'mdi-home' },
   { page: 'plant', label: 'Plant', icon: 'mdi-factory' },
   { page: 'sales', label: 'Sales', icon: 'mdi-chart-line' },
   { page: 'employee', label: 'Staff', icon: 'mdi-account' },
-  { page: 'po', label: 'PO', icon: 'mdi-cart' },
+  { page: 'po', label: 'Procurement', icon: 'mdi-cart' },
   { page: 'requisition', label: 'Requisition', icon: 'mdi-file-document' },
   { page: 'inventory', label: 'Inventory', icon: 'mdi-package' },
 ]
 
+// HR sidebar items
 const hrSidebarItems = [
   { page: 'hr', label: 'Dashboard', icon: 'mdi-view-dashboard' },
   { page: 'hr', label: 'HR<br>Requisition', icon: 'mdi-account-plus' },
   { page: 'hr-handbook', label: 'Employee<br>Handbook', icon: 'mdi-book-open' },
   { page: 'leave', label: 'Leave App<br>/ Gate Pass', icon: 'mdi-calendar' },
 ]
+
+const handleNavigate = (page: string) => {
+  emit('navigate', page)
+}
 </script>
 
 <style scoped>

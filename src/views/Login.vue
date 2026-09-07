@@ -326,7 +326,7 @@ const performLogin = () => {
       role: 'IT Executive',
       email: 'kp.digital@kotrapharma.com',
     })
-    router.push({ name: 'dashboard' })
+    router.push('/main/dashboard')
   }, 500)
 }
 

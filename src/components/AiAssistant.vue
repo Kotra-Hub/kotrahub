@@ -22,8 +22,6 @@
     </span>
   </div>
 
-  <!-- Card teleported straight to <body>: no transformed ancestor, so
-       position: fixed behaves relative to the real viewport -->
   <Teleport to="body">
     <Transition name="ai-fade">
       <div v-if="aiOpen" class="ai-card-wrapper" :style="cardStyle">

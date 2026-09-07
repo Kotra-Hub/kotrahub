@@ -2,20 +2,34 @@
 <template>
   <v-app>
     <!-- Header -->
-    <Header v-if="user" :user="user" :is-dark="isDark" @logout="handleLogout" @toggle-sidebar="toggleSidebar"
-      @toggle-theme="toggleTheme" @open-drawer="openDrawer" @open-settings="openSettings" @navigate="navigate" />
+    <Header
+      v-if="user"
+      :user="user"
+      :is-dark="isDark"
+      @logout="handleLogout"
+      @toggle-sidebar="toggleSidebar"
+      @toggle-theme="toggleTheme"
+      @open-drawer="openDrawer"
+      @open-settings="openSettings"
+      @navigate="navigate"
+    />
 
     <!-- Sidebar + Main Content -->
     <div class="page-body">
 
       <!-- Sidebar -->
       <aside v-if="sidebarOpen" class="sidebar-wrapper">
-        <Sidebar :is-open="sidebarOpen" :current-page="currentRouteName" @navigate="navigate" />
+        <Sidebar
+          :is-open="sidebarOpen"
+          :current-page="currentRouteName"
+          @navigate="navigate"
+        />
       </aside>
 
       <!-- Main Content -->
       <main class="content-wrapper">
         <v-container fluid class="pa-4">
+          <!-- Vue Router handles all pages automatically -->
           <router-view />
         </v-container>
       </main>
@@ -57,9 +71,36 @@ const sidebarOpen = ref(true)
 
 const currentRouteName = computed(() => route.name as string)
 
+// Mapping of page names to route names and params
+const routeMap: Record<string, { name: string; params?: Record<string, any> }> = {
+  dashboard: { name: 'Dashboard' },
+  profile: { name: 'Profile Details' },
+  plant: { name: 'Service', params: { serviceId: 'plant' } },
+  sales: { name: 'Service', params: { serviceId: 'sales' } },
+  employee: { name: 'Service', params: { serviceId: 'employee' } },
+  po: { name: 'Service', params: { serviceId: 'po' } },
+  requisition: { name: 'Service', params: { serviceId: 'requisition' } },
+  inventory: { name: 'Service', params: { serviceId: 'inventory' } },
+}
+
+const navigate = (page: string) => {
+  const routeConfig = routeMap[page]
+
+  if (routeConfig) {
+    router.push({
+      name: routeConfig.name,
+      params: routeConfig.params
+    })
+  } else {
+    router.push({ name: page })
+  }
+
+  if (window.innerWidth < 600) sidebarOpen.value = false
+}
+
 watch(user, (newUser) => {
-  if (!newUser && route.name !== 'login') {
-    router.push({ name: 'login' })
+  if (!newUser && route.name !== 'Login') {
+    router.push({ name: 'Login' })
   }
 })
 
@@ -73,7 +114,7 @@ onMounted(() => {
 
 const handleLogout = () => {
   logout()
-  router.push({ name: 'login' })
+  router.push({ name: 'Login' })
 }
 
 const toggleTheme = () => {
@@ -89,11 +130,6 @@ const toggleSidebar = () => {
 
 const openDrawer = () => console.log('Open search drawer')
 const openSettings = () => console.log('Open settings')
-
-const navigate = (page: string) => {
-  router.push({ name: page })
-  if (window.innerWidth < 600) sidebarOpen.value = false
-}
 </script>
 
 <style scoped>
