@@ -5,7 +5,7 @@
     <div class="header-section mb-6">
       <div class="header-content">
         <div class="header-icon-wrapper">
-          <v-icon :icon="currentService.icon" size="28" color="primary" />
+          <v-icon :icon="currentService.icon" size="28" :color="iconColor" />
         </div>
         <div class="header-text">
           <h2 class="text-h4 font-weight-bold text-primary">
@@ -45,7 +45,7 @@
           >
             <div class="col-icon">
               <div class="service-icon-wrapper">
-                <v-icon :icon="service.icon || 'mdi-cog'" size="20" color="primary" />
+                <v-icon :icon="service.icon || 'mdi-cog'" size="20" :color="iconColor" />
               </div>
             </div>
 
@@ -60,7 +60,7 @@
             <div class="col-action">
               <div class="service-action">
                 <span class="action-text">View</span>
-                <v-icon icon="mdi-arrow-right" size="18" color="primary" />
+                <v-icon icon="mdi-arrow-right" size="18" :color="iconColor" />
               </div>
             </div>
           </div>
@@ -72,6 +72,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useTheme } from 'vuetify'
 
 interface ServiceItem {
   name: string
@@ -93,6 +94,10 @@ interface ServiceConfig {
   description: string
   sections: ServiceSection[]
 }
+
+const theme = useTheme()
+const isDark = computed(() => theme.current.value.dark)
+const iconColor = computed(() => isDark.value ? '#ffffff' : 'primary')
 
 const props = defineProps<{
   serviceId: string

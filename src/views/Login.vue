@@ -23,25 +23,26 @@
                 <!-- Wordmark -->
                 <div class="text-center mb-1">
                   <span class="text-h5 font-weight-black" :style="{
-                    color: themeColors.kotraText,
+                    color: '#111936',
                     letterSpacing: '-0.5px',
                     fontSize: 'clamp(1.25rem, 2.5vw, 1.75rem)'
                   }">KOTRA</span>
                   <span class="text-h5 font-weight-black" :style="{
-                    color: themeColors.hubText,
+                    color: '#0f9d9a',
                     letterSpacing: '-0.5px',
                     fontSize: 'clamp(1.25rem, 2.5vw, 1.75rem)'
                   }">HUB</span>
                 </div>
+
                 <p class="text-center text-subtitle-2 font-weight-medium mb-4" :style="{
-                  color: themeColors.textMuted,
+                  color: '#64748b',
                   fontSize: 'clamp(0.7rem, 1vw, 0.8rem)'
                 }">Unified Digital Ecosystem</p>
 
                 <!-- STEP 1: Credentials -->
                 <div v-if="loginStep === 1">
                   <v-text-field v-model="loginUsername" label="Username" variant="outlined" density="comfortable"
-                    class="mb-2" prepend-inner-icon="mdi-account" rounded="lg" :bg-color="themeColors.bgLight"
+                    class="mb-2" prepend-inner-icon="mdi-account" rounded="lg" bg-color="#ffffff"
                     hide-details :color="themeColors.primary">
                   </v-text-field>
 
@@ -49,7 +50,7 @@
                     variant="outlined" density="comfortable" class="mb-3" prepend-inner-icon="mdi-lock"
                     :append-inner-icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'"
                     @click:append-inner="showPassword = !showPassword" @keyup.enter="verifyCredentials" rounded="lg"
-                    :bg-color="themeColors.bgLight" hide-details :color="themeColors.primary">
+                    bg-color="#ffffff" hide-details :color="themeColors.primary">
                   </v-text-field>
 
                   <div class="d-flex flex-column ga-2">
@@ -152,15 +153,17 @@
                   <div class="d-flex align-center justify-center ga-2 mb-3">
                     <v-icon size="22" :color="themeColors.primary">mdi-shield-lock</v-icon>
                     <span class="text-subtitle-1 font-weight-medium"
-                      :style="{ color: themeColors.textSecondary }">Two-Factor Authentication</span>
+                      :style="{ color: '#1e293b' }">
+                      Two-Factor Authentication
+                    </span>
                   </div>
-                  <p class="text-center text-body-2 mb-4" :style="{ color: themeColors.textMuted }">
+                  <p class="text-center text-body-2 mb-4" :style="{ color: '#64748b' }">
                     Enter the 6-digit verification code sent to your email
                   </p>
                   <div class="d-flex justify-center ga-2 mb-4">
                     <v-otp-input ref="otpInputRef" v-model="otpCode" :length="6" type="number" variant="outlined"
-                      density="comfortable" :bg-color="themeColors.bgLight" style="width: 100%; max-width: 320px;"
-                      @update:model-value="onOtpComplete" :color="themeColors.textLight">
+                      density="comfortable" bg-color="#000000" style="width: 100%; max-width: 320px;"
+                      @update:model-value="onOtpComplete" color="#ffffff">
                     </v-otp-input>
                   </div>
 
