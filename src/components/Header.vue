@@ -281,11 +281,28 @@
       </div>
     </div>
   </div>
+
+  <!-- DIALOG POPUP SECTON -->
+  <DialogPopup
+    v-model="noticeModalOpen"
+    :title="currentNotice?.title || 'Important Notice'"
+    :subtitle="currentNotice?.fullDate || currentNotice?.date || ''"
+    icon="mdi-bell"
+    icon-color="#d97706"
+    width="680"
+    :show-bm="!!currentNotice?.bm"
+    :warning="currentNotice?.warning || ''"
+    :bm-content="bmContentHtml"
+    :actions="dialogActions"
+  >
+    <div v-html="noticeBodyHtml"></div>
+  </DialogPopup>
 </template>
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useTheme } from 'vuetify'
+import DialogPopup from '@/components/DialogPopup.vue'
 
 // PROPS & EMITS
 const props = defineProps<{
@@ -404,7 +421,7 @@ const importantNoticeList = ref([
       "Thank you for your understanding.",
     ],
     warning: "Employees are advised not to perform critical transactions during the maintenance window. If you experience access issues after the maintenance period, please contact the relevant support team.",
-    signoff: "<em>Best regards,</em><br><br><strong>Idzni</strong><br>Associate Infrastructure Engineer (IT)<br>KOTRA PHARMA (M) Sdn Bhd",
+    signoff: "<em>Best regards,</em><br><strong>Idzni</strong><br>Associate Infrastructure Engineer (IT)<br>KOTRA PHARMA (M) Sdn Bhd",
     bm: {
       title: "Notis Gangguan Sistem Pencegahan Ad Hoc",
       body: [
@@ -419,6 +436,41 @@ const importantNoticeList = ref([
 const showImportantNotice = ref(true)
 const activeNoticeId = ref('')
 const noticeModalOpen = ref(false)
+
+// DIALOG
+const currentNotice = computed(() => {
+  return importantNoticeList.value.find(n => n.id === activeNoticeId.value) || importantNoticeList.value[0]
+})
+
+const noticeBodyHtml = computed(() => {
+  const notice = currentNotice.value
+  if (!notice) return ''
+
+  let html = notice.body.map((item) => {
+    if (item.includes('<ul')) {
+      return item
+    }
+    return `<p>${item}</p>`
+  }).join('')
+
+  if (notice.signoff) {
+    html += `<div class="mt-4 pt-4 border-t" style="border-color: ${themeColors.value.border}; font-style: italic; color: ${themeColors.value.textMuted};">${notice.signoff}</div>`
+  }
+
+  return html
+})
+
+const bmContentHtml = computed(() => {
+  const notice = currentNotice.value
+  if (!notice?.bm) return ''
+
+  const bmBody = notice.bm.body.map(item => `<p>${item}</p>`).join('')
+  return `<p class="mb-2 font-bold" style="color: ${themeColors.value.darkText};">${notice.bm.title}</p>${bmBody}`
+})
+
+// Dialog Actions
+const dialogActions = computed(() => [])
+
 
 // LOGOUT
 const handleLogout = () => {

@@ -62,5 +62,8 @@ export type ThemeTypes = {
     viewAllText?: string;
     viewAllBorder?: string;
     black?: string;
+    bmBg?: string;
+    closeBtn?: string;
+    closeBtnHover?: string;
   };
 };

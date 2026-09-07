@@ -39,6 +39,9 @@ const colors = {
   bgGrey: '#f1f5f9',
   bgSuccess: '#f0fdf4',
   bgError: '#fef2f2',
+  bmBg: '#f8fafc',
+  closeBtn: 'rgba(223, 229, 238, 0.69)',
+  closeBtnHover: 'rgba(238, 240, 241, 0.73)',
 
   // Black
   black: '#000000',
@@ -103,6 +106,9 @@ const LightTheme: ThemeTypes = {
     bgLight: colors.bgLight,
     bgHover: colors.bgHover,
     bgGrey: colors.bgGrey,
+    bmBg: colors.bmBg,
+    closeBtn: colors.closeBtn,
+    closeBtnHover: colors.closeBtnHover,
 
     // Borders
     borderLight: colors.border,
@@ -202,6 +208,9 @@ const DarkTheme: ThemeTypes = {
     bgLight: '#1e293b',
     bgHover: '#2a2a2a',
     bgGrey: '#1e293b',
+    bmBg: 'rgba(255, 255, 255, 0.1)',
+    closeBtn: 'rgba(62, 60, 60, 0.23)',
+    closeBtnHover: 'rgba(112, 108, 108, 0.8)',
 
     // Borders
     borderLight: '#2a2a2a',
