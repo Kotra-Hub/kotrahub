@@ -29,8 +29,12 @@
       <!-- Main Content -->
       <main class="content-wrapper">
         <v-container fluid class="pa-4">
-          <!-- Vue Router handles all pages automatically -->
-          <router-view />
+          <!-- Router -->
+          <router-view v-slot="{ Component }">
+            <transition name="page-fade" mode="out-in">
+              <component :is="Component" />
+            </transition>
+          </router-view>
         </v-container>
       </main>
 
@@ -44,6 +48,8 @@
     <!-- AI Assistant -->
     <AiAssistant
       @navigate="navigate"
+      @set-dark-mode="setDarkMode"
+      @set-light-mode="setLightMode"
       @toggle-theme="toggleTheme"
       @logout="handleLogout"
     />
@@ -65,13 +71,11 @@ const theme = useTheme()
 const router = useRouter()
 const route = useRoute()
 const { user, logout } = useAuth()
-
-const isDark = ref(false)
 const sidebarOpen = ref(true)
+const savedTheme = localStorage.getItem('theme') || AppTheme.LIGHT
+const isDark = ref(savedTheme === AppTheme.DARK)
 
 const currentRouteName = computed(() => route.name as string)
-
-// Mapping of page names to route names and params
 const routeMap: Record<string, { name: string; params?: Record<string, any> }> = {
   dashboard: { name: 'Dashboard' },
   profile: { name: 'Profile Details' },
@@ -86,16 +90,43 @@ const routeMap: Record<string, { name: string; params?: Record<string, any> }> =
 const navigate = (page: string) => {
   const routeConfig = routeMap[page]
 
-  if (routeConfig) {
-    router.push({
-      name: routeConfig.name,
-      params: routeConfig.params
-    })
-  } else {
-    router.push({ name: page })
-  }
+  setTimeout(() => {
+    if (routeConfig) {
+      router.push({
+        name: routeConfig.name,
+        params: routeConfig.params
+      })
+    } else {
+      router.push({ name: page })
+    }
 
-  if (window.innerWidth < 600) sidebarOpen.value = false
+    if (window.innerWidth < 600) sidebarOpen.value = false
+  }, 400)
+}
+
+// Theme functions
+const setDarkMode = () => {
+  isDark.value = true
+  const newTheme = AppTheme.DARK
+  theme.change(newTheme)
+  localStorage.setItem('theme', newTheme)
+  document.documentElement.style.colorScheme = 'dark'
+}
+
+const setLightMode = () => {
+  isDark.value = false
+  const newTheme = AppTheme.LIGHT
+  theme.change(newTheme)
+  localStorage.setItem('theme', newTheme)
+  document.documentElement.style.colorScheme = 'light'
+}
+
+const toggleTheme = () => {
+  if (isDark.value) {
+    setLightMode()
+  } else {
+    setDarkMode()
+  }
 }
 
 watch(user, (newUser) => {
@@ -105,6 +136,8 @@ watch(user, (newUser) => {
 })
 
 onMounted(() => {
+  theme.change(savedTheme as AppTheme)
+
   const handleResize = () => {
     sidebarOpen.value = window.innerWidth >= 600
   }
@@ -117,13 +150,6 @@ const handleLogout = () => {
   router.push({ name: 'Login' })
 }
 
-const toggleTheme = () => {
-  isDark.value = !isDark.value
-  const newTheme = isDark.value ? AppTheme.DARK : AppTheme.LIGHT
-  theme.change(newTheme)
-  localStorage.setItem('theme', newTheme)
-}
-
 const toggleSidebar = () => {
   sidebarOpen.value = !sidebarOpen.value
 }
@@ -133,6 +159,17 @@ const openSettings = () => console.log('Open settings')
 </script>
 
 <style scoped>
+.page-fade-enter-active,
+.page-fade-leave-active {
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.page-fade-enter-from,
+.page-fade-leave-to {
+  opacity: 0;
+  transform: translateY(8px);
+}
+
 :deep(.v-application) {
   min-height: 100vh !important;
   height: 100% !important;
