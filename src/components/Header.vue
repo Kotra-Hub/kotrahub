@@ -472,7 +472,8 @@ const profileHeaderStyle = computed(() => ({
   width: 100%;
   height: 64px;
   margin: 0;
-  position: relative;
+  position: sticky;
+  top: 0;
   z-index: 10;
   border-bottom: 1px solid var(--border-color);
   box-sizing: border-box;
