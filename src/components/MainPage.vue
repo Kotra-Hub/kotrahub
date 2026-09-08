@@ -3,15 +3,27 @@
   <v-app>
     <!-- Header -->
     <Header
+      :key="`header-${showImportantNotice}`"
       v-if="user"
       :user="user"
       :is-dark="isDark"
+      :show-important-notice="showImportantNotice"
       @logout="handleLogout"
       @toggle-sidebar="toggleSidebar"
       @toggle-theme="toggleTheme"
       @open-drawer="openDrawer"
       @open-settings="openSettings"
       @navigate="navigate"
+      @update:show-important-notice="(val) => showImportantNotice = val"
+    />
+
+    <!-- Settings Dialog -->
+    <Settings
+      v-model="settingsDialog"
+      :is-dark="isDark"
+      :show-important-notice="showImportantNotice"
+      @toggle-theme="toggleTheme"
+      @update:show-important-notice="(val) => showImportantNotice = val"
     />
 
     <!-- Sidebar + Main Content -->
@@ -64,6 +76,7 @@ import Header from '@/components/Header.vue'
 import Sidebar from '@/components/Sidebar.vue'
 import Footer from '@/components/Footer.vue'
 import AiAssistant from '@/components/AiAssistant.vue'
+import Settings from '@/components/Settings.vue' // <-- Import Settings
 import { useAuth } from '@/composables/useAuth'
 import { AppTheme } from '@/interfaces/common.interface'
 
@@ -74,8 +87,11 @@ const { user, logout } = useAuth()
 const sidebarOpen = ref(true)
 const savedTheme = localStorage.getItem('theme') || AppTheme.LIGHT
 const isDark = ref(savedTheme === AppTheme.DARK)
+const settingsDialog = ref(false)
+const showImportantNotice = ref(true)
 
 const currentRouteName = computed(() => route.name as string)
+
 const routeMap: Record<string, { name: string; params?: Record<string, any> }> = {
   dashboard: { name: 'Dashboard' },
   profile: { name: 'Profile Details' },
@@ -88,6 +104,11 @@ const routeMap: Record<string, { name: string; params?: Record<string, any> }> =
 }
 
 const navigate = (page: string) => {
+  if (page === 'settings') {
+    openSettings()
+    return
+  }
+
   const routeConfig = routeMap[page]
 
   setTimeout(() => {
@@ -129,6 +150,10 @@ const toggleTheme = () => {
   }
 }
 
+const openSettings = () => {
+  settingsDialog.value = true
+}
+
 watch(user, (newUser) => {
   if (!newUser && route.name !== 'Login') {
     router.push({ name: 'Login' })
@@ -155,7 +180,6 @@ const toggleSidebar = () => {
 }
 
 const openDrawer = () => console.log('Open search drawer')
-const openSettings = () => console.log('Open settings')
 </script>
 
 <style scoped>

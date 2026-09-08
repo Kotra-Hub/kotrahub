@@ -259,7 +259,7 @@
                   </v-list-item-title>
                 </v-list-item>
 
-                <v-list-item @click="$emit('open-settings')" class="cursor-pointer menu-item">
+                <v-list-item  @click="$emit('navigate', 'settings')" class="cursor-pointer menu-item">
                   <template #prepend>
                     <v-icon :color="themeColors.primary" size="18">mdi-cog</v-icon>
                   </template>
@@ -308,6 +308,7 @@ import DialogPopup from '@/components/DialogPopup.vue'
 const props = defineProps<{
   user: { name: string; email: string; role: string }
   isDark: boolean
+  showImportantNotice?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -317,6 +318,7 @@ const emit = defineEmits<{
   (e: 'open-drawer'): void
   (e: 'open-settings'): void
   (e: 'navigate', page: string): void
+  (e: 'update:show-important-notice', value: boolean): void
 }>()
 
 // THEME
@@ -433,9 +435,13 @@ const importantNoticeList = ref([
   }
 ])
 
-const showImportantNotice = ref(true)
 const activeNoticeId = ref('')
 const noticeModalOpen = ref(false)
+
+const showImportantNotice = computed({
+  get: () => props.showImportantNotice ?? true,
+  set: (val) => emit('update:show-important-notice', val)
+})
 
 // DIALOG
 const currentNotice = computed(() => {
