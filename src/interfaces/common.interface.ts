@@ -1,5 +1,5 @@
 import { kpCurrencyCode, kpCurrencyName } from "@/utils/consts/kConsts";
-import type { CrtUser, EmployeeBasic } from "@/modules/employee/employee.interface";
+//import type { CrtUser, EmployeeBasic } from "@/modules/employee/employee.interface";
 
 export enum SnackbarColor {
   SUCCESS = '#4CAF50',
@@ -342,7 +342,7 @@ export interface Attachment {
   entityName: string;
   dtCreated?: Date;
   dtUpdated?: Date;
-  crtUser?: EmployeeBasic;
+  //crtUser?: EmployeeBasic;
 }
 
 export interface AttachmentBasic {
@@ -379,13 +379,13 @@ export interface EntityAction {
   action: string;
   remarks?: string;
   attachmentIds?: string[];
-  crtUser?: CrtUser;
+  //crtUser?: CrtUser;
   departmentId?: string;
 }
 
 export interface DownloadPDF {
   id: string;
-  crtUser?: CrtUser;
+  //crtUser?: CrtUser;
 }
 
 export interface MonthlyData {

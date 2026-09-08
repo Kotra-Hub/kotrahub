@@ -1,4 +1,4 @@
-import type { EmployeeBasic } from "@/modules/employee/employee.interface";
+//import type { EmployeeBasic } from "@/modules/employee/employee.interface";
 
 export enum EntityTypes {
   GENERIC                   = 'generic',
@@ -55,7 +55,7 @@ export interface EntityType {
   description: string;
   dtCreated?: Date;
   dtUpdated?: Date;
-  crtUser?: EmployeeBasic;
+  //crtUser?: EmployeeBasic;
 }
 
 export const newEntityType: EntityType = {

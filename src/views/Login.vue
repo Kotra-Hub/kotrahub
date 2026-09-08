@@ -218,9 +218,9 @@ const router = useRouter()
 const { login } = useAuth()
 
 // Define emits
-const emit = defineEmits<{
-  (e: 'login-success', user: { username: string; name: string; role: string; email: string; department: string }): void
-}>()
+//const emit = defineEmits<{
+//  (e: 'login-success', user: { username: string; name: string; role: string; email: string; department: string }): void
+//}>()
 
 // Theme
 const theme = useTheme()

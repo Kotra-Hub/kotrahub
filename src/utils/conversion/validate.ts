@@ -9,14 +9,14 @@ export const requiredField = (value: string) => {
 
 export const isValidEmail = (value: string) => {
   if (!value || value.trim() === '') return true;
-  
+
   const pattern = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
   return pattern.test(value) || 'invalid email address';
 }
 
 export const isValidMobile = (value: string) => {
   if (!value || value.trim() === '') return true;
-  
+
   return value?.match(/\d/g)?.length===9 || 'invalid mobile number';
 }
 
@@ -197,19 +197,21 @@ export const minAmount = (value: number) => {
 
 export const attachFileRules = (files: File[]) => {
   let messages: any[] = [];
-  files.forEach((f: File, i: number) => {
+
+  files.forEach((f: File) => {
     // return !files || !files.length || f.size < 2000000 || `The size of the file '${f.name}' should be less than 2 MB!`
     if (f.size > 2000000) {
       messages.push(`The size of the file '${f.name}' should be less than 2 MB!`);
     }
   });
-  return !files || !files.length || !messages.length || messages[0].toLocaleString()
+
+  return !files || !files.length || !messages.length || messages[0].toLocaleString();
 }
 
 export const getInitials = (type: string): string => {
   if (!type) return '';
   const parts = type.trim().split(/\s+/);
-  return (parts.length === 1) 
+  return (parts.length === 1)
     ? parts[0].substring(0, 2).toUpperCase() // if only one word, use first two letters
     : (parts[0][0] + parts[1][0]).toUpperCase(); // use first letter of first two words
 };
