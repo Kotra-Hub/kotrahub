@@ -65,6 +65,13 @@
       @toggle-theme="toggleTheme"
       @logout="handleLogout"
     />
+
+    <!-- Navigation Loading Overlay -->
+    <LoadingOverlay
+      v-model="navigationLoading"
+      :title="navigationTitle"
+      :message="navigationMessage"
+    />
   </v-app>
 </template>
 
@@ -76,7 +83,8 @@ import Header from '@/components/Header.vue'
 import Sidebar from '@/components/Sidebar.vue'
 import Footer from '@/components/Footer.vue'
 import AiAssistant from '@/components/AiAssistant.vue'
-import Settings from '@/components/Settings.vue' // <-- Import Settings
+import Settings from '@/components/Settings.vue'
+import LoadingOverlay from '@/components/LoadingOverlay.vue'
 import { useAuth } from '@/composables/useAuth'
 import { AppTheme } from '@/interfaces/common.interface'
 
@@ -90,7 +98,26 @@ const isDark = ref(savedTheme === AppTheme.DARK)
 const settingsDialog = ref(false)
 const showImportantNotice = ref(true)
 
+// Navigation loading state
+const navigationLoading = ref(false)
+const navigationTitle = ref('Loading...')
+const navigationMessage = ref('')
+
 const currentRouteName = computed(() => route.name as string)
+const pageDisplayNames: Record<string, string> = {
+  // Route names
+  'Dashboard': 'Dashboard',
+  'Profile Details': 'Profile',
+  'Service': 'Service',
+
+  // Service IDs (for dynamic routes)
+  'plant': 'Plant Management',
+  'sales': 'Sales Management',
+  'employee': 'Employee Management',
+  'po': 'Purchase Orders',
+  'requisition': 'Requisition',
+  'inventory': 'Inventory Management',
+}
 
 const routeMap: Record<string, { name: string; params?: Record<string, any> }> = {
   dashboard: { name: 'Dashboard' },
@@ -103,11 +130,36 @@ const routeMap: Record<string, { name: string; params?: Record<string, any> }> =
   inventory: { name: 'Service', params: { serviceId: 'inventory' } },
 }
 
+const getPageDisplayName = (routeName: string | undefined, routeParams?: Record<string, any>): string => {
+  if (!routeName) return 'Page'
+
+  if (routeName === 'Service' && routeParams?.serviceId) {
+    const serviceId = routeParams.serviceId as string
+    return pageDisplayNames[serviceId] || serviceId.charAt(0).toUpperCase() + serviceId.slice(1) + ' Management'
+  }
+
+  return pageDisplayNames[routeName] || routeName
+}
+
+const showLoading = (pageName: string) => {
+  // Title always stays "Loading..."
+  navigationTitle.value = 'Loading...'
+  // Message changes to "Opening XXX..."
+  navigationMessage.value = `Opening ${pageName}...`
+  navigationLoading.value = true
+}
+
 const navigate = (page: string) => {
   if (page === 'settings') {
     openSettings()
     return
   }
+
+  // Get the display name for the page
+  const pageKey = page === 'profile' ? 'profile' : page
+  const displayName = getPageDisplayName(pageKey)
+
+  showLoading(displayName)
 
   const routeConfig = routeMap[page]
 
@@ -121,9 +173,50 @@ const navigate = (page: string) => {
       router.push({ name: page })
     }
 
+    setTimeout(() => {
+      navigationLoading.value = false
+    }, 600)
+
     if (window.innerWidth < 600) sidebarOpen.value = false
   }, 400)
 }
+
+watch(
+  () => [route.name, route.params],
+  ([newRouteName, newParams]) => {
+    if (newRouteName && typeof newRouteName === 'string') {
+      const displayName = getPageDisplayName(newRouteName, newParams as Record<string, any>)
+
+      if (navigationLoading.value === false) {
+        showLoading(displayName)
+
+        // Hide after navigation completes
+        setTimeout(() => {
+          navigationLoading.value = false
+        }, 500)
+      }
+    }
+  },
+  { immediate: false }
+)
+
+router.beforeEach((to, from, next) => {
+  if (from.name === to.name) {
+    next()
+    return
+  }
+
+  const displayName = getPageDisplayName(to.name as string, to.params as Record<string, any>)
+  showLoading(displayName)
+
+  next()
+})
+
+router.afterEach(() => {
+  setTimeout(() => {
+    navigationLoading.value = false
+  }, 500)
+})
 
 // Theme functions
 const setDarkMode = () => {
