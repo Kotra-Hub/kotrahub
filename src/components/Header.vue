@@ -95,9 +95,8 @@
         </v-text-field>
 
         <!-- Search Dropdown -->
-        <v-menu v-model="searchOpen" :activator="searchActivator" location="bottom" offset="4" min-width="400"
-          max-width="480">
-          <v-card rounded="xl" elevation="12" class="mt-1 dropdown-card">
+        <v-menu v-model="searchOpen" :activator="searchActivator" location="bottom" offset="4" width="auto" :style="{ minWidth: '100%', maxWidth: '100%' }">
+          <v-card rounded="sm" elevation="0" class="mt-1 dropdown-card" style="border: 2px solid #e2e8f0; border-radius: 12px !important; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important;">
             <div v-if="searchResults.length === 0" class="text-center py-6 text-grey">
               <v-icon size="32" class="mb-2 opacity-50">mdi-magnify</v-icon>
               <p class="text-body-2">No services found for "{{ searchQuery }}"</p>
@@ -127,7 +126,7 @@
                 <v-btn variant="text" :color="themeColors.primary" block size="small" @click="openFullSearch"
                   class="font-weight-semibold" style="font-size: 12px;">
                   <v-icon size="14" class="mr-1">mdi-magnify</v-icon>
-                  View all results in Services →
+                  View All Results
                 </v-btn>
               </div>
             </template>
@@ -139,7 +138,7 @@
       <div class="d-flex align-center flex-shrink-0 action-cluster" style="gap: 18px;">
 
         <!-- Mobile Search -->
-        <v-btn icon variant="text" class="action-btn d-md-none" @click="$emit('open-drawer')">
+        <v-btn icon variant="text" class="action-btn d-md-none" @click="mobileSearchOpen = true">
           <v-icon size="20">mdi-magnify</v-icon>
         </v-btn>
 
@@ -167,7 +166,7 @@
               </div>
               <v-btn v-if="unreadNotifications > 0" size="small" variant="tonal" :color="themeColors.primary" @click=""
                 class="text-caption font-weight-semibold" style="text-transform: none;">
-                Mark all read
+                Mark all as read
               </v-btn>
             </div>
             <v-divider />
@@ -297,6 +296,86 @@
   >
     <div v-html="noticeBodyHtml"></div>
   </DialogPopup>
+
+  <!-- Mobile Search Drawer -->
+  <v-navigation-drawer
+    v-model="mobileSearchOpen"
+    location="top"
+    temporary
+    height="auto"
+    class="mobile-search-drawer"
+  >
+    <div class="mobile-search-content">
+      <v-text-field
+        v-model="searchQuery"
+        placeholder="Search apps, services, actions..."
+        variant="outlined"
+        rounded="lg"
+        prepend-inner-icon="mdi-magnify"
+        hide-details
+        autofocus
+        @input="searchOpen = true"
+        @keydown.esc="closeMobileSearch"
+        :color="themeColors.primary"
+        class="flex-shrink-0"
+      >
+        <template #append-inner>
+          <v-btn icon size="small" @click="closeMobileSearch" class="mobile-close-btn">
+            <v-icon size="18">mdi-close</v-icon>
+          </v-btn>
+        </template>
+      </v-text-field>
+
+      <!-- Scrollable results container -->
+      <div class="mt-2 mobile-results">
+        <div v-if="searchResults.length > 0">
+          <div v-if="!searchQuery" class="pa-2">
+            <div class="text-caption font-weight-bold text-grey quick-access-label">
+              Quick Access
+            </div>
+          </div>
+
+          <v-list>
+            <template v-for="(items, category) in groupedSearchResults" :key="category">
+              <v-list-subheader class="text-caption font-weight-bold text-grey category-label">
+                {{ category }}
+              </v-list-subheader>
+              <v-list-item v-for="item in items" :key="item.id" @click="selectSearchResult(item)" class="mobile-result-item">
+                <template #prepend>
+                  <v-avatar size="32" rounded="8" :color="themeColors.primaryBg">
+                    <v-icon size="16" :color="themeColors.primary">{{ item.icon }}</v-icon>
+                  </v-avatar>
+                </template>
+                <v-list-item-title :style="{ color: themeColors.darkText }">{{ item.label }}</v-list-item-title>
+                <v-list-item-subtitle :style="{ color: themeColors.textLight }">{{ item.meta }}</v-list-item-subtitle>
+              </v-list-item>
+            </template>
+          </v-list>
+
+          <!-- View All Results Button -->
+          <div class="pa-2 border-top" :style="searchFooterStyle">
+            <v-btn
+              variant="text"
+              :color="themeColors.primary"
+              block
+              size="small"
+              @click="openFullSearch"
+              class="font-weight-semibold view-all-btn"
+              style="font-size: 12px;"
+            >
+              <v-icon size="14" class="mr-1">mdi-magnify</v-icon>
+              View All Results
+            </v-btn>
+          </div>
+        </div>
+
+        <div v-else-if="searchQuery && searchResults.length === 0" class="text-center py-6 text-grey no-results">
+          <v-icon size="32" class="mb-2 opacity-50">mdi-magnify</v-icon>
+          <p class="text-body-2">No services found for "{{ searchQuery }}"</p>
+        </div>
+      </div>
+    </div>
+  </v-navigation-drawer>
 </template>
 
 <script setup lang="ts">
@@ -315,7 +394,6 @@ const emit = defineEmits<{
   (e: 'logout'): void
   (e: 'toggle-sidebar'): void
   (e: 'toggle-theme'): void
-  (e: 'open-drawer'): void
   (e: 'open-settings'): void
   (e: 'navigate', page: string): void
   (e: 'update:show-important-notice', value: boolean): void
@@ -328,6 +406,7 @@ const toggleTheme = () => { emit('toggle-theme') }
 
 // MENU ACTIVATORS
 const searchActivator = ref<HTMLElement>()
+const mobileSearchOpen = ref(false)
 
 // USER DATA
 const userInitials = computed(() => {
@@ -363,20 +442,46 @@ const searchQuery = ref('')
 const searchOpen = ref(false)
 
 const searchItems = [
+  // Navigation
   { id: 'dashboard', label: 'Dashboard', icon: 'mdi-view-dashboard', meta: 'Home page', category: 'Navigation' },
-  { id: 'tasks', label: 'My Tasks', icon: 'mdi-check-all', meta: 'Tasks and to-dos', category: 'Navigation' },
-  { id: 'calendar', label: 'Calendar', icon: 'mdi-calendar', meta: 'View schedule', category: 'Navigation' },
-  { id: 'hr', label: 'HR Portal', icon: 'mdi-account-group', meta: 'Human Resources', category: 'Modules' },
-  { id: 'it', label: 'IT Portal', icon: 'mdi-laptop', meta: 'Information Technology', category: 'Modules' },
+  { id: 'profile', label: 'Profile Details', icon: 'mdi-account', meta: 'View and edit profile', category: 'Navigation' },
+
+  // Services
+  { id: 'plant', label: 'Plant', icon: 'mdi-factory', meta: 'Plant services', category: 'Services' },
+  { id: 'sales', label: 'Sales', icon: 'mdi-chart-line', meta: 'Sales services', category: 'Services' },
+  { id: 'employee', label: 'Staff', icon: 'mdi-account-group', meta: 'Employee services', category: 'Services' },
+  { id: 'po', label: 'Procurement', icon: 'mdi-cart', meta: 'PO services', category: 'Services' },
+  { id: 'requisition', label: 'Requisition', icon: 'mdi-file-document', meta: 'Requisition services', category: 'Services' },
+  { id: 'inventory', label: 'Inventory', icon: 'mdi-package', meta: 'Inventory services', category: 'Services' },
 ]
+
+const closeMobileSearch = () => {
+  mobileSearchOpen.value = false
+  searchQuery.value = ''
+  searchOpen.value = false
+}
 
 const searchResults = computed(() => {
   const query = searchQuery.value.toLowerCase().trim()
-  if (!query) return []
-  return searchItems.filter(item =>
-    item.label.toLowerCase().includes(query) ||
-    item.meta.toLowerCase().includes(query)
-  )
+
+  if (query) {
+    return searchItems.filter(item =>
+      item.label.toLowerCase().includes(query) ||
+      item.meta.toLowerCase().includes(query)
+    )
+  }
+
+  const defaultItems = [
+    'dashboard',
+    'profile',
+    'plant',
+    'sales',
+    'employee'
+  ]
+
+  return searchItems
+    .filter(item => defaultItems.includes(item.id))
+    .slice(0, 5)
 })
 
 const groupedSearchResults = computed(() => {
@@ -398,13 +503,15 @@ const focusSearch = () => {
 const selectSearchResult = (item: any) => {
   searchQuery.value = ''
   searchOpen.value = false
+  mobileSearchOpen.value = false
   emit('navigate', item.id)
 }
 
 const openFullSearch = () => {
   searchQuery.value = ''
   searchOpen.value = false
-  emit('navigate', 'all-services')
+  mobileSearchOpen.value = false
+  //emit('navigate', 'all-services')
 }
 
 // IMPORTANT NOTICE
@@ -507,7 +614,6 @@ const profileHeaderStyle = computed(() => ({
 </script>
 
 <style scoped>
-/* IMPORTANT NOTICE */
 .important-notice-wrapper {
   position: relative;
   top: auto;
@@ -525,7 +631,6 @@ const profileHeaderStyle = computed(() => ({
   background: #fef7e8;
 }
 
-/* HEADER */
 .header-bar {
   width: 100%;
   height: 64px;
@@ -537,7 +642,6 @@ const profileHeaderStyle = computed(() => ({
   box-sizing: border-box;
 }
 
-/* 3D CLOSE BUTTON */
 .close-btn-3d {
   width: 24px !important;
   height: 24px !important;
@@ -573,18 +677,17 @@ const profileHeaderStyle = computed(() => ({
   justify-content: center;
 }
 
-/* MENU BUTTON */
 .menu-btn {
   width: 36px !important;
   height: 36px !important;
   min-width: 36px !important;
   border-radius: 12px !important;
-  color: var(--light-text) !important;
+  color: rgb(var(--light-text)) !important;
   transition: background 0.15s ease, color 0.15s ease;
 }
 
 .menu-btn:hover {
-  background: var(--gray100) !important;
+  background: rgb(var(--gray100)) !important;
   color: var(--primary) !important;
 }
 
@@ -596,7 +699,6 @@ const profileHeaderStyle = computed(() => ({
   }
 }
 
-/* LOGO */
 .logo-wrapper {
   width: 32px;
   height: 32px;
@@ -639,7 +741,6 @@ const profileHeaderStyle = computed(() => ({
   }
 }
 
-/* SEARCH */
 .search-container {
   flex: 1;
   max-width: 576px;
@@ -657,11 +758,11 @@ const profileHeaderStyle = computed(() => ({
 }
 
 .search-field :deep(.v-field__outline) {
-  border-color: var(--border-color);
+  border-color: rgb(var(--border-color));
 }
 
 .search-field :deep(.v-field--focused .v-field__outline) {
-  border-color: var(--primary);
+  border-color: rgb(var(--primary));
 }
 
 /* ACTION BUTTONS */
@@ -696,18 +797,16 @@ const profileHeaderStyle = computed(() => ({
   }
 }
 
-/* NOTIFICATION BADGE */
 .notification-badge :deep(.v-badge__badge) {
   font-size: 9px !important;
   min-width: 17px !important;
   height: 17px !important;
   font-weight: 700 !important;
-  box-shadow: 0 0 0 2px var(--surface);
+  box-shadow: 0 0 0 2px rgb(var(--surface));
 }
 
-/* DROPDOWN CARDS */
 .dropdown-card {
-  border: 1px solid var(--border-light);
+  border: 1px solid rgb(var(--border-light));
   overflow: hidden;
 }
 
@@ -715,7 +814,6 @@ const profileHeaderStyle = computed(() => ({
   width: 100%;
 }
 
-/* NOTIFICATION ITEMS */
 .notif-item {
   padding-top: 10px !important;
   padding-bottom: 10px !important;
@@ -723,18 +821,18 @@ const profileHeaderStyle = computed(() => ({
 }
 
 .notif-item:hover {
-  background: var(--bg-light) !important;
+  background: rgb(var(--bg-light)) !important;
 }
 
 .notif-item--unread {
-  background: var(--primary-bg);
+  background: rgb(var(--primary-bg));
 }
 
 .unread-dot {
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: var(--primary);
+  background: rgb(var(--primary));
   display: inline-block;
   margin-top: 6px;
 }
@@ -774,7 +872,7 @@ const profileHeaderStyle = computed(() => ({
   width: 28px !important;
   height: 28px !important;
   min-width: 28px !important;
-  border: 2px solid var(--surface);
+  border: 2px solid rgb(var(--surface));
 }
 
 .status-dot {
@@ -784,7 +882,7 @@ const profileHeaderStyle = computed(() => ({
   width: 9px;
   height: 9px;
   border-radius: 50%;
-  border: 2px solid var(--surface);
+  border: 2px solid rgb(var(--surface));
 }
 
 .chevron {
@@ -845,10 +943,9 @@ const profileHeaderStyle = computed(() => ({
 }
 
 .menu-item--danger:hover {
-  background: var(--lighterror);
+  background: rgb(var(--lighterror));
 }
 
-/* SEARCH RESULTS */
 .result-item {
   transition: background 0.12s ease;
 }
@@ -858,13 +955,160 @@ const profileHeaderStyle = computed(() => ({
 }
 
 .border-bottom {
-  border-bottom: 1px solid var(--border-light);
+  border-bottom: 1px solid rgb(var(--border-light));
 }
 
-/* RESPONSIVE BREAKPOINTS */
+.mobile-search-drawer {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  width: 100% !important;
+  height: auto !important;
+  max-height: 90vh !important;
+  background: rgb(var(--v-theme-surface)) !important;
+  border-radius: 0 0 16px 16px !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2) !important;
+  overflow: hidden !important;
+  z-index: 9999 !important;
+}
+
+.mobile-search-drawer .v-navigation-drawer__content {
+  overflow: visible !important;
+  padding: 20px !important;
+  background: rgb(var(--v-theme-surface)) !important;
+}
+
+.mobile-search-content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: rgb(var(--v-theme-surface)) !important;
+}
+
+.mobile-results {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  max-height: calc(80vh - 80px);
+  background: rgb(var(--v-theme-surface)) !important;
+}
+
+.mobile-search-drawer .v-field {
+  background: rgb(var(--bg-light)) !important;
+  border-radius: 12px !important;
+}
+
+.mobile-search-drawer .v-field__input {
+  color: rgb(var(--dark-text)) !important;
+}
+
+.mobile-search-drawer .v-field__input::placeholder {
+  color: rgb(var(--text-muted)) !important;
+}
+
+.mobile-close-btn {
+  color: rgb(var(--text-muted)) !important;
+}
+
+.mobile-close-btn:hover {
+  color: rgb(var(--dark-text)) !important;
+}
+
+/* Mobile search results */
+.mobile-result-item {
+  border-radius: 8px !important;
+  transition: background 0.12s ease !important;
+}
+
+.mobile-result-item:hover {
+  background: rgb(var(--bg-hover)) !important;
+}
+
+.mobile-result-item .v-list-item-title {
+  color: rgb(var(--dark-text)) !important;
+}
+
+.mobile-result-item .v-list-item-subtitle {
+  color: rgb(var(--text-muted)) !important;
+}
+
+.quick-access-label {
+  color: rgb(var(--text-muted)) !important;
+}
+
+.category-label {
+  color: rgb(var(--text-muted)) !important;
+}
+
+.no-results {
+  color: rgb(var(--text-muted)) !important;
+}
+
+.mobile-search-drawer.v-navigation-drawer--temporary {
+  transform: translateY(0) !important;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.mobile-search-drawer.v-navigation-drawer--temporary:not(.v-navigation-drawer--active) {
+  transform: translateY(-100%) !important;
+}
+
+.mobile-search-drawer .v-field__append-inner {
+  display: flex !important;
+  align-items: center !important;
+}
+
+.mobile-search-drawer .v-overlay {
+  display: none !important;
+}
+
+/* Mobile search list items */
+.mobile-search-drawer .v-list {
+  background: transparent !important;
+}
+
+.mobile-search-drawer .v-list-item {
+  background: transparent !important;
+}
+
+.mobile-search-drawer .v-list-item:hover {
+  background: rgb(var(--bg-hover)) !important;
+}
+
+.mobile-search-drawer .v-list-subheader {
+  background: transparent !important;
+}
+
+.view-all-btn {
+  border-radius: 8px !important;
+  transition: background 0.12s ease !important;
+}
+
+.view-all-btn:hover {
+  background: rgb(var(--primary-hover)) !important;
+}
+
+.border-top {
+  border-top: 1px solid rgb(var(--border-light));
+}
+
 @media (max-width: 600px) {
   .hidden-sm-and-down {
     display: none !important;
+  }
+
+  .mobile-search-drawer {
+    max-height: 95vh !important;
+    border-radius: 0 !important;
+  }
+
+  .mobile-search-drawer .v-navigation-drawer__content {
+    padding: 16px !important;
+  }
+
+  .mobile-results {
+    max-height: calc(85vh - 70px) !important;
   }
 }
 

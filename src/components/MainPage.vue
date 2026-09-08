@@ -11,7 +11,6 @@
       @logout="handleLogout"
       @toggle-sidebar="toggleSidebar"
       @toggle-theme="toggleTheme"
-      @open-drawer="openDrawer"
       @open-settings="openSettings"
       @navigate="navigate"
       @update:show-important-notice="(val) => showImportantNotice = val"
@@ -272,7 +271,6 @@ const toggleSidebar = () => {
   sidebarOpen.value = !sidebarOpen.value
 }
 
-const openDrawer = () => console.log('Open search drawer')
 </script>
 
 <style scoped>
