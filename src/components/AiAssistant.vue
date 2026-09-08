@@ -15,10 +15,6 @@
           class="ai-avatar"
         />
       </div>
-      <span class="ai-label">
-        <v-icon size="12" color="primary">mdi-flash</v-icon>
-        KPAI
-      </span>
 
       <!-- Floating Bubble -->
       <div v-if="showBubble" class="hint-bubble">

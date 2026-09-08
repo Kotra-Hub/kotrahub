@@ -4,11 +4,11 @@
   <div v-if="importantNoticeList.length > 0 && showImportantNotice" class="important-notice-wrapper">
     <div class="important-notice-banner">
       <v-container fluid class="pa-0">
-        <v-row no-gutters align="center" class="pa-1 pa-sm-2" style="min-height: 56px;">
+        <v-row no-gutters align="center" class="pa-3 pa-sm-4" style="min-height: 86px;">
           <!-- Bell Icon -->
           <v-col cols="auto" class="pr-2">
-            <v-avatar size="32" color="white" class="bell-avatar">
-              <v-icon size="18" class="bell-icon">
+            <v-avatar size="46" color="white" class="bell-avatar">
+              <v-icon size="22" class="bell-icon">
                 mdi-bell
               </v-icon>
             </v-avatar>
@@ -19,21 +19,21 @@
             <div class="d-flex align-center ga-2">
               <v-icon size="12" color="#d97706">mdi-alert</v-icon>
               <h4 class="text-truncate font-weight-bold mb-0"
-                style="font-size: 14px; line-height: 1.2; color: #071832;">
+                style="font-size: 16px; line-height: 1.3; color: #071832;">
                 {{ importantNoticeList[0].title }}
               </h4>
             </div>
 
-            <div class="d-flex align-center ga-2 mt-0" style="font-size: 11px;">
+            <div class="d-flex align-center ga-2 mt-0" style="font-size: 13px;">
               <v-icon size="10" color="#d97706">mdi-calendar</v-icon>
               <span class="text-truncate" style="color: #20314d;">
                 {{ importantNoticeList[0].fullDate || importantNoticeList[0].date }}
               </span>
               <span style="color: #20314d;">•</span>
               <v-btn variant="text" color="#d97706" size="x-small" class="font-weight-bold px-0"
-                style="font-size: 11px; min-width: auto;"
+                style="font-size: 13px; min-width: auto;"
                 @click="activeNoticeId = importantNoticeList[0].id; noticeModalOpen = true">
-                Read more
+                Tap to Read more
               </v-btn>
             </div>
           </v-col>
@@ -41,10 +41,10 @@
           <!-- Right Actions -->
           <v-col cols="auto" class="d-flex align-center ga-2">
             <v-chip color="#d97706" size="x-small" class="font-weight-bold text-uppercase"
-              style="font-size: 8px; height: 18px;">
+              style="font-size: 11px; height: 24px; padding:0 12px;">
               NEW
             </v-chip>
-            <v-btn icon size="x-small" @click="showImportantNotice = false" class="close-btn-3d">
+            <v-btn icon size="small" @click="showImportantNotice = false" class="close-btn-3d">
               <v-icon size="14">mdi-close</v-icon>
             </v-btn>
           </v-col>
@@ -793,6 +793,22 @@ const profileHeaderStyle = computed(() => ({
 
 .chevron--open {
   transform: rotate(180deg);
+}
+
+.important-notice-wrapper {
+  background: #fff8ed;
+}
+
+.important-notice-banner {
+  min-height: 86px;
+  background: #fff8ed;
+  border-bottom: 1px solid #f59e0b;
+}
+
+.close-btn-3d {
+  background: #ffffff !important;
+  border: 1px solid #f59e0b !important;
+  border-radius: 8px !important;
 }
 
 .bell-avatar {
