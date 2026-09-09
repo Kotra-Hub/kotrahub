@@ -43,7 +43,7 @@
           <!-- Router -->
           <router-view v-slot="{ Component }">
             <transition name="page-fade" mode="out-in">
-              <component :is="Component" />
+              <component :is="Component" @navigate="navigate" />
             </transition>
           </router-view>
         </v-container>
@@ -108,19 +108,21 @@ const pageDisplayNames: Record<string, string> = {
   'Dashboard': 'Dashboard',
   'Profile Details': 'Profile',
   'Service': 'Service',
+  'Recent Activities': 'Recent Activities',
 
   // Service IDs (for dynamic routes)
-  'plant': 'Plant Management',
-  'sales': 'Sales Management',
-  'employee': 'Employee Management',
-  'po': 'Purchase Orders',
-  'requisition': 'Requisition',
-  'inventory': 'Inventory Management',
+  'Plant': 'Plant Management',
+  'Sales': 'Sales Management',
+  'Employee': 'Employee Management',
+  'PO': 'Purchase Orders',
+  'Requisition': 'Requisition',
+  'Inventory': 'Inventory Management',
 }
 
 const routeMap: Record<string, { name: string; params?: Record<string, any> }> = {
   dashboard: { name: 'Dashboard' },
   profile: { name: 'Profile Details' },
+  'recent-activities': { name: 'Recent Activities'},
   plant: { name: 'Service', params: { serviceId: 'plant' } },
   sales: { name: 'Service', params: { serviceId: 'sales' } },
   employee: { name: 'Service', params: { serviceId: 'employee' } },

@@ -1,3 +1,4 @@
+<!-- src\views\Profile.vue -->
 <template>
   <v-container fluid class="profile-page pa-0">
     <!-- Profile Header -->

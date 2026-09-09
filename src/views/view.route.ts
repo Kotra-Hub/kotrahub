@@ -20,7 +20,16 @@ const viewRoutes: RouteRecordRaw[] = [
     meta: {
       title: 'Service'
     }
-  }
+  },
+  // Recent Activities
+  {
+    name: 'Recent Activities',
+    path: 'recent-activities',
+    component: () => import('@/views/RecentActivities.vue'),
+    meta: {
+      title: 'Recent Activities'
+    }
+  },
 ];
 
 export default viewRoutes;
