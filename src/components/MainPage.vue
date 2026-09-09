@@ -109,6 +109,11 @@ const pageDisplayNames: Record<string, string> = {
   'Profile Details': 'Profile',
   'Service': 'Service',
   'Recent Activities': 'Recent Activities',
+  'Pending Action': 'Pending Action',
+  'Quick Access': 'Quick Access',
+  'Calendar Agenda': 'Calendar Agenda',
+  'Phone Directory': 'Phone Directory',
+  'Announcement': 'Announcement',
 
   // Service IDs (for dynamic routes)
   'Plant': 'Plant Management',
@@ -123,6 +128,11 @@ const routeMap: Record<string, { name: string; params?: Record<string, any> }> =
   dashboard: { name: 'Dashboard' },
   profile: { name: 'Profile Details' },
   'recent-activities': { name: 'Recent Activities'},
+  pending: { name: 'Pending Action' },
+  quickaccess: { name: 'Quick Access' },
+  calendar: { name: 'Calendar Agenda' },
+  phonedirectory: { name: 'Phone Directory' },
+  announcements: { name: 'Announcement' },
   plant: { name: 'Service', params: { serviceId: 'plant' } },
   sales: { name: 'Service', params: { serviceId: 'sales' } },
   employee: { name: 'Service', params: { serviceId: 'employee' } },

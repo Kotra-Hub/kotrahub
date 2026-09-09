@@ -108,7 +108,7 @@
                   <span class="text-body-1 font-weight-bold activity-title text-truncate">
                     {{ activity.action }}
                   </span>
-                  <!-- Chip next to activity name -->
+                  <!-- Chip -->
                   <v-chip
                     :color="getActivityTypeColor(activity.type)"
                     size="x-small"

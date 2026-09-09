@@ -30,6 +30,60 @@ const viewRoutes: RouteRecordRaw[] = [
       title: 'Recent Activities'
     }
   },
+  // Pending Action
+  {
+    name: 'Pending Action',
+    path: 'pending',
+    component: () => import('@/views/PendingAction.vue'),
+    meta: {
+      title: 'Pending Action'
+    }
+  },
+  // Quick Access
+  {
+    name: 'Quick Access',
+    path: 'quickaccess',
+    component: () => import('@/views/QuickAccess.vue'),
+    meta: {
+      title: 'Quick Access'
+    }
+  },
+  // Quick Access
+  {
+    name: 'Quick Access',
+    path: 'quickaccess',
+    component: () => import('@/views/QuickAccess.vue'),
+    meta: {
+      title: 'Quick Access'
+    }
+  },
+  // Calendar
+  {
+    name: 'Calendar Agenda',
+    path: 'calendar',
+    component: () => import('@/views/Calendar.vue'),
+    meta: {
+      title: 'Calendar Agenda'
+    }
+  },
+  // Announcement
+  {
+    name: 'Announcement',
+    path: 'announcements',
+    component: () => import('@/views/Announcement.vue'),
+    meta: {
+      title: 'Announcement'
+    }
+  },
+  // Phone Directory
+  {
+    name: 'Phone Directory',
+    path: 'phonedirectory',
+    component: () => import('@/views/PhoneDirectory.vue'),
+    meta: {
+      title: 'Phone Directory'
+    }
+  },
 ];
 
 export default viewRoutes;
