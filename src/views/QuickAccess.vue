@@ -214,7 +214,7 @@
 import { ref, computed, watch, onMounted } from 'vue'
 
 // Emits
-const emit = defineEmits<{
+defineEmits<{
   (e: 'navigate', page: string): void
 }>()
 
