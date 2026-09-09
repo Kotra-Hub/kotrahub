@@ -488,7 +488,10 @@ const handleServiceAction = (service: ServiceItem) => {
   font-weight: 600 !important;
   color: rgb(var(--v-theme-darkText)) !important;
   white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
   display: block !important;
+  max-width: 100% !important;
 }
 
 .service-description {
@@ -498,6 +501,7 @@ const handleServiceAction = (service: ServiceItem) => {
   overflow: hidden !important;
   text-overflow: ellipsis !important;
   display: block !important;
+  max-width: 100% !important;
 }
 
 .service-action {
