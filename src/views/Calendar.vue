@@ -116,17 +116,17 @@
 
               <div class="toolbar-right">
                 <v-btn
-                  v-for="view in ['month', 'week', 'day']"
-                  :key="view"
+                  v-for="view in viewOptions"
+                  :key="view.value"
                   size="small"
                   rounded="lg"
                   class="view-btn"
-                  :variant="calendarViewMode === view ? 'flat' : 'outlined'"
-                  :color="calendarViewMode === view ? 'primary' : undefined"
-                  @click="setCalendarView(view)"
-                  :style="calendarViewMode === view ? 'color: white;' : ''"
+                  :variant="calendarViewMode === view.value ? 'flat' : 'outlined'"
+                  :color="calendarViewMode === view.value ? 'primary' : undefined"
+                  @click="setCalendarView(view.value)"
+                  :style="calendarViewMode === view.value ? 'color: white;' : ''"
                 >
-                  {{ view }}
+                  {{ view.label }}
                 </v-btn>
               </div>
             </div>
@@ -483,7 +483,7 @@ interface DayData {
 }
 
 // Emits
-const emit = defineEmits<{
+defineEmits<{
   (e: 'navigate', page: string): void
 }>()
 
@@ -495,6 +495,13 @@ const calendarSearch = ref('')
 const holidaysLoaded = ref(true)
 const eventDialog = ref(false)
 const selectedEvent = ref<CalendarEvent & { dateStr?: string } | null>(null)
+
+// View Options with proper types
+const viewOptions = [
+  { label: 'Month', value: 'month' as const },
+  { label: 'Week', value: 'week' as const },
+  { label: 'Day', value: 'day' as const }
+]
 
 // Category Options
 const categoryOptions = [
@@ -1227,7 +1234,6 @@ onMounted(() => {
 .bg-blue-50 { background-color: rgba(59, 130, 246, 0.1); }
 .bg-amber-50 { background-color: rgba(245, 158, 11, 0.1); }
 
-/* Dark mode overrides */
 :deep(.dark) .calendar-cell {
   border-color: rgba(255, 255, 255, 0.08) !important;
 }
