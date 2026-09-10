@@ -537,35 +537,39 @@ const sendChat = () => {
 const processUserMessage = (message: string): { text: string; action?: () => void } => {
   const lower = message.toLowerCase()
 
-  const routeMap: Record<string, string> = {
-    'dashboard':       'dashboard',
-    'home':            'dashboard',
-    'main':            'dashboard',
-    'profile':         'profile',
-    'my profile':      'profile',
-    'contacts':        'profile',
-    'calendar':        'calendar',
-    'tasks':           'tasks',
-    'settings':        'settings',
-    'plant':           'plant',
-    'sales':           'sales',
-    'employee':        'employee',
-    'employees':       'employee',
-    'staff':           'employee',
-    'po':              'po',
-    'purchase order':  'po',
-    'procurement':     'po',
-    'requisition':     'requisition',
-    'inventory':       'inventory',
-    'inventories':     'inventory',
-    'stock':           'inventory',
+  const routeMap: Record<string, { route: string; label: string }> = {
+    'dashboard':         { route: 'dashboard',         label: 'Dashboard' },
+    'home':              { route: 'dashboard',         label: 'Dashboard' },
+    'main':              { route: 'dashboard',         label: 'Dashboard' },
+    'profile':           { route: 'profile',           label: 'Profile' },
+    'my profile':        { route: 'profile',           label: 'Profile' },
+    'contacts':          { route: 'profile',           label: 'Profile' },
+    'calendar':          { route: 'calendar',          label: 'Calendar' },
+    'quick access':      { route: 'quickaccess',       label: 'Quick Access' },
+    'pending action':    { route: 'pending',           label: 'Pending Actions' },
+    'phone directory':   { route: 'phonedirectory',    label: 'Phone Directory' },
+    'recent activities': { route: 'recent-activities', label: 'Recent Activities' },
+    'tasks':             { route: 'tasks',             label: 'Tasks' },
+    'settings':          { route: 'settings',          label: 'Settings' },
+    'plant':             { route: 'plant',             label: 'Plant' },
+    'sales':             { route: 'sales',             label: 'Sales' },
+    'employee':          { route: 'employee',          label: 'Employee' },
+    'employees':         { route: 'employee',          label: 'Employee' },
+    'staff':             { route: 'employee',          label: 'Employee' },
+    'po':                { route: 'po',                label: 'Purchase Order' },
+    'purchase order':    { route: 'po',                label: 'Purchase Order' },
+    'procurement':       { route: 'po',                label: 'Purchase Order' },
+    'requisition':       { route: 'requisition',       label: 'Requisition' },
+    'inventory':         { route: 'inventory',         label: 'Inventory' },
+    'inventories':       { route: 'inventory',         label: 'Inventory' },
+    'stock':             { route: 'inventory',         label: 'Inventory' },
   }
 
-  for (const [key, routeName] of Object.entries(routeMap)) {
+  for (const [key, entry] of Object.entries(routeMap)) {
     if (lower.includes(key)) {
       return {
-        text: `📍 Navigating to ${routeName.charAt(0).toUpperCase() + routeName.slice(1)}...`,
-        action: () => emit('navigate', routeName)
+        text: `📍 Navigating to ${entry.label}...`,
+        action: () => emit('navigate', entry.route)
       }
     }
   }
