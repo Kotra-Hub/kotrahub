@@ -549,6 +549,7 @@ const processUserMessage = (message: string): { text: string; action?: () => voi
     'pending action':    { route: 'pending',           label: 'Pending Actions' },
     'phone directory':   { route: 'phonedirectory',    label: 'Phone Directory' },
     'recent activities': { route: 'recent-activities', label: 'Recent Activities' },
+    'announcement':      { route: 'announcements', label: 'Announcements' },
     'tasks':             { route: 'tasks',             label: 'Tasks' },
     'settings':          { route: 'settings',          label: 'Settings' },
     'plant':             { route: 'plant',             label: 'Plant' },
