@@ -22,36 +22,35 @@
       <v-divider />
 
       <!-- Tabs (mobile) -->
-      <div class="d-flex d-md-none" style="overflow-x: auto; background: rgb(var(--v-theme-surface));">
+      <div class="d-flex d-md-none settings-tabs-mobile" style="overflow-x: auto;">
         <v-btn
           v-for="tab in tabs"
           :key="tab.id"
           variant="text"
           size="small"
-          class="text-caption font-weight-semibold px-3 py-2"
+          class="text-caption font-weight-semibold settings-tab-mobile-btn"
           :class="activeTab === tab.id ? 'text-primary' : 'text-medium-emphasis'"
-          :style="{
-            borderBottom: activeTab === tab.id ? '3px solid rgb(var(--v-theme-primary))' : '3px solid transparent'
-          }"
           @click="activeTab = tab.id"
         >
+          <v-icon size="18" class="mr-1">{{ tab.icon }}</v-icon>
           {{ tab.label }}
         </v-btn>
       </div>
 
       <v-row no-gutters class="flex-grow-1" style="min-height: 380px;">
         <!-- Sidebar (desktop) -->
-        <v-col cols="3" class="d-none d-md-block" style="background: rgb(var(--v-theme-surface)); border-right: 1px solid rgb(var(--v-theme-outline-variant));">
-          <v-list density="compact" class="py-2" style="background: transparent;">
+        <v-col cols="3" class="d-none d-md-block settings-sidebar">
+          <v-list density="compact" class="py-2 settings-sidebar-list">
             <v-list-item
               v-for="tab in tabs"
               :key="tab.id"
               :active="activeTab === tab.id"
               :class="{ 'active-tab': activeTab === tab.id }"
               @click="activeTab = tab.id"
-              style="border-radius: 0; border-right: 3px solid transparent;"
+              class="settings-sidebar-item"
             >
-              <v-list-item-title class="text-body-2 font-weight-medium">
+              <v-list-item-title class="text-body-2 font-weight-medium d-flex align-center">
+                <v-icon size="16" class="settings-sidebar-icon">{{ tab.icon }}</v-icon>
                 {{ tab.label }}
               </v-list-item-title>
             </v-list-item>
@@ -204,8 +203,8 @@ const dialog = computed({
 
 // Tabs
 const tabs = [
-  { id: 'general', label: 'General' },
-  { id: 'appearance', label: 'Appearance'},
+  { id: 'general', label: 'General', icon: 'mdi-tune-variant' },
+  { id: 'appearance', label: 'Appearance', icon: 'mdi-palette-outline' },
 ]
 
 const activeTab = ref('general')
@@ -218,16 +217,6 @@ const languages = ['English', 'Bahasa Malaysia', 'Chinese']
 const isDark = ref(props.isDark ?? false)
 const themeColor = ref('#0f9d9a')
 const customColorPicker = ref(false)
-
-// Theme options
-// const themeOptions = [
-//   { name: 'Teal', color: '#0f9d9a' },
-//   { name: 'Purple', color: '#9333ea' },
-//   { name: 'Blue', color: '#2563eb' },
-//   { name: 'Green', color: '#16a34a' },
-//   { name: 'Orange', color: '#ea580c' },
-//   { name: 'Rose', color: '#e11d48' },
-// ]
 
 // Show important notice
 const showImportantNotice = computed({
@@ -254,17 +243,6 @@ function toggleTheme() {
   emit('toggle-theme')
   autoSave()
 }
-
-// function setThemeColor(color: string) {
-//   if (!/^#[0-9a-fA-F]{6}$/.test(color || '')) return
-//   themeColor.value = color
-//   const root = document.documentElement
-//   root.style.setProperty('--user-accent', color)
-//   root.setAttribute('data-user-theme', 'custom')
-//   localStorage.setItem('kotra-user-theme', color)
-//   customColorPicker.value = false
-//   autoSave()
-// }
 
 watch(() => props.isDark, (val) => {
   isDark.value = val ?? false
@@ -336,12 +314,6 @@ watch(customColorPicker, (val) => {
   pointer-events: none;
 }
 
-.active-tab {
-  background: rgba(var(--v-theme-primary), 0.08) !important;
-  border-right-color: rgb(var(--v-theme-primary)) !important;
-  color: rgb(var(--v-theme-primary)) !important;
-}
-
 .text-high-emphasis {
   color: rgb(var(--v-theme-on-surface));
 }
@@ -379,5 +351,103 @@ watch(customColorPicker, (val) => {
     opacity: 1;
     transform: scale(1) translateY(0);
   }
+}
+
+.settings-sidebar {
+  background: #f8fafc;
+  border-right: 1px solid rgb(var(--v-theme-outline-variant));
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+
+.settings-sidebar-list {
+  background: transparent !important;
+  padding: 0 !important;
+}
+
+.settings-sidebar-item {
+  border-radius: 0 !important;
+  padding-inline: 18px;
+  min-height: 42px;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.settings-sidebar-item .v-list-item-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #64748b;
+}
+
+.settings-sidebar-icon {
+  color: #64748b;
+  margin-inline-end: 10px;
+  transition: color 0.15s ease;
+}
+
+.settings-sidebar-item:hover {
+  background: #ffffff;
+}
+
+.settings-sidebar-item:hover .v-list-item-title,
+.settings-sidebar-item:hover .settings-sidebar-icon {
+  color: #0f172a;
+}
+
+.active-tab {
+  background: #ffffff !important;
+}
+
+.active-tab .v-list-item-title,
+.active-tab .settings-sidebar-icon {
+  color: rgb(var(--v-theme-primary)) !important;
+}
+
+.settings-tabs-mobile {
+  background: #f8fafc;
+  border-bottom: 1px solid rgb(var(--v-theme-outline-variant));
+  scrollbar-width: none;
+  align-items: stretch;
+}
+
+.settings-tabs-mobile::-webkit-scrollbar {
+  display: none;
+}
+
+.settings-tabs-mobile .settings-tab-mobile-btn {
+  border-radius: 0 !important;
+  text-transform: none;
+  letter-spacing: normal;
+  height: auto !important;
+  min-height: 44px;
+  padding: 12px 18px !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.v-theme--dark .settings-sidebar,
+.v-theme--dark .settings-tabs-mobile {
+  background: rgba(30, 41, 59, 0.6);
+}
+
+.v-theme--dark .settings-sidebar-item .v-list-item-title {
+  color: #94a3b8;
+}
+
+.v-theme--dark .settings-sidebar-icon {
+  color: #94a3b8;
+}
+
+.v-theme--dark .settings-sidebar-item:hover {
+  background: #0f172a;
+}
+
+.v-theme--dark .settings-sidebar-item:hover .v-list-item-title,
+.v-theme--dark .settings-sidebar-item:hover .settings-sidebar-icon {
+  color: #ffffff;
+}
+
+.v-theme--dark .active-tab {
+  background: #0f172a !important;
 }
 </style>
