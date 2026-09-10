@@ -63,6 +63,9 @@ export type ThemeTypes = {
     viewAllBorder?: string;
     black?: string;
     bmBg?: string;
+    settingBg?: string;
+    settingItemHover?: string;
+    settingText?: string;
     closeBtn?: string;
     closeBtnHover?: string;
   };

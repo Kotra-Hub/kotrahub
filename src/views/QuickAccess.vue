@@ -479,11 +479,7 @@ onMounted(() => {
 .my-qa-count {
   font-size: 16px;
   font-weight: 600;
-  color: #334155;
-}
-
-.dark .my-qa-count {
-  color: #e2e8f0;
+  color: rgba(var(--v-theme-on-surface));
 }
 
 .qa-list-wrapper {
@@ -619,11 +615,7 @@ onMounted(() => {
 .category-name {
   font-weight: 700;
   font-size: 17px;
-  color: #334155;
-}
-
-.dark .category-name {
-  color: #e2e8f0;
+  color: rgba(var(--v-theme-on-surface));
 }
 
 .category-badge {
@@ -721,11 +713,7 @@ onMounted(() => {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  color: #334155;
-}
-
-.dark .item-label {
-  color: #e2e8f0;
+  color: rgba(var(--v-theme-on-surface));
 }
 
 .add-btn {
@@ -781,32 +769,6 @@ onMounted(() => {
 
 .empty-subtitle {
   font-size: 16px;
-}
-
-/* Dark Mode Overrides */
-.dark .qa-item {
-  background: #0f172a;
-}
-
-.dark .qa-list-wrapper {
-  background: #0f172a;
-}
-
-.dark .category-card {
-  background: #0f172a;
-}
-
-.dark .all-access-item {
-  background: #0f172a;
-  border-color: rgba(255, 255, 255, 0.06);
-}
-
-.dark .all-access-item:hover {
-  border-color: rgba(15, 157, 154, 0.4);
-}
-
-.dark .info-message {
-  background: rgba(255, 255, 255, 0.02);
 }
 
 /* Mobile Responsive */

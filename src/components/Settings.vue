@@ -271,6 +271,8 @@ watch(customColorPicker, (val) => {
   max-height: 90vh;
   display: flex;
   flex-direction: column;
+  background: rgb(var(--v-theme-surface));
+  animation: settingsPop 0.25s ease-out;
 }
 
 .settings-select {
@@ -279,39 +281,20 @@ watch(customColorPicker, (val) => {
 
 :deep(.settings-select .v-field) {
   border-radius: 10px;
+  background: rgb(var(--v-theme-surface));
 }
 
 :deep(.settings-select .v-field__input) {
   font-size: 13px;
+  color: rgb(var(--v-theme-on-surface));
 }
 
-.theme-color-btn {
-  border-radius: 50% !important;
-  min-width: 40px !important;
-  width: 40px !important;
-  height: 40px !important;
-  padding: 0 !important;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+:deep(.settings-select .v-field--variant-outlined .v-field__outline) {
+  color: rgb(var(--v-theme-inputBorder));
 }
 
-.theme-color-btn:hover {
-  transform: scale(1.08);
-}
-
-.theme-color-btn--active {
-  box-shadow: 0 0 0 3px rgba(var(--v-theme-primary), 0.3), 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-.custom-color-btn {
-  border-style: dashed !important;
-}
-
-.custom-color-input {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  opacity: 0;
-  pointer-events: none;
+:deep(.settings-select .v-field--variant-outlined .v-field__outline--active) {
+  color: rgb(var(--v-theme-primary));
 }
 
 .text-high-emphasis {
@@ -322,40 +305,9 @@ watch(customColorPicker, (val) => {
   color: rgb(var(--v-theme-on-surface-variant));
 }
 
-.settings-card {
-  background: rgb(var(--v-theme-surface));
-}
-
-:deep(.settings-select .v-field) {
-  background: rgb(var(--v-theme-surface));
-}
-
-:deep(.settings-select .v-field--variant-outlined .v-field__outline) {
-  color: rgb(var(--v-theme-outline-variant));
-}
-
-:deep(.settings-select .v-field--variant-outlined .v-field__outline--active) {
-  color: rgb(var(--v-theme-primary));
-}
-
-.settings-card {
-  animation: settingsPop 0.25s ease-out;
-}
-
-@keyframes settingsPop {
-  0% {
-    opacity: 0;
-    transform: scale(0.95) translateY(12px);
-  }
-  100% {
-    opacity: 1;
-    transform: scale(1) translateY(0);
-  }
-}
-
 .settings-sidebar {
-  background: #f8fafc;
-  border-right: 1px solid rgb(var(--v-theme-outline-variant));
+  background: rgb(var(--v-theme-settingBg));
+  border-right: 1px solid rgb(var(--v-theme-borderLight));
   padding-top: 10px;
   padding-bottom: 10px;
 }
@@ -375,26 +327,26 @@ watch(customColorPicker, (val) => {
 .settings-sidebar-item .v-list-item-title {
   font-size: 13px;
   font-weight: 600;
-  color: #64748b;
+  color: rgb(var(--v-theme-settingText));
 }
 
 .settings-sidebar-icon {
-  color: #64748b;
+  color: rgb(var(--v-theme-settingText));
   margin-inline-end: 10px;
   transition: color 0.15s ease;
 }
 
 .settings-sidebar-item:hover {
-  background: #ffffff;
+  background: rgb(var(--v-theme-settingItemHover));
 }
 
 .settings-sidebar-item:hover .v-list-item-title,
 .settings-sidebar-item:hover .settings-sidebar-icon {
-  color: #0f172a;
+  color: rgb(var(--v-theme-on-surface));
 }
 
 .active-tab {
-  background: #ffffff !important;
+  background: rgb(var(--v-theme-settingItemHover)) !important;
 }
 
 .active-tab .v-list-item-title,
@@ -403,8 +355,8 @@ watch(customColorPicker, (val) => {
 }
 
 .settings-tabs-mobile {
-  background: #f8fafc;
-  border-bottom: 1px solid rgb(var(--v-theme-outline-variant));
+  background: rgb(var(--v-theme-bgLight));
+  border-bottom: 1px solid rgb(var(--v-theme-borderLight));
   scrollbar-width: none;
   align-items: stretch;
 }
@@ -425,29 +377,45 @@ watch(customColorPicker, (val) => {
   justify-content: center;
 }
 
-.v-theme--dark .settings-sidebar,
-.v-theme--dark .settings-tabs-mobile {
-  background: rgba(30, 41, 59, 0.6);
+.theme-color-btn {
+  border-radius: 50% !important;
+  min-width: 40px !important;
+  width: 40px !important;
+  height: 40px !important;
+  padding: 0 !important;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.v-theme--dark .settings-sidebar-item .v-list-item-title {
-  color: #94a3b8;
+.theme-color-btn:hover {
+  transform: scale(1.08);
 }
 
-.v-theme--dark .settings-sidebar-icon {
-  color: #94a3b8;
+.theme-color-btn--active {
+  box-shadow: 0 0 0 3px rgba(var(--v-theme-primary), 0.3),
+    0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
-.v-theme--dark .settings-sidebar-item:hover {
-  background: #0f172a;
+.custom-color-btn {
+  border-style: dashed !important;
 }
 
-.v-theme--dark .settings-sidebar-item:hover .v-list-item-title,
-.v-theme--dark .settings-sidebar-item:hover .settings-sidebar-icon {
-  color: #ffffff;
+.custom-color-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
 }
 
-.v-theme--dark .active-tab {
-  background: #0f172a !important;
+@keyframes settingsPop {
+  0% {
+    opacity: 0;
+    transform: scale(0.95) translateY(12px);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
 }
 </style>

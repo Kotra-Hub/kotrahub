@@ -40,6 +40,9 @@ const colors = {
   bgSuccess: '#f0fdf4',
   bgError: '#fef2f2',
   bmBg: '#f8fafc',
+  settingBg: '#f8fafc',
+  settingItemHover: '#f1f5f9',
+  settingText: '#64748b',
   closeBtn: 'rgba(223, 229, 238, 0.69)',
   closeBtnHover: 'rgba(238, 240, 241, 0.73)',
 
@@ -107,6 +110,9 @@ const LightTheme: ThemeTypes = {
     bgHover: colors.bgHover,
     bgGrey: colors.bgGrey,
     bmBg: colors.bmBg,
+    settingBg: colors.settingBg,
+    settingItemHover: colors.settingItemHover,
+    settingText: colors.settingText,
     closeBtn: colors.closeBtn,
     closeBtnHover: colors.closeBtnHover,
 
@@ -209,6 +215,9 @@ const DarkTheme: ThemeTypes = {
     bgHover: '#2a2a2a',
     bgGrey: '#1e293b',
     bmBg: 'rgba(255, 255, 255, 0.1)',
+    settingBg: '#1e293b',
+    settingItemHover: '#2a2a2a',
+    settingText: '#94a3b8',
     closeBtn: 'rgba(62, 60, 60, 0.23)',
     closeBtnHover: 'rgba(112, 108, 108, 0.8)',
 
