@@ -258,7 +258,7 @@
     <v-dialog v-model="contactDialog" max-width="500" persistent>
       <v-card rounded="xl">
         <v-card-title class="d-flex align-center gap-2 pa-4">
-          <v-icon color="primary" size="24">mdi-account</v-icon>
+          <v-icon color="primary" size="24" class="mr-2">mdi-account</v-icon>
           <span class="text-h6 font-weight-bold">Contact Details</span>
           <v-spacer />
           <v-btn icon variant="text" @click="contactDialog = false">
