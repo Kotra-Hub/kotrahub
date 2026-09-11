@@ -84,18 +84,38 @@
       </div>
 
       <!-- CENTER SECTION - Search Bar -->
-      <div ref="searchActivator" class="search-container hidden-md-and-down">
-        <v-text-field v-model="searchQuery" placeholder="Search apps, services, actions..." density="compact"
-          variant="outlined" rounded="lg" prepend-inner-icon="mdi-magnify" hide-details class="search-field"
-          @focus="searchOpen = true" @input="searchOpen = true" @blur="handleBlur" @keydown.ctrl.k.prevent="focusSearch"
-          :color="themeColors.primary">
-          <template #append-inner>
-            <kbd class="text-caption font-weight-medium" :style="kbdStyle">Ctrl+K</kbd>
+      <div class="search-container hidden-md-and-down">
+        <v-menu
+          v-model="searchOpen"
+          :close-on-content-click="false"
+          :open-on-focus="true"
+          :open-on-click="true"
+          location="bottom"
+          offset="4"
+          width="100%"
+          max-width="576"
+        >
+          <template #activator="{ props: menuProps }">
+            <v-text-field
+              v-bind="menuProps"
+              ref="searchInputRef"
+              v-model="searchQuery"
+              placeholder="Search apps, services, actions..."
+              density="compact"
+              variant="outlined"
+              rounded="lg"
+              prepend-inner-icon="mdi-magnify"
+              hide-details
+              class="search-field"
+              :color="themeColors.primary"
+              @keydown.esc="closeSearch"
+            >
+              <template #append-inner>
+                <kbd class="text-caption font-weight-medium" :style="kbdStyle">Ctrl+K</kbd>
+              </template>
+            </v-text-field>
           </template>
-        </v-text-field>
 
-        <!-- Search Dropdown -->
-        <v-menu v-model="searchOpen" :activator="searchActivator" location="bottom" offset="4" width="auto" :style="{ minWidth: '100%', maxWidth: '100%' }">
           <v-card rounded="sm" elevation="0" class="mt-1 dropdown-card" style="border: 2px solid #e2e8f0; border-radius: 12px !important; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important;">
             <div v-if="searchResults.length === 0" class="text-center py-6 text-grey">
               <v-icon size="32" class="mb-2 opacity-50">mdi-magnify</v-icon>
@@ -123,10 +143,11 @@
               </v-list>
 
               <div class="pa-2 border-t" :style="searchFooterStyle">
-                <v-btn variant="text" :color="themeColors.primary" block size="small" @click="openFullSearch"
-                  class="font-weight-semibold" style="font-size: 12px;">
+                <v-btn variant="text" :color="themeColors.primary" block size="small"
+                  @click="openFullSearch" class="font-weight-semibold" style="font-size: 12px;">
                   <v-icon size="14" class="mr-1">mdi-magnify</v-icon>
                   View All Results
+                  <v-icon size="14" class="ml-1">mdi-arrow-right</v-icon>
                 </v-btn>
               </div>
             </template>
@@ -379,9 +400,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useTheme } from 'vuetify'
 import DialogPopup from '@/components/DialogPopup.vue'
+import { getTopResults, type SearchItem } from '@/composables/useSearchData'
 
 // PROPS & EMITS
 const props = defineProps<{
@@ -395,7 +417,9 @@ const emit = defineEmits<{
   (e: 'toggle-sidebar'): void
   (e: 'toggle-theme'): void
   (e: 'open-settings'): void
+  (e: 'open-ai'): void
   (e: 'navigate', page: string): void
+  (e: 'navigate', page: string, query?: string): void
   (e: 'update:show-important-notice', value: boolean): void
 }>()
 
@@ -405,7 +429,6 @@ const themeColors = computed(() => theme.current.value.colors)
 const toggleTheme = () => { emit('toggle-theme') }
 
 // MENU ACTIVATORS
-const searchActivator = ref<HTMLElement>()
 const mobileSearchOpen = ref(false)
 
 // USER DATA
@@ -441,47 +464,14 @@ const profileOpen = ref(false)
 const searchQuery = ref('')
 const searchOpen = ref(false)
 
-const searchItems = [
-  // Navigation
-  { id: 'dashboard', label: 'Dashboard', icon: 'mdi-view-dashboard', meta: 'Home page', category: 'Navigation' },
-  { id: 'profile', label: 'Profile Details', icon: 'mdi-account', meta: 'View and edit profile', category: 'Navigation' },
-
-  // Services
-  { id: 'plant', label: 'Plant', icon: 'mdi-factory', meta: 'Plant services', category: 'Services' },
-  { id: 'sales', label: 'Sales', icon: 'mdi-chart-line', meta: 'Sales services', category: 'Services' },
-  { id: 'employee', label: 'Staff', icon: 'mdi-account-group', meta: 'Employee services', category: 'Services' },
-  { id: 'po', label: 'Procurement', icon: 'mdi-cart', meta: 'PO services', category: 'Services' },
-  { id: 'requisition', label: 'Requisition', icon: 'mdi-file-document', meta: 'Requisition services', category: 'Services' },
-  { id: 'inventory', label: 'Inventory', icon: 'mdi-package', meta: 'Inventory services', category: 'Services' },
-]
-
 const closeMobileSearch = () => {
   mobileSearchOpen.value = false
   searchQuery.value = ''
   searchOpen.value = false
 }
 
-const searchResults = computed(() => {
-  const query = searchQuery.value.toLowerCase().trim()
-
-  if (query) {
-    return searchItems.filter(item =>
-      item.label.toLowerCase().includes(query) ||
-      item.meta.toLowerCase().includes(query)
-    )
-  }
-
-  const defaultItems = [
-    'dashboard',
-    'profile',
-    'plant',
-    'sales',
-    'employee'
-  ]
-
-  return searchItems
-    .filter(item => defaultItems.includes(item.id))
-    .slice(0, 5)
+const searchResults = computed<SearchItem[]>(() => {
+  return getTopResults(searchQuery.value, 5)
 })
 
 const groupedSearchResults = computed(() => {
@@ -493,27 +483,37 @@ const groupedSearchResults = computed(() => {
   return groups
 })
 
-const handleBlur = () => { setTimeout(() => { searchOpen.value = false }, 200) }
+const searchInputRef = ref<any>(null)
 
-const focusSearch = () => {
-  const input = document.querySelector('.search-field input') as HTMLInputElement
-  if (input) { input.focus(); input.select() }
+const closeSearch = () => {
+  searchOpen.value = false
+  searchInputRef.value?.blur()
 }
 
-const selectSearchResult = (item: any) => {
+const selectSearchResult = (item: SearchItem) => {
   searchQuery.value = ''
   searchOpen.value = false
   mobileSearchOpen.value = false
+
+  if (item.id === 'settings') {
+    emit('open-settings')
+    return
+  }
+  if (item.id === 'ai-assistant') {
+    emit('open-ai')
+    return
+  }
+
   emit('navigate', item.id)
 }
 
 const openFullSearch = () => {
+  const query = searchQuery.value
   searchQuery.value = ''
   searchOpen.value = false
   mobileSearchOpen.value = false
-  //emit('navigate', 'all-services')
+  emit('navigate', 'search', query)
 }
-
 // IMPORTANT NOTICE
 const importantNoticeList = ref([
   {
@@ -611,6 +611,22 @@ const profileHeaderStyle = computed(() => ({
   borderBottom: `1px solid ${themeColors.value.borderLight}`,
   background: `linear-gradient(180deg, ${themeColors.value.primaryBg} 0%, ${themeColors.value.surface} 100%)`
 }))
+
+const handleGlobalKeydown = (e: KeyboardEvent) => {
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+    e.preventDefault()
+    searchOpen.value = true
+    searchInputRef.value?.focus()
+  }
+}
+
+onMounted(() => {
+  window.addEventListener('keydown', handleGlobalKeydown)
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('keydown', handleGlobalKeydown)
+})
 </script>
 
 <style scoped>

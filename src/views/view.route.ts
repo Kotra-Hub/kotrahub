@@ -84,6 +84,15 @@ const viewRoutes: RouteRecordRaw[] = [
       title: 'Phone Directory'
     }
   },
+  // Search Page
+  {
+    name: 'Search Page',
+    path: 'search',
+    component: () => import('@/views/SearchPage.vue'),
+    meta: {
+      title: 'Search'
+    }
+  },
 ];
 
 export default viewRoutes;

@@ -13,7 +13,7 @@
       @toggle-theme="toggleTheme"
       @open-settings="openSettings"
       @navigate="navigate"
-      @update:show-important-notice="(val) => showImportantNotice = val"
+      @update:show-important-notice="updateShowImportantNotice"
     />
 
     <!-- Settings Dialog -->
@@ -22,7 +22,7 @@
       :is-dark="isDark"
       :show-important-notice="showImportantNotice"
       @toggle-theme="toggleTheme"
-      @update:show-important-notice="(val) => showImportantNotice = val"
+      @update:show-important-notice="updateShowImportantNotice"
     />
 
     <!-- Sidebar + Main Content -->
@@ -43,7 +43,12 @@
           <!-- Router -->
           <router-view v-slot="{ Component }">
             <transition name="page-fade" mode="out-in">
-              <component :is="Component" @navigate="navigate" />
+              <component
+                :is="Component"
+                @navigate="navigate"
+                @open-settings="openSettings"
+                @open-ai="openAiAssistant"
+              />
             </transition>
           </router-view>
         </v-container>
@@ -58,6 +63,7 @@
 
     <!-- AI Assistant -->
     <AiAssistant
+      ref="aiAssistantRef"
       @navigate="navigate"
       @set-dark-mode="setDarkMode"
       @set-light-mode="setLightMode"
@@ -114,6 +120,7 @@ const pageDisplayNames: Record<string, string> = {
   'Calendar Agenda': 'Calendar Agenda',
   'Phone Directory': 'Phone Directory',
   'Announcement': 'Announcement',
+  'Search Page': 'Search Page',
 
   // Service IDs (for dynamic routes)
   'Plant': 'Plant Management',
@@ -127,12 +134,13 @@ const pageDisplayNames: Record<string, string> = {
 const routeMap: Record<string, { name: string; params?: Record<string, any> }> = {
   dashboard: { name: 'Dashboard' },
   profile: { name: 'Profile Details' },
-  'recent-activities': { name: 'Recent Activities'},
+  'recent-activities': { name: 'Recent Activities' },
   pending: { name: 'Pending Action' },
   quickaccess: { name: 'Quick Access' },
   calendar: { name: 'Calendar Agenda' },
   phonedirectory: { name: 'Phone Directory' },
   announcements: { name: 'Announcement' },
+  search: { name: 'Search Page' },
   plant: { name: 'Service', params: { serviceId: 'plant' } },
   sales: { name: 'Service', params: { serviceId: 'sales' } },
   employee: { name: 'Service', params: { serviceId: 'employee' } },
@@ -160,56 +168,19 @@ const showLoading = (pageName: string) => {
   navigationLoading.value = true
 }
 
-const navigate = (page: string) => {
-  if (page === 'settings') {
-    openSettings()
-    return
+// MainPage.vue
+const navigate = (page: string, query?: string) => {
+  const routeConfig = routeMap[page]
+  const payload = {
+    name: routeConfig?.name ?? page,
+    params: routeConfig?.params,
+    query: query ? { q: query } : undefined
   }
 
-  // Get the display name for the page
-  const pageKey = page === 'profile' ? 'profile' : page
-  const displayName = getPageDisplayName(pageKey)
+  router.push(payload)
 
-  showLoading(displayName)
-
-  const routeConfig = routeMap[page]
-
-  setTimeout(() => {
-    if (routeConfig) {
-      router.push({
-        name: routeConfig.name,
-        params: routeConfig.params
-      })
-    } else {
-      router.push({ name: page })
-    }
-
-    setTimeout(() => {
-      navigationLoading.value = false
-    }, 600)
-
-    if (window.innerWidth < 600) sidebarOpen.value = false
-  }, 400)
+  if (window.innerWidth < 600) sidebarOpen.value = false
 }
-
-watch(
-  () => [route.name, route.params],
-  ([newRouteName, newParams]) => {
-    if (newRouteName && typeof newRouteName === 'string') {
-      const displayName = getPageDisplayName(newRouteName, newParams as Record<string, any>)
-
-      if (navigationLoading.value === false) {
-        showLoading(displayName)
-
-        // Hide after navigation completes
-        setTimeout(() => {
-          navigationLoading.value = false
-        }, 500)
-      }
-    }
-  },
-  { immediate: false }
-)
 
 router.beforeEach((to, from, next) => {
   if (from.name === to.name) {
@@ -219,7 +190,6 @@ router.beforeEach((to, from, next) => {
 
   const displayName = getPageDisplayName(to.name as string, to.params as Record<string, any>)
   showLoading(displayName)
-
   next()
 })
 
@@ -254,8 +224,18 @@ const toggleTheme = () => {
   }
 }
 
+const updateShowImportantNotice = (val: boolean) => {
+  showImportantNotice.value = val
+}
+
 const openSettings = () => {
   settingsDialog.value = true
+}
+
+const aiAssistantRef = ref<InstanceType<typeof AiAssistant> | null>(null)
+
+const openAiAssistant = () => {
+  aiAssistantRef.value?.openAssistant()
 }
 
 watch(user, (newUser) => {

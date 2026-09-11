@@ -1,12 +1,7 @@
 <!-- src/components/AiAssistant.vue -->
 <template>
   <div>
-    <div
-      class="ai-assistant-trigger"
-      @click="toggleAssistant"
-      @mouseenter="startHoverTimer"
-      @mouseleave="cancelHoverTimer"
-    >
+    <div class="ai-assistant-trigger" @click="toggleAssistant">
       <div class="ai-assistant-button">
         <div class="ai-glow" />
         <img
@@ -16,13 +11,11 @@
         />
       </div>
 
-      <!-- Floating Bubble -->
       <div v-if="showBubble" class="hint-bubble">
-        <span>Need Help? Click Me!</span>
+        <span>Need Help? Click Me</span>
       </div>
     </div>
 
-    <!-- AI Assistant-->
     <Teleport to="body">
       <Transition name="ai-fade">
         <div v-if="aiOpen" class="ai-card-wrapper" :style="cardStyle">
@@ -32,7 +25,6 @@
             elevation="24"
             rounded="lg"
           >
-            <!-- Draggable Header -->
             <v-card-title
               class="ai-header pa-3"
               :class="{ 'ai-header--no-drag': isMobile }"
@@ -66,7 +58,6 @@
               </div>
             </v-card-title>
 
-            <!-- Tabs -->
             <v-tabs
               v-model="activeTab"
               color="primary"
@@ -98,13 +89,11 @@
 
             <v-divider class="ai-divider" />
 
-            <!-- Content -->
             <v-card-text class="ai-content pa-0">
               <v-window v-model="activeTab" class="ai-window">
                 <!-- Chat Tab -->
                 <v-window-item value="chat">
                   <div class="chat-container">
-                    <!-- Messages -->
                     <div ref="chatContainer" class="chat-messages">
                       <div
                         v-for="(msg, index) in chatMessages"
@@ -126,13 +115,15 @@
                           >
                             <span class="message-text">{{ msg.text }}</span>
                           </div>
-                          <span class="message-time" :class="msg.from === 'user' ? 'time-user' : 'time-ai'">
+                          <span
+                            class="message-time"
+                            :class="msg.from === 'user' ? 'time-user' : 'time-ai'"
+                          >
                             {{ msg.time }}
                           </span>
                         </div>
                       </div>
 
-                      <!-- Typing indicator -->
                       <div v-if="aiTyping" class="chat-message message-ai">
                         <v-avatar size="28" class="message-avatar">
                           <img src="@/assets/images/kpai.png" alt="AI" />
@@ -145,22 +136,6 @@
                       </div>
                     </div>
 
-                    <!-- Quick replies -->
-                    <!--<div v-if="showQuickReplies" class="quick-replies">
-                      <v-chip
-                        v-for="reply in quickReplies"
-                        :key="reply.label"
-                        size="small"
-                        variant="outlined"
-                        color="primary"
-                        class="quick-reply-chip"
-                        @click="sendQuickReply(reply.value)"
-                      >
-                        {{ reply.label }}
-                      </v-chip>
-                    </div>-->
-
-                    <!-- Input Row: Search + Send -->
                     <div class="chat-input-row">
                       <v-text-field
                         v-model="chatInput"
@@ -274,7 +249,6 @@
 <script setup lang="ts">
 import { ref, computed, nextTick, watch, onMounted, onBeforeUnmount } from 'vue'
 
-// Emits
 const emit = defineEmits<{
   toggleTheme: []
   setDarkMode: []
@@ -283,11 +257,9 @@ const emit = defineEmits<{
   navigate: [routeName: string]
 }>()
 
-// State
 const aiOpen = ref(false)
 const activeTab = ref('chat')
 const chatInput = ref('')
-const hoverTimer = ref<ReturnType<typeof setTimeout> | null>(null)
 const aiTyping = ref(false)
 const hasUnread = ref(true)
 const knowledgeSearch = ref('')
@@ -320,16 +292,6 @@ const welcomeMessage = (): ChatMessage => ({
 
 const chatMessages = ref<ChatMessage[]>([welcomeMessage()])
 
-// const quickReplies = [
-//   { label: '🏠 Dashboard', value: 'dashboard' },
-//   { label: '👤 Profile', value: 'profile' },
-//   { label: '🌙 Dark mode', value: 'dark mode' },
-//   { label: '🎫 Support', value: 'support' },
-// ]
-
-// const showQuickReplies = computed(() => chatMessages.value.length <= 1 && !aiTyping.value)
-
-// Knowledge items
 const knowledgeItems = ref([
   { title: 'User Manual v3.2', action: 'manual' },
   { title: 'Frequently Asked Questions', action: 'faq' },
@@ -340,10 +302,11 @@ const knowledgeItems = ref([
 const filteredKnowledgeItems = computed(() => {
   const q = knowledgeSearch.value.trim().toLowerCase()
   if (!q) return knowledgeItems.value
-  return knowledgeItems.value.filter((item) => item.title.toLowerCase().includes(q))
+  return knowledgeItems.value.filter((item) =>
+    item.title.toLowerCase().includes(q)
+  )
 })
 
-// Support tickets
 const supportTickets = ref([
   { id: '#4421', name: 'Login Issue', meta: 'Aug 8 · In Progress', status: 'open' },
   { id: '#4423', name: 'API Timeout', meta: 'Aug 7 · Waiting', status: 'waiting' },
@@ -354,9 +317,7 @@ const openTicketCount = computed(
   () => supportTickets.value.filter((t) => t.status !== 'closed').length
 )
 
-//Card Positioning
 const DEFAULT_MARGIN = 16
-const DIALOG_BOTTOM_OFFSET = 120
 const MOBILE_MAX = 600
 const TABLET_MAX = 1024
 
@@ -414,42 +375,23 @@ const cardStyle = computed(() => {
   }
 })
 
-const positionNearTrigger = () => {
-  calcCardSize()
-
-  const trigger = document.querySelector('.ai-assistant-trigger') as HTMLElement | null
-  const rect = trigger?.getBoundingClientRect()
-
-  let x: number
-  let y: number
-
-  if (rect) {
-    x = rect.right - cardWidth.value
-    y = rect.top - cardHeight.value - 16
-  } else {
-    x = window.innerWidth - cardWidth.value - DEFAULT_MARGIN
-    y = window.innerHeight - cardHeight.value - DIALOG_BOTTOM_OFFSET
-  }
-
-  x = Math.max(DEFAULT_MARGIN, Math.min(x, window.innerWidth - cardWidth.value - DEFAULT_MARGIN))
-  y = Math.max(DEFAULT_MARGIN, Math.min(y, window.innerHeight - cardHeight.value - DEFAULT_MARGIN))
-
-  dragPositionX.value = x
-  dragPositionY.value = y
-}
-
-// Methods
 const toggleAssistant = () => {
-  aiOpen.value = !aiOpen.value
   if (aiOpen.value) {
-    calcCardSize()
-    hasUnread.value = false
-    activeTab.value = 'chat'
-    dragPositionX.value = null
-    dragPositionY.value = null
-    showBubble.value = false
-    nextTick(() => focusChatInput())
+    aiOpen.value = false
+    showBubble.value = true
+    return
   }
+
+  dragPositionX.value = null
+  dragPositionY.value = null
+  aiOpen.value = true
+  hasUnread.value = false
+  activeTab.value = 'chat'
+  showBubble.value = false
+
+  nextTick(() => {
+    focusChatInput()
+  })
 }
 
 const closeAssistant = () => {
@@ -469,27 +411,6 @@ const resetChat = () => {
   nextTick(() => focusChatInput())
 }
 
-const startHoverTimer = () => {
-  hoverTimer.value = setTimeout(() => {
-    if (!aiOpen.value) {
-      aiOpen.value = true
-      hasUnread.value = false
-      showBubble.value = false
-      nextTick(() => {
-        if (dragPositionX.value === null) positionNearTrigger()
-        focusChatInput()
-      })
-    }
-  }, 500)
-}
-
-const cancelHoverTimer = () => {
-  if (hoverTimer.value) {
-    clearTimeout(hoverTimer.value)
-    hoverTimer.value = null
-  }
-}
-
 const focusChatInput = () => {
   const input = document.querySelector('.chat-input input') as HTMLInputElement
   if (input) {
@@ -504,11 +425,6 @@ const scrollChatToBottom = () => {
     }
   })
 }
-
-// const sendQuickReply = (value: string) => {
-//   chatInput.value = value
-//   sendChat()
-// }
 
 const sendChat = () => {
   const msg = chatInput.value.trim()
@@ -538,39 +454,39 @@ const processUserMessage = (message: string): { text: string; action?: () => voi
   const lower = message.toLowerCase()
 
   const routeMap: Record<string, { route: string; label: string }> = {
-    'dashboard':         { route: 'dashboard',         label: 'Dashboard' },
-    'home':              { route: 'dashboard',         label: 'Dashboard' },
-    'main':              { route: 'dashboard',         label: 'Dashboard' },
-    'profile':           { route: 'profile',           label: 'Profile' },
-    'my profile':        { route: 'profile',           label: 'Profile' },
-    'contacts':          { route: 'profile',           label: 'Profile' },
-    'calendar':          { route: 'calendar',          label: 'Calendar' },
-    'quick access':      { route: 'quickaccess',       label: 'Quick Access' },
-    'pending action':    { route: 'pending',           label: 'Pending Actions' },
-    'phone':             { route: 'phonedirectory',    label: 'Phone Directory' },
+    dashboard: { route: 'dashboard', label: 'Dashboard' },
+    home: { route: 'dashboard', label: 'Dashboard' },
+    main: { route: 'dashboard', label: 'Dashboard' },
+    profile: { route: 'profile', label: 'Profile' },
+    'my profile': { route: 'profile', label: 'Profile' },
+    contacts: { route: 'profile', label: 'Profile' },
+    calendar: { route: 'calendar', label: 'Calendar' },
+    'quick access': { route: 'quickaccess', label: 'Quick Access' },
+    'pending action': { route: 'pending', label: 'Pending Actions' },
+    phone: { route: 'phonedirectory', label: 'Phone Directory' },
     'recent activities': { route: 'recent-activities', label: 'Recent Activities' },
-    'announcement':      { route: 'announcements', label: 'Announcements' },
-    'tasks':             { route: 'tasks',             label: 'Tasks' },
-    'settings':          { route: 'settings',          label: 'Settings' },
-    'plant':             { route: 'plant',             label: 'Plant' },
-    'sales':             { route: 'sales',             label: 'Sales' },
-    'employee':          { route: 'employee',          label: 'Employee' },
-    'employees':         { route: 'employee',          label: 'Employee' },
-    'staff':             { route: 'employee',          label: 'Employee' },
-    'po':                { route: 'po',                label: 'Purchase Order' },
-    'purchase order':    { route: 'po',                label: 'Purchase Order' },
-    'procurement':       { route: 'po',                label: 'Purchase Order' },
-    'requisition':       { route: 'requisition',       label: 'Requisition' },
-    'inventory':         { route: 'inventory',         label: 'Inventory' },
-    'inventories':       { route: 'inventory',         label: 'Inventory' },
-    'stock':             { route: 'inventory',         label: 'Inventory' },
+    announcement: { route: 'announcements', label: 'Announcements' },
+    tasks: { route: 'tasks', label: 'Tasks' },
+    settings: { route: 'settings', label: 'Settings' },
+    plant: { route: 'plant', label: 'Plant' },
+    sales: { route: 'sales', label: 'Sales' },
+    employee: { route: 'employee', label: 'Employee' },
+    employees: { route: 'employee', label: 'Employee' },
+    staff: { route: 'employee', label: 'Employee' },
+    po: { route: 'po', label: 'Purchase Order' },
+    'purchase order': { route: 'po', label: 'Purchase Order' },
+    procurement: { route: 'po', label: 'Purchase Order' },
+    requisition: { route: 'requisition', label: 'Requisition' },
+    inventory: { route: 'inventory', label: 'Inventory' },
+    inventories: { route: 'inventory', label: 'Inventory' },
+    stock: { route: 'inventory', label: 'Inventory' },
   }
 
   for (const [key, entry] of Object.entries(routeMap)) {
     if (lower.includes(key)) {
       return {
         text: `📍 Navigating to ${entry.label}...`,
-        action: () => emit('navigate', entry.route)
+        action: () => emit('navigate', entry.route),
       }
     }
   }
@@ -578,13 +494,23 @@ const processUserMessage = (message: string): { text: string; action?: () => voi
   if (lower.includes('support') || lower.includes('ticket')) {
     return {
       text: '🎫 Here are your support tickets.',
-      action: () => { activeTab.value = 'support' }
+      action: () => {
+        activeTab.value = 'support'
+      },
     }
   }
-  if (lower.includes('faq') || lower.includes('knowledge') || lower.includes('manual') || lower.includes('help')) {
+
+  if (
+    lower.includes('faq') ||
+    lower.includes('knowledge') ||
+    lower.includes('manual') ||
+    lower.includes('help')
+  ) {
     return {
       text: '📚 Opening the Knowledge tab for you.',
-      action: () => { activeTab.value = 'knowledge' }
+      action: () => {
+        activeTab.value = 'knowledge'
+      },
     }
   }
 
@@ -649,7 +575,6 @@ const handleReportIssue = () => {
   scrollChatToBottom()
 }
 
-// Drag functionality
 const startDrag = (e: MouseEvent | TouchEvent) => {
   if (isMobile.value) return
 
@@ -715,7 +640,6 @@ const handleClickOutside = (e: MouseEvent) => {
   }
 }
 
-// Watch & Lifecycle
 watch(activeTab, (newTab) => {
   if (newTab === 'chat') {
     setTimeout(() => focusChatInput(), 100)
@@ -723,27 +647,25 @@ watch(activeTab, (newTab) => {
 })
 
 const handleKeydown = (e: KeyboardEvent) => {
-  if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'i') {
     e.preventDefault()
     if (!aiOpen.value) {
+      dragPositionX.value = null
+      dragPositionY.value = null
       aiOpen.value = true
       hasUnread.value = false
       showBubble.value = false
+      activeTab.value = 'chat'
       nextTick(() => {
-        if (dragPositionX.value === null) positionNearTrigger()
         focusChatInput()
       })
     } else if (activeTab.value === 'chat') {
       focusChatInput()
     }
   }
+
   if (e.key === 'Escape' && aiOpen.value) {
-    aiOpen.value = false
-    showBubble.value = true
-    if (bubbleTimer) clearTimeout(bubbleTimer)
-    bubbleTimer = setTimeout(() => {
-      showBubble.value = false
-    }, 5000)
+    closeAssistant()
   }
 }
 
@@ -782,10 +704,26 @@ onBeforeUnmount(() => {
   document.removeEventListener('touchmove', onDrag)
   document.removeEventListener('touchend', stopDrag)
 })
+
+const openAssistant = () => {
+  if (aiOpen.value) return
+
+  dragPositionX.value = null
+  dragPositionY.value = null
+  aiOpen.value = true
+  hasUnread.value = false
+  showBubble.value = false
+  activeTab.value = 'chat'
+
+  nextTick(() => {
+    focusChatInput()
+  })
+}
+
+defineExpose({ openAssistant })
 </script>
 
 <style scoped>
-/* AI ASSISTANT */
 .ai-assistant-trigger {
   display: flex;
   flex-direction: column;
@@ -829,21 +767,6 @@ onBeforeUnmount(() => {
   object-fit: contain;
   filter: drop-shadow(0 10px 18px rgba(15, 157, 154, 0.35));
   animation: floaty 3s ease-in-out infinite;
-}
-
-.ai-label {
-  font-size: 10px;
-  font-weight: 700;
-  padding: 4px 12px;
-  border-radius: 9999px;
-  white-space: nowrap;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  background: rgb(var(--v-theme-surface));
-  color: rgb(var(--v-theme-darkText));
-  border: 1px solid rgb(var(--v-theme-borderLight));
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 .hint-bubble {
@@ -1128,24 +1051,6 @@ onBeforeUnmount(() => {
 
 .typing-dot:nth-child(2) { animation-delay: 0.2s; }
 .typing-dot:nth-child(3) { animation-delay: 0.4s; }
-
-.quick-replies {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  padding: 8px 16px 4px;
-  flex-shrink: 0;
-  background: rgb(var(--v-theme-background));
-}
-
-.quick-reply-chip {
-  cursor: pointer;
-  color: rgb(var(--v-theme-primary)) !important;
-}
-
-.quick-reply-chip:hover {
-  background: rgb(var(--v-theme-primaryBg)) !important;
-}
 
 .chat-input-row {
   display: flex;
