@@ -1,7 +1,7 @@
 <!-- src/components/Header.vue -->
 <template>
   <!-- IMPORTANT NOTICE SECTION -->
-  <div v-if="importantNoticeList.length > 0 && showImportantNotice" class="important-notice-wrapper">
+  <div v-if="hasNotices && showImportantNotice && currentNotice" class="important-notice-wrapper">
     <div class="important-notice-banner">
       <v-container fluid class="pa-0">
         <v-row no-gutters align="center" class="pa-3 pa-sm-4" style="min-height: 86px;">
@@ -20,19 +20,19 @@
               <v-icon size="12" color="#d97706">mdi-alert</v-icon>
               <h4 class="text-truncate font-weight-bold mb-0"
                 style="font-size: 16px; line-height: 1.3; color: #071832;">
-                {{ importantNoticeList[0].title }}
+                {{ currentNotice.title }}
               </h4>
             </div>
 
             <div class="d-flex align-center ga-2 mt-0" style="font-size: 13px;">
               <v-icon size="10" color="#d97706">mdi-calendar</v-icon>
               <span class="text-truncate" style="color: #20314d;">
-                {{ importantNoticeList[0].fullDate || importantNoticeList[0].date }}
+                {{ currentNotice.fullDate || currentNotice.date }}
               </span>
               <span style="color: #20314d;">•</span>
               <v-btn variant="text" color="#d97706" size="x-small" class="font-weight-bold px-0"
                 style="font-size: 13px; min-width: auto;"
-                @click="activeNoticeId = importantNoticeList[0].id; noticeModalOpen = true">
+                @click="openNotice(currentNotice.id)">
                 Tap to Read more
               </v-btn>
             </div>
@@ -178,7 +178,8 @@
                   <template v-else>You're all caught up</template>
                 </div>
               </div>
-              <v-btn v-if="unreadNotifications > 0" size="small" variant="tonal" :color="themeColors.primary" @click=""
+              <v-btn v-if="unreadNotifications > 0" size="small" variant="tonal" :color="themeColors.primary"
+                @click="markAllAsRead"
                 class="text-caption font-weight-semibold" style="text-transform: none;">
                 Mark all as read
               </v-btn>
@@ -186,7 +187,7 @@
             <v-divider />
             <div class="notification-list" style="max-height: 360px; overflow-y: auto;">
               <v-list v-if="notifications.length > 0" class="py-1">
-                <v-list-item v-for="(notif, index) in notifications" :key="index" @click="notif.read = true"
+                <v-list-item v-for="notif in notifications" :key="notif.id" @click="markAsRead(notif.id)"
                   class="cursor-pointer notif-item" :class="{ 'notif-item--unread': !notif.read }">
                   <template #prepend>
                     <v-avatar size="36" rounded="lg"
@@ -298,13 +299,13 @@
   <!-- DIALOG POPUP SECTON -->
   <DialogPopup
     v-model="noticeModalOpen"
-    :title="currentNotice?.title || 'Important Notice'"
-    :subtitle="currentNotice?.fullDate || currentNotice?.date || ''"
+    :title="activeNotice?.title || 'Important Notice'"
+    :subtitle="activeNotice?.fullDate || activeNotice?.date || ''"
     icon="mdi-bell"
     icon-color="#d97706"
     width="680"
-    :show-bm="!!currentNotice?.bm"
-    :warning="currentNotice?.warning || ''"
+    :show-bm="!!activeNotice?.bm"
+    :warning="activeNotice?.warning || ''"
     :bm-content="bmContentHtml"
     :actions="dialogActions"
   >
@@ -397,6 +398,8 @@ import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useTheme } from 'vuetify'
 import DialogPopup from '@/components/DialogPopup.vue'
 import { getTopResults, type SearchItem } from '@/composables/useSearchData'
+import { useNotifications } from '@/composables/useNotifications'
+import { useImportantNotices } from '@/composables/useImportantNotices'
 
 // PROPS & EMITS
 const props = defineProps<{
@@ -421,6 +424,22 @@ const theme = useTheme()
 const themeColors = computed(() => theme.current.value.colors)
 const toggleTheme = () => { emit('toggle-theme') }
 
+// COMPOSABLES
+const {
+  notifications,
+  unreadCount: unreadNotifications,
+  iconFor: notificationIcon,
+  markAsRead,
+  markAllAsRead,
+} = useNotifications()
+
+const {
+  latest: currentNotice,
+  hasNotices,
+  showBanner,
+  getById: getNoticeById,
+} = useImportantNotices()
+
 // MENU ACTIVATORS
 const mobileSearchOpen = ref(false)
 
@@ -429,26 +448,6 @@ const userInitials = computed(() => {
   if (!props.user) return ''
   return props.user.name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
 })
-
-// NOTIFICATIONS
-const notifications = ref([
-  { title: 'System Maintenance / Security Alert', time: 'Today, 12:00 PM', read: false, type: 'alert' },
-  { title: 'Annual leave application submitted', time: 'Today, 11:45 AM', read: false, type: 'leave' },
-  { title: 'Leave application approved', time: 'Today, 10:20 AM', read: true, type: 'success' },
-  { title: 'New employee record created', time: 'Yesterday, 3:00 PM', read: true, type: 'hr' }
-])
-
-const unreadNotifications = computed(() => notifications.value.filter(n => !n.read).length)
-
-const notificationIcon = (notif: { type?: string }) => {
-  switch (notif.type) {
-    case 'alert': return 'mdi-alert-circle-outline'
-    case 'leave': return 'mdi-calendar-clock-outline'
-    case 'success': return 'mdi-check-circle-outline'
-    case 'hr': return 'mdi-account-plus-outline'
-    default: return 'mdi-bell-outline'
-  }
-}
 
 const notificationOpen = ref(false)
 const profileOpen = ref(false)
@@ -507,49 +506,31 @@ const openFullSearch = () => {
   mobileSearchOpen.value = false
   emit('navigate', 'search', query)
 }
-// IMPORTANT NOTICE
-const importantNoticeList = ref([
-  {
-    id: "important-1",
-    title: "Ad Hoc Preventive System Downtime",
-    date: "15-16 Aug 2026",
-    fullDate: "Saturday, 15 August 2026",
-    type: "important",
-    body: [
-      "Please be informed that an ad hoc preventive system downtime will be carried out on <strong>Saturday, 15 August 2026, starting at 10:00PM</strong>. This activity is a precautionary measure following the server issue experienced earlier this week.",
-      "The following systems will be temporarily unavailable:",
-      '<ul class="list-disc pl-6 mt-2 space-y-1"><li><strong>E-Service</strong></li><li><strong>Kotra File Server</strong></li><li><strong>SAP</strong></li><li><strong>SIS</strong></li></ul>',
-      "Services are expected to be restored by <strong>Sunday 10:00PM, 16 August 2026</strong>. An update will be provided once all systems are confirmed operational. We apologize for the short notice and any inconvenience caused.",
-      "Thank you for your understanding.",
-    ],
-    warning: "Employees are advised not to perform critical transactions during the maintenance window. If you experience access issues after the maintenance period, please contact the relevant support team.",
-    signoff: "<em>Best regards,</em><br><strong>Idzni</strong><br>Associate Infrastructure Engineer (IT)<br>KOTRA PHARMA (M) Sdn Bhd",
-    bm: {
-      title: "Notis Gangguan Sistem Pencegahan Ad Hoc",
-      body: [
-        "Dimaklumkan bahawa kerja gangguan sistem pencegahan ad hoc akan dijalankan pada <strong>Sabtu, 15 Ogos 2026, bermula jam 10:00 malam</strong>.",
-        "Sepanjang tempoh ini, beberapa perkhidmatan portal mungkin tidak dapat diakses buat sementara waktu. Sila simpan kerja anda sebelum aktiviti penyelenggaraan bermula.",
-        "Sekiranya terdapat masalah akses selepas penyelenggaraan selesai, sila hubungi pasukan sokongan yang berkaitan."
-      ]
-    },
-  }
-])
 
+// IMPORTANT NOTICE
 const activeNoticeId = ref('')
 const noticeModalOpen = ref(false)
 
+const activeNotice = computed(() =>
+  getNoticeById(activeNoticeId.value) ?? currentNotice.value
+)
+
+const openNotice = (id: string) => {
+  activeNoticeId.value = id
+  noticeModalOpen.value = true
+}
+
 const showImportantNotice = computed({
-  get: () => props.showImportantNotice ?? true,
-  set: (val) => emit('update:show-important-notice', val)
+  get: () => props.showImportantNotice ?? showBanner.value,
+  set: (val) => {
+    showBanner.value = val
+    emit('update:show-important-notice', val)
+  }
 })
 
 // DIALOG
-const currentNotice = computed(() => {
-  return importantNoticeList.value.find(n => n.id === activeNoticeId.value) || importantNoticeList.value[0]
-})
-
 const noticeBodyHtml = computed(() => {
-  const notice = currentNotice.value
+  const notice = activeNotice.value
   if (!notice) return ''
 
   let html = notice.body.map((item) => {
@@ -567,7 +548,7 @@ const noticeBodyHtml = computed(() => {
 })
 
 const bmContentHtml = computed(() => {
-  const notice = currentNotice.value
+  const notice = activeNotice.value
   if (!notice?.bm) return ''
 
   const bmBody = notice.bm.body.map(item => `<p>${item}</p>`).join('')
@@ -576,7 +557,6 @@ const bmContentHtml = computed(() => {
 
 // Dialog Actions
 const dialogActions = computed(() => [])
-
 
 // LOGOUT
 const handleLogout = () => {

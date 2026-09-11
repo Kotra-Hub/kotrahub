@@ -147,7 +147,7 @@
                   class="mb-2"
                 >
                   <span class="font-weight-bold text-primary" style="font-size: 22px;">
-                    {{ initials(contact.name) }}
+                    {{ getInitials(contact.name) }}
                   </span>
                 </v-avatar>
 
@@ -207,7 +207,7 @@
             <template #prepend>
               <v-avatar size="48" color="primary" variant="tonal">
                 <span class="font-weight-bold text-primary" style="font-size: 18px;">
-                  {{ initials(contact.name) }}
+                  {{ getInitials(contact.name) }}
                 </span>
               </v-avatar>
             </template>
@@ -276,7 +276,7 @@
                 class="mb-3"
               >
                 <span class="font-weight-bold text-primary" style="font-size: 30px;">
-                  {{ initials(selectedContact.name) }}
+                  {{ getInitials(selectedContact.name) }}
                 </span>
               </v-avatar>
               <div class="text-h5 font-weight-bold" style="color: rgb(var(--v-theme-on-surface));">
@@ -351,22 +351,24 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
+import {
+  usePhoneDirectory,
+  type Contact,
+} from '@/composables/usePhoneDirectory'
 
 // Emits
 defineEmits<{
   (e: 'navigate', page: string): void
 }>()
 
-// Types
-interface Contact {
-  name: string
-  jobTitle: string
-  ext: string
-  email: string
-  department: string
-  team: string
-  phone?: string
-}
+const {
+  departmentOptions,
+  teamOptionsFor,
+  filterContacts,
+  getInitials,
+  makeCall,
+  sendEmail
+} = usePhoneDirectory()
 
 // State
 const directoryView = ref<'grid' | 'list'>('grid')
@@ -376,58 +378,17 @@ const selectedTeam = ref('All')
 const contactDialog = ref(false)
 const selectedContact = ref<Contact | null>(null)
 
-// Contacts Data
-const contacts: Contact[] = [
-  { name: 'Amirul Hakim', jobTitle: 'Product Manager', ext: '1702', email: 'amirul.hakim@kotra.com', department: 'PD', team: 'Product', phone: '+60123456701' },
-  { name: 'Siti Nur Aina', jobTitle: 'Regulatory Executive', ext: '2345', email: 'siti.aina@kotra.com', department: 'RPD', team: 'Regulatory', phone: '+60123456702' },
-  { name: 'Muhammad Khairul', jobTitle: 'Medical Representative', ext: '2901', email: 'khairul.m@kotra.com', department: 'SMO', team: 'Medical', phone: '+60123456703' },
-  { name: 'Yvonne Wong', jobTitle: 'HR Executive', ext: '4567', email: 'yvonne.wong@kotra.com', department: 'AHR', team: 'HR', phone: '+60123456704' },
-  { name: 'Faris Azman', jobTitle: 'Finance Analyst', ext: '5678', email: 'faris.azman@kotra.com', department: 'AACT', team: 'Finance', phone: '+60123456705' },
-  { name: 'Nurul Liyana', jobTitle: 'QC Chemist', ext: '6789', email: 'nurul.liyana@kotra.com', department: 'QC', team: 'QC', phone: '+60123456706' },
-  { name: 'Ahmad Faiz', jobTitle: 'Senior Developer', ext: '7890', email: 'ahmad.faiz@kotra.com', department: 'IT', team: 'Development', phone: '+60123456707' },
-  { name: 'Nadia Binti Razak', jobTitle: 'QA Engineer', ext: '8901', email: 'nadia.razak@kotra.com', department: 'IT', team: 'QA', phone: '+60123456708' },
-  { name: 'Tan Wei Ming', jobTitle: 'UX Designer', ext: '9012', email: 'tan.weiming@kotra.com', department: 'IT', team: 'Design', phone: '+60123456709' },
-  { name: 'Siti Zaharah', jobTitle: 'Operations Manager', ext: '0123', email: 'siti.zaharah@kotra.com', department: 'OM', team: 'Operations', phone: '+60123456710' },
-  { name: 'Lim Chee Wei', jobTitle: 'Supply Chain Executive', ext: '1234', email: 'lim.cheewei@kotra.com', department: 'SCM', team: 'Supply Chain', phone: '+60123456711' },
-  { name: 'Nur Aisyah', jobTitle: 'Marketing Executive', ext: '2345', email: 'nur.aisyah@kotra.com', department: 'MKT', team: 'Marketing', phone: '+60123456712' }
-]
-
-// Department Options
-const departmentOptions = computed(() => {
-  const depts = ['All', ...new Set(contacts.map(c => c.department))]
-  return depts.map(d => ({ title: d, value: d }))
-})
-
 // Team Options
-const teamOptions = computed(() => {
-  let filtered = contacts
-  if (selectedDepartment.value !== 'All') {
-    filtered = contacts.filter(c => c.department === selectedDepartment.value)
-  }
-  const teams = ['All', ...new Set(filtered.map(c => c.team))]
-  return teams.map(t => ({ title: t, value: t }))
-})
+const teamOptions = computed(() => teamOptionsFor(selectedDepartment.value))
 
 // Filtered Contacts
-const filteredContacts = computed(() => {
-  const search = contactSearch.value.trim().toLowerCase()
-  const dept = selectedDepartment.value
-  const team = selectedTeam.value
-
-  return contacts.filter(contact => {
-    const matchesSearch = !search ||
-      contact.name.toLowerCase().includes(search) ||
-      contact.jobTitle.toLowerCase().includes(search) ||
-      contact.department.toLowerCase().includes(search) ||
-      contact.team.toLowerCase().includes(search) ||
-      contact.email.toLowerCase().includes(search)
-
-    const matchesDepartment = dept === 'All' || contact.department === dept
-    const matchesTeam = team === 'All' || contact.team === team
-
-    return matchesSearch && matchesDepartment && matchesTeam
-  })
-})
+const filteredContacts = computed(() =>
+  filterContacts(
+    contactSearch.value,
+    selectedDepartment.value,
+    selectedTeam.value
+  )
+)
 
 // Watch department change to reset team
 watch(selectedDepartment, () => {
@@ -441,24 +402,10 @@ const resetFilters = () => {
   selectedTeam.value = 'All'
 }
 
-// Helper Functions
-const initials = (name: string) => {
-  return name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
-}
-
 // Open Contact Dialog
 const openContactDialog = (contact: Contact) => {
   selectedContact.value = contact
   contactDialog.value = true
-}
-
-// Actions
-const makeCall = (phone: string) => {
-  window.location.href = `tel:${phone}`
-}
-
-const sendEmail = (email: string) => {
-  window.location.href = `mailto:${email}`
 }
 </script>
 

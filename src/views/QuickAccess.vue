@@ -211,26 +211,25 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed } from 'vue'
+import {
+  useQuickAccess,
+} from '@/composables/useQuickAccess'
 
 // Emits
 defineEmits<{
   (e: 'navigate', page: string): void
 }>()
 
-// Types
-interface QuickAccessItem {
-  id: number
-  label: string
-  icon: string
-  page: string
-}
-
-interface Category {
-  name: string
-  count: number
-  items: string[]
-}
+const {
+  quickAccessItems,
+  categoryOptions,
+  filterCategories,
+  isInQuickAccess,
+  addToQuickAccess,
+  removeQuickAccess,
+  reorderQuickAccess
+} = useQuickAccess()
 
 // State
 const qaTab = ref<'my' | 'all'>('my')
@@ -238,126 +237,10 @@ const viewAllSearch = ref('')
 const viewAllCategory = ref('')
 const dragIndex = ref<number | null>(null)
 
-// Quick Access Items
-const quickAccessItems = ref<QuickAccessItem[]>([
-  { id: 1, label: 'Staff Purchase', icon: 'mdi-cart', page: 'eservices' },
-  { id: 2, label: 'Training Record', icon: 'mdi-school', page: 'eservices' },
-  { id: 3, label: 'PO Management', icon: 'mdi-file-document-outline', page: 'eservices' },
-  { id: 4, label: 'Material Management', icon: 'mdi-package-variant', page: 'eservices' },
-  { id: 5, label: 'Sales Automation', icon: 'mdi-chart-bar', page: 'eservices' },
-  { id: 6, label: 'AP Management', icon: 'mdi-account-group', page: 'eservices' },
-  { id: 7, label: 'Work Order', icon: 'mdi-wrench', page: 'eservices' },
-  { id: 8, label: 'TSR', icon: 'mdi-clipboard-list', page: 'eservices' },
-  { id: 9, label: 'Easy Loader', icon: 'mdi-upload', page: 'eservices' }
-])
-
-// Categories
-const categories = ref<Category[]>([
-  {
-    name: 'E-Services',
-    count: 9,
-    items: [
-      'Staff Purchase',
-      'Training Record',
-      'PO Management',
-      'Material Management',
-      'Sales Automation',
-      'AP Management',
-      'Work Order',
-      'TSR',
-      'Easy Loader'
-    ]
-  },
-  {
-    name: 'HR Services',
-    count: 5,
-    items: [
-      'Leave Application',
-      'Attendance Record',
-      'Payroll View',
-      'Employee Profile',
-      'Training Registration'
-    ]
-  },
-  {
-    name: 'Finance Services',
-    count: 4,
-    items: [
-      'Invoice Processing',
-      'Expense Claim',
-      'Budget View',
-      'Payment Approval'
-    ]
-  },
-  {
-    name: 'IT Services',
-    count: 3,
-    items: [
-      'IT Support Ticket',
-      'Software Request',
-      'Hardware Request'
-    ]
-  }
-])
-
-// Category Options for Select
-const categoryOptions = computed(() => {
-  const options = [{ title: 'All Categories', value: '' }]
-  categories.value.forEach(cat => {
-    options.push({ title: cat.name, value: cat.name })
-  })
-  return options
-})
-
 // Computed
-const filteredCategories = computed(() => {
-  const search = viewAllSearch.value.toLowerCase().trim()
-  const categoryFilter = viewAllCategory.value
-
-  return categories.value
-    .filter(cat => {
-      if (categoryFilter && cat.name !== categoryFilter) return false
-
-      if (search) {
-        const matchingItems = cat.items.filter(item =>
-          item.toLowerCase().includes(search)
-        )
-        if (matchingItems.length === 0) return false
-        return {
-          ...cat,
-          items: matchingItems,
-          count: matchingItems.length
-        }
-      }
-      return true
-    })
-    .map(cat => ({
-      ...cat,
-      count: cat.items.length
-    }))
-})
-
-// Check if item is in Quick Access
-const isInQuickAccess = (itemName: string) => {
-  return quickAccessItems.value.some(qa => qa.label === itemName)
-}
-
-// Add item to Quick Access
-const addToQuickAccess = (item: { name: string; icon: string; page: string }) => {
-  if (isInQuickAccess(item.name)) return
-
-  quickAccessItems.value.push({
-    id: Date.now(),
-    label: item.name,
-    icon: item.icon || 'mdi-cube',
-    page: item.page || 'eservices'
-  })
-}
-
-// Remove item from Quick Access
-const removeQuickAccess = (id: number) => {
-  quickAccessItems.value = quickAccessItems.value.filter(qa => qa.id !== id)
-}
+const filteredCategories = computed(() =>
+  filterCategories(viewAllSearch.value, viewAllCategory.value)
+)
 
 // Reset Category Filter
 const resetCategoryFilter = () => {
@@ -384,40 +267,15 @@ const onDragOver = (event: DragEvent) => {
 const onDrop = (event: DragEvent, dropIndex: number) => {
   event.preventDefault()
 
-  if (dragIndex.value === null || dragIndex.value === dropIndex) {
-    dragIndex.value = null
-    return
-  }
+  if (dragIndex.value === null) return
 
-  const items = [...quickAccessItems.value]
-  const [draggedItem] = items.splice(dragIndex.value, 1)
-  items.splice(dropIndex, 0, draggedItem)
-  quickAccessItems.value = items
+  reorderQuickAccess(dragIndex.value, dropIndex)
   dragIndex.value = null
 }
 
 const onDragEnd = () => {
   dragIndex.value = null
 }
-
-// Save to localStorage
-watch(quickAccessItems, (newItems) => {
-  localStorage.setItem('quickAccess', JSON.stringify(newItems))
-}, { deep: true })
-
-onMounted(() => {
-  const saved = localStorage.getItem('quickAccess')
-  if (saved) {
-    try {
-      const parsed = JSON.parse(saved)
-      if (parsed.length > 0) {
-        quickAccessItems.value = parsed
-      }
-    } catch (e) {
-      console.error('Failed to load quick access from localStorage')
-    }
-  }
-})
 </script>
 
 <style scoped>

@@ -158,9 +158,9 @@
                     :class="{
                       'calendar-cell-other-month': cell.otherMonth,
                       'calendar-cell-today': cell.isToday,
-                      'calendar-cell-clickable': !cell.otherMonth && getFilteredEvents(cell.events).length > 0
+                      'calendar-cell-clickable': !cell.otherMonth && getFilteredEvents(cell.events, calendarCategoryFilter, calendarSearch).length > 0
                     }"
-                    @click="!cell.otherMonth && getFilteredEvents(cell.events).length > 0 && openEventDialog(cell.dateStr, cell.events)"
+                    @click="!cell.otherMonth && getFilteredEvents(cell.events, calendarCategoryFilter, calendarSearch).length > 0 && openEventDialog(cell.dateStr, cell.events)"
                   >
                     <div class="calendar-cell-inner">
                       <div class="d-flex align-center justify-space-between">
@@ -172,9 +172,9 @@
                         </v-chip>
                       </div>
 
-                      <div v-if="!cell.otherMonth && getFilteredEvents(cell.events).length" class="mt-2 d-flex flex-wrap gap-1">
+                      <div v-if="!cell.otherMonth && getFilteredEvents(cell.events, calendarCategoryFilter, calendarSearch).length" class="mt-2 d-flex flex-wrap gap-1">
                         <div
-                          v-for="(event, eventIndex) in getFilteredEvents(cell.events).slice(0, 3)"
+                          v-for="(event, eventIndex) in getFilteredEvents(cell.events, calendarCategoryFilter, calendarSearch).slice(0, 3)"
                           :key="eventIndex"
                           class="position-relative event-dot-wrapper"
                           @click.stop
@@ -196,7 +196,7 @@
                             </div>
                           </div>
                         </div>
-                        <span v-if="getFilteredEvents(cell.events).length > 3" class="text-caption text-medium-emphasis">+{{ getFilteredEvents(cell.events).length - 3 }}</span>
+                        <span v-if="getFilteredEvents(cell.events, calendarCategoryFilter, calendarSearch).length > 3" class="text-caption text-medium-emphasis">+{{ getFilteredEvents(cell.events, calendarCategoryFilter, calendarSearch).length - 3 }}</span>
                       </div>
                     </div>
                   </div>
@@ -223,7 +223,7 @@
                   </div>
                   <div class="pa-2 day-events-list">
                     <v-card
-                      v-for="(event, idx) in getFilteredEvents(day.events)"
+                      v-for="(event, idx) in getFilteredEvents(day.events, calendarCategoryFilter, calendarSearch)"
                       :key="idx"
                       class="rounded-lg mb-1 pa-2 week-event-card"
                       variant="outlined"
@@ -239,7 +239,7 @@
                         </div>
                       </div>
                     </v-card>
-                    <div v-if="getFilteredEvents(day.events).length === 0" class="text-center text-caption py-3" style="color: rgb(var(--v-theme-textMuted)); opacity: 0.4;">No events</div>
+                    <div v-if="getFilteredEvents(day.events, calendarCategoryFilter, calendarSearch).length === 0" class="text-center text-caption py-3" style="color: rgb(var(--v-theme-textMuted)); opacity: 0.4;">No events</div>
                   </div>
                 </div>
               </div>
@@ -267,7 +267,7 @@
 
                   <div class="day-events-list" style="min-height: 320px;">
                     <v-card
-                      v-for="(event, idx) in getFilteredEvents(dayData.events)"
+                      v-for="(event, idx) in getFilteredEvents(dayData.events, calendarCategoryFilter, calendarSearch)"
                       :key="idx"
                       rounded="lg"
                       class="mb-2 day-event-card"
@@ -298,7 +298,7 @@
                       </v-card-text>
                     </v-card>
 
-                    <div v-if="getFilteredEvents(dayData.events).length === 0" class="d-flex flex-column align-center justify-center py-8" style="color: rgb(var(--v-theme-textMuted));">
+                    <div v-if="getFilteredEvents(dayData.events, calendarCategoryFilter, calendarSearch).length === 0" class="d-flex flex-column align-center justify-center py-8" style="color: rgb(var(--v-theme-textMuted));">
                       <v-icon size="48" class="mb-2 opacity-50">mdi-calendar-blank-outline</v-icon>
                       <span class="text-body-1">No events for this day</span>
                     </div>
@@ -423,7 +423,7 @@
               <div class="d-flex align-center ga-3 mb-2">
                 <v-icon size="18" color="primary">mdi-calendar-outline</v-icon>
                 <span class="text-body-2" style="color: rgb(var(--v-theme-on-surface));">
-                  {{ formatDate(selectedEvent.dateStr || '') }}
+                  {{ formatEventDate(selectedEvent.dateStr || '') }}
                 </span>
               </div>
               <div class="d-flex align-center ga-3 mb-2">
@@ -459,33 +459,33 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
-
-// Types
-interface CalendarEvent {
-  title: string
-  type: 'leave' | 'company' | 'department' | 'holiday' | 'schedule' | 'meeting'
-  time?: string
-  category?: string
-  location?: string
-  organiser?: string
-  description?: string
-}
-
-interface DayData {
-  dateStr: string
-  weekday: string
-  day: number
-  month: string
-  year: number
-  isToday: boolean
-  events: CalendarEvent[]
-}
+import { ref, computed } from 'vue'
+import {
+  useCalendar,
+  type CalendarEvent,
+  MONTH_NAMES_LONG,
+} from '@/composables/useCalendar'
 
 // Emits
 defineEmits<{
   (e: 'navigate', page: string): void
 }>()
+
+const {
+  viewOptions,
+  categoryOptions,
+  legendItems,
+  getFilteredEvents,
+  buildCalendarRows,
+  buildWeekDays,
+  buildDayData,
+  getUpcomingEvents,
+  getCalendarDotColor,
+  getEventIcon,
+  getEventIconColor,
+  getEventIconClass,
+  formatEventDate
+} = useCalendar()
 
 // State
 const calendarViewMode = ref<'month' | 'week' | 'day'>('month')
@@ -496,229 +496,15 @@ const holidaysLoaded = ref(true)
 const eventDialog = ref(false)
 const selectedEvent = ref<CalendarEvent & { dateStr?: string } | null>(null)
 
-// View Options with proper types
-const viewOptions = [
-  { label: 'Month', value: 'month' as const },
-  { label: 'Week', value: 'week' as const },
-  { label: 'Day', value: 'day' as const }
-]
-
-// Category Options
-const categoryOptions = [
-  { title: 'All Categories', value: 'all' },
-  { title: 'My Leave', value: 'My Leave' },
-  { title: 'Company Event', value: 'Company Event' },
-  { title: 'Department Event', value: 'Department Event' },
-  { title: 'Public Holiday', value: 'Public Holiday' },
-  { title: 'Schedule', value: 'Schedule' }
-]
-
-const legendItems = [
-  { label: 'My Leave', color: 'bg-pink-500' },
-  { label: 'Company Event', color: 'bg-red-500' },
-  { label: 'Department Event', color: 'bg-purple-500' },
-  { label: 'Public Holiday', color: 'bg-blue-500' },
-  { label: 'Schedule', color: 'bg-amber-500' }
-]
-
-// Calendar Events Data
-const customEvents: Record<string, CalendarEvent[]> = {
-  '2026-09-01': [{ title: 'Staff Meeting', type: 'company', time: '9:00 AM - 10:00 AM', category: 'Company Event', location: 'Meeting Room 1', organiser: 'Management', description: 'Monthly staff meeting' }],
-  '2026-09-02': [{ title: 'Team Sync', type: 'schedule', time: '2:00 PM - 3:00 PM', category: 'Schedule', location: 'Meeting Room 2', organiser: 'Team Lead', description: 'Weekly team sync' }],
-  '2026-09-03': [{ title: 'Public Holiday', type: 'holiday', time: 'All Day', category: 'Public Holiday', location: '-', organiser: 'Government', description: 'National holiday' }],
-  '2026-09-04': [{ title: 'Annual Leave', type: 'leave', time: 'All Day', category: 'My Leave', location: '-', organiser: 'Self', description: 'Annual leave' }],
-  '2026-09-05': [{ title: 'IT Training', type: 'department', time: '10:00 AM - 12:00 PM', category: 'Department Event', location: 'Training Room', organiser: 'IT Dept', description: 'New software training' }],
-  '2026-09-07': [{ title: 'Project Review', type: 'schedule', time: '3:00 PM - 4:30 PM', category: 'Schedule', location: 'Meeting Room 3', organiser: 'Project Manager', description: 'Project review meeting' }],
-  '2026-09-08': [{ title: 'Company Event', type: 'company', time: '7:00 PM - 10:00 PM', category: 'Company Event', location: 'Grand Ballroom', organiser: 'Events Team', description: 'Annual dinner' }],
-  '2026-09-10': [{ title: 'Department Meeting', type: 'department', time: '9:00 AM - 10:30 AM', category: 'Department Event', location: 'Meeting Room 1', organiser: 'Dept Head', description: 'Monthly department meeting' }],
-  '2026-09-12': [{ title: 'Weekend Workshop', type: 'schedule', time: '9:00 AM - 5:00 PM', category: 'Schedule', location: 'Training Center', organiser: 'HR Dept', description: 'Skills development workshop' }],
-  '2026-09-15': [{ title: 'Leave Application', type: 'leave', time: 'All Day', category: 'My Leave', location: '-', organiser: 'Self', description: 'Leave application' }],
-  '2026-09-16': [{ title: 'Public Holiday - Malaysia Day', type: 'holiday', time: 'All Day', category: 'Public Holiday', location: '-', organiser: 'Government', description: 'Malaysia Day celebration' }],
-  '2026-09-18': [{ title: 'Team Building', type: 'department', time: '8:00 AM - 6:00 PM', category: 'Department Event', location: 'Offsite', organiser: 'HR Dept', description: 'Annual team building' }],
-  '2026-09-19': [{ title: 'Admin Duty', type: 'schedule', time: 'All Day', category: 'Schedule', location: 'Headquarters', organiser: 'Admin Dept', description: 'Admin duty rotation' }],
-  '2026-09-22': [
-    { title: 'Annual Leave', type: 'leave', time: 'All Day', category: 'My Leave', location: '-', organiser: 'Self', description: 'Annual leave' },
-    { title: 'Company Dinner', type: 'company', time: '6:00 PM - 10:00 PM', category: 'Company Event', location: 'Grand Ballroom', organiser: 'Events Team', description: 'Annual dinner' }
-  ],
-  '2026-09-25': [{ title: 'IT Training Session', type: 'department', time: '9:00 AM - 12:00 PM', category: 'Department Event', location: 'Training Center', organiser: 'IT Dept', description: 'Advanced training' }],
-  '2026-09-28': [{ title: 'Meeting with Client', type: 'schedule', time: '2:00 PM - 4:00 PM', category: 'Schedule', location: 'Meeting Room 2', organiser: 'Sales Manager', description: 'Client meeting' }],
-  '2026-09-30': [{ title: 'Monthly Review', type: 'company', time: '10:00 AM - 12:00 PM', category: 'Company Event', location: 'Meeting Room 1', organiser: 'Management', description: 'Monthly review meeting' }],
-  '2026-10-01': [{ title: 'Public Holiday', type: 'holiday', time: 'All Day', category: 'Public Holiday', location: '-', organiser: 'Government', description: 'National holiday' }],
-  '2026-10-05': [{ title: 'Team Meeting', type: 'schedule', time: '9:00 AM - 10:00 AM', category: 'Schedule', location: 'Meeting Room 3', organiser: 'Team Lead', description: 'Weekly team meeting' }],
-  '2026-10-10': [{ title: 'Training Session', type: 'department', time: '10:00 AM - 1:00 PM', category: 'Department Event', location: 'Training Room', organiser: 'Training Dept', description: 'New employee training' }],
-  '2026-10-15': [{ title: 'Annual Leave', type: 'leave', time: 'All Day', category: 'My Leave', location: '-', organiser: 'Self', description: 'Annual leave' }]
-}
-
 // Computed
-const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-const monthNamesLong = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
-const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
-const dayNamesShort = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT']
-
 const calYear = computed(() => calendarFocusDate.value.getFullYear())
 const calMonth = computed(() => calendarFocusDate.value.getMonth())
-const calendarDisplayLabel = computed(() => `${monthNamesLong[calMonth.value]} ${calYear.value}`)
+const calendarDisplayLabel = computed(() => `${MONTH_NAMES_LONG[calMonth.value]} ${calYear.value}`)
 
-// Get filtered events
-const getFilteredEvents = (events: CalendarEvent[]) => {
-  return events.filter(event => {
-    const matchesCategory = calendarCategoryFilter.value === 'all' ||
-      (event.category && event.category === calendarCategoryFilter.value)
-    const matchesSearch = !calendarSearch.value ||
-      event.title.toLowerCase().includes(calendarSearch.value.toLowerCase()) ||
-      (event.category && event.category.toLowerCase().includes(calendarSearch.value.toLowerCase()))
-    return matchesCategory && matchesSearch
-  })
-}
-
-const getEventsForDate = (dateStr: string): CalendarEvent[] => {
-  return customEvents[dateStr] || []
-}
-
-// Calendar Rows for Month View
-const calendarRows = computed(() => {
-  const year = calYear.value
-  const month = calMonth.value
-  const firstDay = new Date(year, month, 1).getDay()
-  const daysInMonth = new Date(year, month + 1, 0).getDate()
-  const today = new Date()
-  const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
-
-  const cells: any[] = []
-
-  // Previous month days
-  const daysInPrevMonth = new Date(year, month, 0).getDate()
-  for (let i = firstDay - 1; i >= 0; i--) {
-    const day = daysInPrevMonth - i
-    const dateObj = new Date(year, month - 1, day)
-    const dateStr = `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, '0')}-${String(dateObj.getDate()).padStart(2, '0')}`
-    cells.push({
-      label: day,
-      dateStr: dateStr,
-      otherMonth: true,
-      isToday: false,
-      events: []
-    })
-  }
-
-  // Current month days
-  for (let day = 1; day <= daysInMonth; day++) {
-    const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
-    const isToday = dateStr === todayStr
-    const events = getEventsForDate(dateStr)
-    cells.push({
-      label: day,
-      dateStr: dateStr,
-      otherMonth: false,
-      isToday,
-      events
-    })
-  }
-
-  // Next month days
-  const totalCells = cells.length
-  const remaining = (7 - (totalCells % 7)) % 7
-  for (let day = 1; day <= remaining; day++) {
-    const dateObj = new Date(year, month + 1, day)
-    const dateStr = `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, '0')}-${String(dateObj.getDate()).padStart(2, '0')}`
-    cells.push({
-      label: day,
-      dateStr: dateStr,
-      otherMonth: true,
-      isToday: false,
-      events: []
-    })
-  }
-
-  // Group into rows of 7
-  const rows = []
-  for (let i = 0; i < cells.length; i += 7) {
-    rows.push(cells.slice(i, i + 7))
-  }
-
-  return rows
-})
-
-// Week View
-const weekDays = computed<DayData[]>(() => {
-  const today = new Date()
-  const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
-
-  // Get the date of the current day in the week view
-  const currentDate = new Date(calendarFocusDate.value)
-  const currentDayOfWeek = currentDate.getDay()
-  const startDate = new Date(currentDate)
-  startDate.setDate(currentDate.getDate() - currentDayOfWeek)
-
-  const days: DayData[] = []
-  for (let i = 0; i < 7; i++) {
-    const date = new Date(startDate)
-    date.setDate(startDate.getDate() + i)
-    const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
-    const isToday = dateStr === todayStr
-    const events = getEventsForDate(dateStr)
-
-    days.push({
-      dateStr,
-      weekday: dayNamesShort[date.getDay()],
-      day: date.getDate(),
-      month: monthNamesLong[date.getMonth()],
-      year: date.getFullYear(),
-      isToday,
-      events
-    })
-  }
-
-  return days
-})
-
-// Day View
-const dayData = computed<DayData>(() => {
-  const date = new Date(calendarFocusDate.value)
-  const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
-  const today = new Date()
-  const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
-  const isToday = dateStr === todayStr
-  const events = getEventsForDate(dateStr)
-
-  return {
-    dateStr,
-    weekday: dayNames[date.getDay()],
-    day: date.getDate(),
-    month: monthNamesLong[date.getMonth()],
-    year: date.getFullYear(),
-    isToday,
-    events
-  }
-})
-
-// Upcoming Events
-const upcomingEvents = computed(() => {
-  const results: any[] = []
-  const today = new Date()
-  const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
-
-  const allDates = Object.keys(customEvents).sort()
-
-  for (const dateStr of allDates) {
-    if (dateStr < todayStr) continue
-    const events = customEvents[dateStr] || []
-    const date = new Date(dateStr)
-    for (const event of events) {
-      if (results.length >= 10) break
-      results.push({
-        ...event,
-        dateStr,
-        day: date.getDate(),
-        monthLabel: monthNames[date.getMonth()].toUpperCase(),
-        year: date.getFullYear()
-      })
-    }
-    if (results.length >= 10) break
-  }
-
-  return results
-})
+const calendarRows = computed(() => buildCalendarRows(calYear.value, calMonth.value))
+const weekDays = computed(() => buildWeekDays(calendarFocusDate.value))
+const dayData = computed(() => buildDayData(calendarFocusDate.value))
+const upcomingEvents = computed(() => getUpcomingEvents(10))
 
 // Navigation
 const navigateCalendar = (direction: number) => {
@@ -758,70 +544,6 @@ const openEventDialog = (dateStr: string, events: CalendarEvent[]) => {
     eventDialog.value = true
   }
 }
-
-// Event Helpers
-const getCalendarDotColor = (type: string) => {
-  const colors: Record<string, string> = {
-    leave: 'bg-pink-500',
-    company: 'bg-red-500',
-    department: 'bg-purple-500',
-    holiday: 'bg-blue-500',
-    schedule: 'bg-amber-500',
-    meeting: 'bg-purple-500'
-  }
-  return colors[type] || 'bg-blue-500'
-}
-
-const getEventIcon = (type: string) => {
-  const icons: Record<string, string> = {
-    leave: 'mdi-account-clock',
-    company: 'mdi-account-group',
-    department: 'mdi-office-building',
-    holiday: 'mdi-flag',
-    schedule: 'mdi-calendar-check',
-    meeting: 'mdi-handshake'
-  }
-  return icons[type] || 'mdi-calendar-star'
-}
-
-const getEventIconColor = (type: string) => {
-  const colors: Record<string, string> = {
-    leave: '#ec4899',
-    company: '#ef4444',
-    department: '#8b5cf6',
-    holiday: '#3b82f6',
-    schedule: '#f59e0b',
-    meeting: '#8b5cf6'
-  }
-  return colors[type] || '#3b82f6'
-}
-
-const getEventIconClass = (type: string) => {
-  const classes: Record<string, string> = {
-    leave: 'bg-pink-50',
-    company: 'bg-red-50',
-    department: 'bg-purple-50',
-    holiday: 'bg-blue-50',
-    schedule: 'bg-amber-50',
-    meeting: 'bg-purple-50'
-  }
-  return classes[type] || 'bg-blue-50'
-}
-
-const formatDate = (dateStr: string) => {
-  if (!dateStr) return 'Date not available'
-  const date = new Date(dateStr)
-  return date.toLocaleDateString('en-US', {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  })
-}
-
-onMounted(() => {
-  calendarFocusDate.value = new Date()
-})
 </script>
 
 <style scoped>

@@ -27,22 +27,22 @@
           </span>
           <span class="text-caption font-weight-bold d-flex align-center ga-1" style="color: rgb(var(--v-theme-error));">
             <v-icon size="14" color="error">mdi-alert-circle</v-icon>
-            {{ pendingActions.filter(a => a.urgency === 'urgent').length }} urgent
+            {{ urgentCount }} urgent
           </span>
         </div>
 
         <!-- Progress Bar -->
         <div class="pending-progress rounded-pill overflow-hidden d-flex mb-2" style="height: 6px;">
           <div :style="{
-            width: getUrgencyPercentage('urgent') + '%',
+            width: urgencyPercentage('urgent') + '%',
             background: 'rgb(var(--v-theme-error))'
           }"></div>
           <div :style="{
-            width: getUrgencyPercentage('normal') + '%',
+            width: urgencyPercentage('normal') + '%',
             background: 'rgb(var(--v-theme-warning))'
           }"></div>
           <div :style="{
-            width: getUrgencyPercentage('low') + '%',
+            width: urgencyPercentage('low') + '%',
             background: 'rgb(var(--v-theme-primary-lighten-3))'
           }"></div>
         </div>
@@ -51,15 +51,15 @@
         <div class="d-flex flex-wrap align-center ga-4 text-caption text-medium-emphasis">
           <span class="d-flex align-center ga-1">
             <span class="pending-dot pending-dot-error"></span>
-            Urgent <strong class="text-on-surface">{{ pendingActions.filter(a => a.urgency === 'urgent').length }}</strong>
+            Urgent <strong class="text-on-surface">{{ urgentCount }}</strong>
           </span>
           <span class="d-flex align-center ga-1">
             <span class="pending-dot pending-dot-warning"></span>
-            Normal <strong class="text-on-surface">{{ pendingActions.filter(a => a.urgency === 'normal').length }}</strong>
+            Normal <strong class="text-on-surface">{{ normalCount }}</strong>
           </span>
           <span class="d-flex align-center ga-1">
             <span class="pending-dot pending-dot-low"></span>
-            Low <strong class="text-on-surface">{{ pendingActions.filter(a => a.urgency === 'low').length }}</strong>
+            Low <strong class="text-on-surface">{{ lowCount }}</strong>
           </span>
         </div>
       </div>
@@ -90,12 +90,7 @@
                   {{ action.name }}
                 </span>
                 <v-chip
-                  :color="action.urgency === 'urgent'
-                    ? 'error'
-                    : action.urgency === 'normal'
-                      ? 'warning'
-                      : 'grey'
-                  "
+                  :color="urgencyColor(action.urgency)"
                   size="x-small"
                   variant="tonal"
                   class="font-weight-bold text-uppercase pending-urgency-chip"
@@ -157,87 +152,27 @@
 </template>
 
 <script setup lang="ts">
+import {
+  usePendingActions,
+  type PendingAction,
+} from '@/composables/usePendingActions'
+
 // Emits
 const emit = defineEmits<{
   (e: 'navigate', page: string): void
 }>()
 
-// Pending Actions
-const pendingActions = [
-  {
-    id: 1,
-    name: 'Leave Application',
-    ref: 'LA-2026-000123',
-    date: '24 Jul 2026, 10:30 AM',
-    status: 'Pending Approval',
-    urgency: 'urgent',
-    icon: 'mdi-calendar-outline'
-  },
-  {
-    id: 2,
-    name: 'Work Order',
-    ref: 'WO-2026-000456',
-    date: '24 Jul 2026, 09:15 AM',
-    status: 'Pending IT Approval',
-    urgency: 'urgent',
-    icon: 'mdi-wrench'
-  },
-  {
-    id: 3,
-    name: 'Training Attendance',
-    ref: 'TR-2026-000789',
-    date: '23 Jul 2026, 04:45 PM',
-    status: 'Pending Verification',
-    urgency: 'normal',
-    icon: 'mdi-account-group'
-  },
-  {
-    id: 4,
-    name: 'Purchase Requisition',
-    ref: 'PR-2026-000321',
-    date: '23 Jul 2026, 03:45 PM',
-    status: 'Pending Approval',
-    urgency: 'normal',
-    icon: 'mdi-file-document-outline'
-  },
-  {
-    id: 5,
-    name: 'HR Requisition',
-    ref: 'HR-2026-000654',
-    date: '22 Jul 2026, 02:30 PM',
-    status: 'Pending Review',
-    urgency: 'low',
-    icon: 'mdi-account-plus'
-  },
-  {
-    id: 6,
-    name: 'IT Support Ticket',
-    ref: 'IT-2026-000789',
-    date: '21 Jul 2026, 11:20 AM',
-    status: 'Pending Assignment',
-    urgency: 'normal',
-    icon: 'mdi-help-circle'
-  },
-  {
-    id: 7,
-    name: 'Project Proposal Review',
-    ref: 'PP-2026-000234',
-    date: '20 Jul 2026, 02:00 PM',
-    status: 'Pending Review',
-    urgency: 'low',
-    icon: 'mdi-file-document-edit'
-  }
-]
-
-// Helpers
-const getUrgencyPercentage = (urgency: string) => {
-  const count = pendingActions.filter(a => a.urgency === urgency).length
-  const total = pendingActions.length || 1
-  return (count / total) * 100
-}
+const {
+  pendingActions,
+  urgentCount,
+  normalCount,
+  lowCount,
+  urgencyPercentage,
+  urgencyColor
+} = usePendingActions()
 
 // Action Handlers
-const handleActionClick = (action: any) => {
+const handleActionClick = (action: PendingAction) => {
   console.log('Clicked pending action:', action)
   emit('navigate', '') // Change to Pending Action Details in Future
 }

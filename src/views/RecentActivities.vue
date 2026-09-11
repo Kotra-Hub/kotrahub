@@ -208,236 +208,35 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
+import {
+  useRecentActivities,
+  type TimeRange,
+  type ActivityType,
+} from '@/composables/useRecentActivities'
+
+const {
+  activities,
+  activityTypes,
+  timeRanges,
+  filterActivities,
+  getActivityTypeColor,
+  getRelativeTimeColor
+} = useRecentActivities()
 
 const searchQuery = ref('')
-const selectedType = ref('All')
-const selectedTimeRange = ref('All Time')
+const selectedType = ref<ActivityType | 'All'>('All')
+const selectedTimeRange = ref<TimeRange>('All Time')
 const paginationStart = ref(0)
 const pageSize = 10
 
-const activityTypes = [
-  'All',
-  'Login',
-  'Logout',
-  'Navigation',
-  'Action',
-  'Update',
-  'View',
-  'System'
-]
-
-const timeRanges = [
-  'All Time',
-  'Today',
-  'This Week',
-  'This Month',
-  'Last 3 Months'
-]
-
-const activities = ref([
-  {
-    id: 1,
-    action: 'Logged in to the system',
-    date: '27 Aug 2026',
-    time: '02:15 PM',
-    relativeTime: '2 Minutes Ago',
-    type: 'Login',
-    icon: 'mdi-login',
-    details: 'Successful login from IP 192.168.1.100'
-  },
-  {
-    id: 2,
-    action: 'Updated Quick Access shortcuts',
-    date: '27 Aug 2026',
-    time: '02:02 PM',
-    relativeTime: '15 Minutes Ago',
-    type: 'Update',
-    icon: 'mdi-lightning-bolt',
-    details: 'Reordered and added 2 new shortcuts'
-  },
-  {
-    id: 3,
-    action: 'Completed pending action',
-    date: '27 Aug 2026',
-    time: '01:15 PM',
-    relativeTime: '1 Hour Ago',
-    type: 'Action',
-    icon: 'mdi-check-circle',
-    details: 'Approved Leave Application LA-2026-000123'
-  },
-  {
-    id: 4,
-    action: 'Checked Calendar events',
-    date: '27 Aug 2026',
-    time: '12:15 PM',
-    relativeTime: '2 Hours Ago',
-    type: 'View',
-    icon: 'mdi-calendar-check',
-    details: 'Viewed upcoming 5 events for this week'
-  },
-  {
-    id: 5,
-    action: 'Viewed Announcements',
-    date: '27 Aug 2026',
-    time: '11:15 AM',
-    relativeTime: '3 Hours Ago',
-    type: 'View',
-    icon: 'mdi-bullhorn',
-    details: 'Viewed 3 new announcements'
-  },
-  {
-    id: 6,
-    action: 'Viewed Recent Activities',
-    date: '27 Aug 2026',
-    time: '11:10 AM',
-    relativeTime: '3 Hours Ago',
-    type: 'View',
-    icon: 'mdi-clock',
-    details: 'Visited Recent Activities page'
-  },
-  {
-    id: 7,
-    action: 'Submitted Purchase Requisition',
-    date: '27 Aug 2026',
-    time: '10:45 AM',
-    relativeTime: '4 Hours Ago',
-    type: 'Action',
-    icon: 'mdi-file-document-outline',
-    details: 'PR-2026-000987 for IT equipment'
-  },
-  {
-    id: 8,
-    action: 'Logged out of the system',
-    date: '27 Aug 2026',
-    time: '10:30 AM',
-    relativeTime: '4 Hours Ago',
-    type: 'Logout',
-    icon: 'mdi-logout',
-    details: 'Session duration: 2 hours 15 minutes'
-  },
-  {
-    id: 9,
-    action: 'Changed password',
-    date: '26 Aug 2026',
-    time: '05:20 PM',
-    relativeTime: 'Yesterday',
-    type: 'Update',
-    icon: 'mdi-lock-reset',
-    details: 'Password updated successfully'
-  },
-  {
-    id: 10,
-    action: 'Updated profile information',
-    date: '26 Aug 2026',
-    time: '04:45 PM',
-    relativeTime: 'Yesterday',
-    type: 'Update',
-    icon: 'mdi-account-edit',
-    details: 'Updated job title and department'
-  },
-  {
-    id: 11,
-    action: 'Viewed Dashboard',
-    date: '26 Aug 2026',
-    time: '09:00 AM',
-    relativeTime: 'Yesterday',
-    type: 'View',
-    icon: 'mdi-view-dashboard',
-    details: 'Dashboard overview'
-  },
-  {
-    id: 12,
-    action: 'System maintenance completed',
-    date: '25 Aug 2026',
-    time: '11:30 PM',
-    relativeTime: '2 Days Ago',
-    type: 'System',
-    icon: 'mdi-server',
-    details: 'Database backup and performance optimization'
-  }
-])
-
-const filteredActivities = computed(() => {
-  let result = [...activities.value]
-
-  // Search
-  if (searchQuery.value.trim()) {
-    const query = searchQuery.value.trim().toLowerCase()
-    result = result.filter(a =>
-      a.action.toLowerCase().includes(query) ||
-      a.type.toLowerCase().includes(query) ||
-      (a.details && a.details.toLowerCase().includes(query))
-    )
-  }
-
-  // Type filter
-  if (selectedType.value !== 'All') {
-    result = result.filter(a => a.type === selectedType.value)
-  }
-
-  // Time range filter
-  if (selectedTimeRange.value !== 'All Time') {
-    const now = new Date()
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-
-    result = result.filter(a => {
-      const dateParts = a.date.split(' ')
-      const day = parseInt(dateParts[0])
-      const monthMap: Record<string, number> = {
-        Jan: 0, Feb: 1, Mar: 2, Apr: 3, May: 4, Jun: 5,
-        Jul: 6, Aug: 7, Sep: 8, Oct: 9, Nov: 10, Dec: 11
-      }
-      const month = monthMap[dateParts[1]]
-      const year = parseInt(dateParts[2])
-      const activityDate = new Date(year, month, day)
-
-      switch (selectedTimeRange.value) {
-        case 'Today':
-          return activityDate >= today
-        case 'This Week': {
-          const weekStart = new Date(today)
-          weekStart.setDate(today.getDate() - today.getDay())
-          return activityDate >= weekStart
-        }
-        case 'This Month': {
-          const monthStart = new Date(today.getFullYear(), today.getMonth(), 1)
-          return activityDate >= monthStart
-        }
-        case 'Last 3 Months': {
-          const threeMonthsAgo = new Date(today)
-          threeMonthsAgo.setMonth(today.getMonth() - 3)
-          return activityDate >= threeMonthsAgo
-        }
-        default:
-          return true
-      }
-    })
-  }
-
-  // Sort by date descending (newest first)
-  const monthMap: Record<string, number> = {
-    Jan: 0, Feb: 1, Mar: 2, Apr: 3, May: 4, Jun: 5,
-    Jul: 6, Aug: 7, Sep: 8, Oct: 9, Nov: 10, Dec: 11
-  }
-
-  result.sort((a, b) => {
-    const aParts = a.date.split(' ')
-    const bParts = b.date.split(' ')
-    const aDate = new Date(
-      parseInt(aParts[2]),
-      monthMap[aParts[1]],
-      parseInt(aParts[0])
-    )
-    const bDate = new Date(
-      parseInt(bParts[2]),
-      monthMap[bParts[1]],
-      parseInt(bParts[0])
-    )
-    return bDate.getTime() - aDate.getTime()
-  })
-
-  return result
-})
+const filteredActivities = computed(() =>
+  filterActivities(
+    activities.value,
+    searchQuery.value,
+    selectedType.value,
+    selectedTimeRange.value
+  )
+)
 
 const paginatedActivities = computed(() => {
   const start = paginationStart.value
@@ -450,29 +249,6 @@ const resetFilters = () => {
   selectedType.value = 'All'
   selectedTimeRange.value = 'All Time'
   paginationStart.value = 0
-}
-
-const getActivityTypeColor = (type: string): string => {
-  const colors: Record<string, string> = {
-    Login: 'primary',
-    Logout: 'grey',
-    Navigation: 'info',
-    Action: 'success',
-    Update: 'warning',
-    View: 'primary-lighten-1',
-    System: 'purple'
-  }
-  return colors[type] || 'grey'
-}
-
-const getRelativeTimeColor = (relativeTime: string): string => {
-  if (relativeTime.includes('Minute') || relativeTime.includes('Hour')) {
-    return 'rgb(var(--v-theme-primary))'
-  }
-  if (relativeTime.includes('Yesterday') || relativeTime.includes('Day')) {
-    return 'rgb(var(--v-theme-warning))'
-  }
-  return 'rgb(var(--v-theme-textMuted))'
 }
 
 watch([searchQuery, selectedType, selectedTimeRange], () => {
