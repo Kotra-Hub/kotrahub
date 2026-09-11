@@ -84,75 +84,68 @@
       </div>
 
       <!-- CENTER SECTION - Search Bar -->
-      <div class="search-container hidden-md-and-down">
-        <v-menu
-          v-model="searchOpen"
-          :close-on-content-click="false"
-          :open-on-focus="true"
-          :open-on-click="true"
-          location="bottom"
-          offset="4"
-          width="100%"
-          max-width="576"
+      <div class="search-container hidden-md-and-down" ref="searchContainerRef">
+        <v-text-field
+          ref="searchInputRef"
+          v-model="searchQuery"
+          placeholder="Search apps, services, actions..."
+          density="compact"
+          variant="outlined"
+          rounded="lg"
+          prepend-inner-icon="mdi-magnify"
+          hide-details
+          class="search-field"
+          :color="themeColors.primary"
+          @focus="searchOpen = true"
+          @keydown.esc="closeSearch"
         >
-          <template #activator="{ props: menuProps }">
-            <v-text-field
-              v-bind="menuProps"
-              ref="searchInputRef"
-              v-model="searchQuery"
-              placeholder="Search apps, services, actions..."
-              density="compact"
-              variant="outlined"
-              rounded="lg"
-              prepend-inner-icon="mdi-magnify"
-              hide-details
-              class="search-field"
-              :color="themeColors.primary"
-              @keydown.esc="closeSearch"
-            >
-              <template #append-inner>
-                <kbd class="text-caption font-weight-medium" :style="kbdStyle">Ctrl+K</kbd>
-              </template>
-            </v-text-field>
+          <template #append-inner>
+            <kbd class="text-caption font-weight-medium" :style="kbdStyle">Ctrl+K</kbd>
           </template>
+        </v-text-field>
 
-          <v-card rounded="sm" elevation="0" class="mt-1 dropdown-card" style="border: 2px solid #e2e8f0; border-radius: 12px !important; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important;">
-            <div v-if="searchResults.length === 0" class="text-center py-6 text-grey">
-              <v-icon size="32" class="mb-2 opacity-50">mdi-magnify</v-icon>
-              <p class="text-body-2">No services found for "{{ searchQuery }}"</p>
+        <v-card
+          v-if="searchOpen"
+          rounded="sm"
+          elevation="0"
+          class="mt-1 dropdown-card search-dropdown"
+          style="border: 2px solid #e2e8f0; border-radius: 12px !important; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important;"
+        >
+          <div v-if="searchResults.length === 0" class="text-center py-6 text-grey">
+            <v-icon size="32" class="mb-2 opacity-50">mdi-magnify</v-icon>
+            <p class="text-body-2">No services found for "{{ searchQuery }}"</p>
+          </div>
+
+          <template v-else>
+            <v-list>
+              <template v-for="(items, category) in groupedSearchResults" :key="category">
+                <v-list-subheader class="text-caption font-weight-bold text-grey"
+                  style="font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px;">
+                  {{ category }}
+                </v-list-subheader>
+                <v-list-item v-for="item in items" :key="item.id" @click="selectSearchResult(item)"
+                  class="cursor-pointer result-item">
+                  <template #prepend>
+                    <v-avatar size="32" rounded="8" :color="themeColors.primaryBg">
+                      <v-icon size="16" :color="themeColors.primary">{{ item.icon }}</v-icon>
+                    </v-avatar>
+                  </template>
+                  <v-list-item-title class="text-body-2 font-weight-semibold">{{ item.label }}</v-list-item-title>
+                  <v-list-item-subtitle class="text-caption text-grey">{{ item.meta }}</v-list-item-subtitle>
+                </v-list-item>
+              </template>
+            </v-list>
+
+            <div class="pa-2 border-t" :style="searchFooterStyle">
+              <v-btn variant="text" :color="themeColors.primary" block size="small"
+                @click="openFullSearch" class="font-weight-semibold" style="font-size: 12px;">
+                <v-icon size="14" class="mr-1">mdi-magnify</v-icon>
+                View All Results
+                <v-icon size="14" class="ml-1">mdi-arrow-right</v-icon>
+              </v-btn>
             </div>
-
-            <template v-else>
-              <v-list>
-                <template v-for="(items, category) in groupedSearchResults" :key="category">
-                  <v-list-subheader class="text-caption font-weight-bold text-grey"
-                    style="font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px;">
-                    {{ category }}
-                  </v-list-subheader>
-                  <v-list-item v-for="item in items" :key="item.id" @click="selectSearchResult(item)"
-                    class="cursor-pointer result-item">
-                    <template #prepend>
-                      <v-avatar size="32" rounded="8" :color="themeColors.primaryBg">
-                        <v-icon size="16" :color="themeColors.primary">{{ item.icon }}</v-icon>
-                      </v-avatar>
-                    </template>
-                    <v-list-item-title class="text-body-2 font-weight-semibold">{{ item.label }}</v-list-item-title>
-                    <v-list-item-subtitle class="text-caption text-grey">{{ item.meta }}</v-list-item-subtitle>
-                  </v-list-item>
-                </template>
-              </v-list>
-
-              <div class="pa-2 border-t" :style="searchFooterStyle">
-                <v-btn variant="text" :color="themeColors.primary" block size="small"
-                  @click="openFullSearch" class="font-weight-semibold" style="font-size: 12px;">
-                  <v-icon size="14" class="mr-1">mdi-magnify</v-icon>
-                  View All Results
-                  <v-icon size="14" class="ml-1">mdi-arrow-right</v-icon>
-                </v-btn>
-              </div>
-            </template>
-          </v-card>
-        </v-menu>
+          </template>
+        </v-card>
       </div>
 
       <!-- RIGHT SECTION -->
@@ -612,6 +605,8 @@ const profileHeaderStyle = computed(() => ({
   background: `linear-gradient(180deg, ${themeColors.value.primaryBg} 0%, ${themeColors.value.surface} 100%)`
 }))
 
+const searchContainerRef = ref<HTMLElement | null>(null)
+
 const handleGlobalKeydown = (e: KeyboardEvent) => {
   if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
     e.preventDefault()
@@ -620,12 +615,24 @@ const handleGlobalKeydown = (e: KeyboardEvent) => {
   }
 }
 
+const handleClickOutside = (e: MouseEvent) => {
+  if (
+    searchOpen.value &&
+    searchContainerRef.value &&
+    !searchContainerRef.value.contains(e.target as Node)
+  ) {
+    searchOpen.value = false
+  }
+}
+
 onMounted(() => {
   window.addEventListener('keydown', handleGlobalKeydown)
+  document.addEventListener('mousedown', handleClickOutside)
 })
 
 onBeforeUnmount(() => {
   window.removeEventListener('keydown', handleGlobalKeydown)
+  document.removeEventListener('mousedown', handleClickOutside)
 })
 </script>
 
@@ -762,6 +769,14 @@ onBeforeUnmount(() => {
   max-width: 576px;
   margin: 0 24px;
   position: relative;
+}
+
+.search-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 50;
 }
 
 .search-field {
