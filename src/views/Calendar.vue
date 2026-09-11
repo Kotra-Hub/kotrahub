@@ -391,7 +391,7 @@
     <v-dialog v-model="eventDialog" max-width="600" persistent>
       <v-card rounded="xl">
         <v-card-title class="d-flex align-center gap-2 pa-4">
-          <v-icon color="primary" size="24">mdi-calendar-star</v-icon>
+          <v-icon color="primary" size="24" class="mr-2">mdi-calendar-star</v-icon>
           <span class="text-h6 font-weight-bold">{{ selectedEvent?.title || 'Event Details' }}</span>
           <v-spacer />
           <v-btn icon variant="text" @click="eventDialog = false">
