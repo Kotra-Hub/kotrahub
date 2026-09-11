@@ -272,7 +272,7 @@
                   </v-list-item-title>
                 </v-list-item>
 
-                <v-list-item  @click="$emit('navigate', 'settings')" class="cursor-pointer menu-item">
+                <v-list-item @click="$emit('open-settings')" class="cursor-pointer menu-item">
                   <template #prepend>
                     <v-icon :color="themeColors.primary" size="18">mdi-cog</v-icon>
                   </template>
