@@ -114,5 +114,4 @@ const items = [
         font-size: 12px;
     }
 }
-
 </style>
