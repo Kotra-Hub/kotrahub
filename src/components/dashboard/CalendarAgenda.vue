@@ -143,11 +143,26 @@ const events = [
 }
 
 /* DARK MODE OVERRIDE */
-:deep(.v-theme--dark) .calendar-card {background:rgb(var(--v-theme-surface)) !important;color:rgb(var(--v-theme-surface)) !important;}
-:deep(.v-theme--dark) .event {border-color:rgba(255,255,255,.15)!important;}
-:deep(.v-theme--dark) .date {background:rgb(var(--v-theme-surface-variant)) !important;}
-:deep(.v-theme--dark) .title {color:rgb(var(--v-theme-surface)) !important;}
-:deep(.v-theme--dark) .meta {color:rgba(var(--v-theme-on-surface), .45) !important;}
+:deep(.v-theme--dark) .calendar-card {
+  background: rgb(var(--v-theme-surface)) !important;
+  color: rgb(var(--v-theme-surface)) !important;
+}
+
+:deep(.v-theme--dark) .event {
+  border-color: rgba(255, 255, 255, .15) !important;
+}
+
+:deep(.v-theme--dark) .date {
+  background: rgb(var(--v-theme-surface-variant)) !important;
+}
+
+:deep(.v-theme--dark) .title {
+  color: rgb(var(--v-theme-surface)) !important;
+}
+
+:deep(.v-theme--dark) .meta {
+  color: rgba(var(--v-theme-on-surface), .45) !important;
+}
 
 
 
