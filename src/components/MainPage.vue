@@ -240,13 +240,9 @@ router.beforeEach((to, from, next) => {
 })
 
 router.afterEach(() => {
-  if (loadingTimer) {
-    clearTimeout(loadingTimer)
-    loadingTimer = null
-  }
-
-  // Hide overlay after navigation completes
-  navigationLoading.value = false
+setTimeout(() => {
+    navigationLoading.value = false
+  }, 500)
 })
 
 // Theme functions// Theme functions
