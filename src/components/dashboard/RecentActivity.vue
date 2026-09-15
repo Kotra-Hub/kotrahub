@@ -6,7 +6,8 @@
                 <h3>RECENT ACTIVITY</h3>
             </div>
             <div class="header-actions">
-                <v-btn class="view-btn" variant="outlined" @click="router.push('/main/recent-activities')">VIEW ALL</v-btn>
+                <v-btn class="view-btn" variant="outlined" @click="router.push('/main/recent-activities')">VIEW
+                    ALL</v-btn>
             </div>
         </div>
         <div v-for="a in activities" :key="a.title" class="activity">
@@ -140,11 +141,22 @@ const activities = [
 
 /* DARK MODE OVERRIDE */
 
-:deep(.v-theme--dark) .activity {border-color:rgba(255,255,255,.12)!important;}
-:deep(.v-theme--dark) .activity strong {color:rgb(var(--v-theme-on-surface)) !important;}
-:deep(.v-theme--dark) .activity small {color:rgba(var(--v-theme-on-surface), .45) !important;}
+:deep(.v-theme--dark) .activity {
+    border-color: rgba(255, 255, 255, .12) !important;
+}
+
+:deep(.v-theme--dark) .activity strong {
+    color: rgb(var(--v-theme-on-surface)) !important;
+}
+
+:deep(.v-theme--dark) .activity small {
+    color: rgba(var(--v-theme-on-surface), .45) !important;
+}
+
 :deep(.v-theme--dark) .activity-icon,
-:deep(.v-theme--dark) .icon {background:rgb(var(--v-theme-surface-variant)) !important;}
+:deep(.v-theme--dark) .icon {
+    background: rgb(var(--v-theme-surface-variant)) !important;
+}
 
 
 
@@ -156,15 +168,15 @@ const activities = [
 :deep(.v-theme--dark) .calendar-card,
 :deep(.v-theme--dark) .phone-card,
 :deep(.v-theme--dark) .quick {
-  background: rgb(var(--v-theme-surface)) !important;
-  color: rgb(var(--v-theme-on-surface)) !important;
+    background: rgb(var(--v-theme-surface)) !important;
+    color: rgb(var(--v-theme-on-surface)) !important;
 }
 
 :deep(.v-theme--dark) .announcement-body,
 :deep(.v-theme--dark) .announcement-details,
 :deep(.v-theme--dark) .detail-box {
-  background: rgb(var(--v-theme-surface-variant)) !important;
-  color: rgb(var(--v-theme-on-surface)) !important;
+    background: rgb(var(--v-theme-surface-variant)) !important;
+    color: rgb(var(--v-theme-on-surface)) !important;
 }
 
 :deep(.v-theme--dark) .quick-title,
@@ -173,6 +185,6 @@ const activities = [
 :deep(.v-theme--dark) h3,
 :deep(.v-theme--dark) p,
 :deep(.v-theme--dark) span {
-  color: rgb(var(--v-theme-on-surface));
+    color: rgb(var(--v-theme-on-surface));
 }
 </style>
