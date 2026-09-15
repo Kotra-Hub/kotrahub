@@ -1,6 +1,19 @@
 <!-- src/components/MainPage.vue -->
 <template>
   <v-app>
+    <!-- Important Notice Banner (global above header) -->
+    <v-alert
+      v-if="hasNotices && showBanner && currentNotice"
+      class="important-notice-banner ma-0 rounded-0"
+      type="warning"
+      variant="tonal"
+      closable
+      @click:close="dismissBanner"
+    >
+      <strong>{{ currentNotice.title }}</strong>
+      <span class="ml-2">{{ currentNotice.date }}</span>
+    </v-alert>
+
     <!-- Header -->
     <Header
       :key="`header-${showImportantNotice}`"
@@ -81,7 +94,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, watch, nextTick } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useTheme } from 'vuetify'
 import Header from '@/components/Header.vue'
@@ -92,6 +105,7 @@ import Settings from '@/components/Settings.vue'
 import LoadingOverlay from '@/components/LoadingOverlay.vue'
 import { useAuth } from '@/composables/useAuth'
 import { AppTheme } from '@/interfaces/common.interface'
+import { useImportantNotices } from '@/composables/useImportantNotices'
 
 const theme = useTheme()
 const router = useRouter()
@@ -102,11 +116,13 @@ const savedTheme = localStorage.getItem('theme') || AppTheme.LIGHT
 const isDark = ref(savedTheme === AppTheme.DARK)
 const settingsDialog = ref(false)
 const showImportantNotice = ref(true)
+const { currentNotice, hasNotices, showBanner, dismissBanner } = useImportantNotices()
 
 // Navigation loading state
 const navigationLoading = ref(false)
 const navigationTitle = ref('Loading...')
 const navigationMessage = ref('')
+let loadingTimer: ReturnType<typeof setTimeout> | null = null
 
 const currentRouteName = computed(() => route.name as string)
 const pageDisplayNames: Record<string, string> = {
@@ -165,11 +181,41 @@ const showLoading = (pageName: string) => {
   navigationTitle.value = 'Loading...'
   // Message changes to "Opening XXX..."
   navigationMessage.value = `Opening ${pageName}...`
+  // Always show overlay immediately during navigation
+  if (loadingTimer) clearTimeout(loadingTimer)
   navigationLoading.value = true
 }
 
 // MainPage.vue
-const navigate = (page: string, query?: string) => {
+const resetPageScroll = async () => {
+  await nextTick()
+
+  const containers = [
+    '.content-wrapper',
+    '.page-body',
+    '.v-main',
+    '.v-application__wrap'
+  ]
+
+  containers.forEach((selector) => {
+    document.querySelectorAll(selector).forEach((el) => {
+      ;(el as HTMLElement).scrollTop = 0
+    })
+  })
+
+  document.documentElement.scrollTop = 0
+  document.body.scrollTop = 0
+  window.scrollTo({ top: 0, left: 0, behavior: 'instant' as ScrollBehavior })
+}
+
+watch(
+  () => route.fullPath,
+  async () => {
+    await resetPageScroll()
+  }
+)
+
+const navigate = async (page: string, query?: string) => {
   const routeConfig = routeMap[page]
   const payload = {
     name: routeConfig?.name ?? page,
@@ -177,7 +223,7 @@ const navigate = (page: string, query?: string) => {
     query: query ? { q: query } : undefined
   }
 
-  router.push(payload)
+  await router.push(payload)
 
   if (window.innerWidth < 600) sidebarOpen.value = false
 }
@@ -194,12 +240,16 @@ router.beforeEach((to, from, next) => {
 })
 
 router.afterEach(() => {
-  setTimeout(() => {
-    navigationLoading.value = false
-  }, 500)
+  if (loadingTimer) {
+    clearTimeout(loadingTimer)
+    loadingTimer = null
+  }
+
+  // Hide overlay after navigation completes
+  navigationLoading.value = false
 })
 
-// Theme functions
+// Theme functions// Theme functions
 const setDarkMode = () => {
   isDark.value = true
   const newTheme = AppTheme.DARK

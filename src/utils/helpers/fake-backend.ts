@@ -23,7 +23,7 @@ function fakeBackend() {
   window.fetch = function (url: string, opts: { method: string; headers: { [key: string]: string }; body?: string }) {
     return new Promise<Response>((resolve, reject) => {
       // wrap in timeout to simulate server api call
-      setTimeout(handleRoute, 500);
+      handleRoute();
 
       function handleRoute() {
         switch (true) {
