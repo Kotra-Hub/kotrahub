@@ -13,12 +13,8 @@
         <v-btn class="action-btn" variant="outlined" prepend-icon="mdi-filter">
           Filters
         </v-btn>
-        <v-btn
-          class="action-btn"
-          variant="outlined"
-          :prepend-icon="isList ? 'mdi-view-grid-outline' : 'mdi-format-list-bulleted'"
-          @click="isList = !isList"
-        >
+        <v-btn class="action-btn" variant="outlined"
+          :prepend-icon="isList ? 'mdi-view-grid-outline' : 'mdi-format-list-bulleted'" @click="isList = !isList">
           {{ isList ? 'Grid' : 'List' }}
         </v-btn>
       </div>
@@ -49,36 +45,32 @@
 
     <div v-else class="directory-list-scroll">
       <div class="directory-list">
-      <div
-        v-for="p in people"
-        :key="`list-${p.name}`"
-        class="person-row"
-      >
-        <div class="avatar list-avatar">{{ p.initial }}</div>
+        <div v-for="p in people" :key="`list-${p.name}`" class="person-row">
+          <div class="avatar list-avatar">{{ p.initial }}</div>
 
-        <div class="list-name">
-          <strong>{{ p.name }}</strong>
-        </div>
-
-        <div class="list-position" :title="p.position">
-          {{ p.position }}
-        </div>
-
-        <div class="list-dept" :title="p.dept">
-          {{ p.dept }}
-        </div>
-
-        <div class="list-contact">
-          <div class="contact-line">
-            <v-icon size="16">mdi-phone</v-icon>
-            <span>Ext. {{ p.ext }}</span>
+          <div class="list-name">
+            <strong>{{ p.name }}</strong>
           </div>
-          <div class="contact-line email-line" :title="p.email">
-            <v-icon size="16">mdi-email-outline</v-icon>
-            <span class="email-text">{{ p.email }}</span>
+
+          <div class="list-position" :title="p.position">
+            {{ p.position }}
+          </div>
+
+          <div class="list-dept" :title="p.dept">
+            {{ p.dept }}
+          </div>
+
+          <div class="list-contact">
+            <div class="contact-line">
+              <v-icon size="16">mdi-phone</v-icon>
+              <span>Ext. {{ p.ext }}</span>
+            </div>
+            <div class="contact-line email-line" :title="p.email">
+              <v-icon size="16">mdi-email-outline</v-icon>
+              <span class="email-text">{{ p.email }}</span>
+            </div>
           </div>
         </div>
-      </div>
       </div>
     </div>
   </v-card>
@@ -304,38 +296,38 @@ const people = [
 }
 
 .list-name strong {
-  display:block;
-  color:rgb(var(--v-theme-on-surface));
-  font-size:15px;
-  font-weight:800;
-  white-space:nowrap;
-  overflow:visible;
-  text-overflow:clip;
+  display: block;
+  color: rgb(var(--v-theme-on-surface));
+  font-size: 15px;
+  font-weight: 800;
+  white-space: nowrap;
+  overflow: visible;
+  text-overflow: clip;
 }
 
 .list-position,
 .list-dept {
-  display:block;
-  color:rgb(var(--v-theme-on-background));
-  font-size:13px;
-  font-weight:700;
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
+  display: block;
+  color: rgb(var(--v-theme-on-background));
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .list-contact {
-  color:rgb(var(--v-theme-primary));
-  font-size:12px;
-  min-width:0;
+  color: rgb(var(--v-theme-primary));
+  font-size: 12px;
+  min-width: 0;
 }
 
 .list-contact .contact-line {
-  max-width:100%;
+  max-width: 100%;
 }
 
 .list-contact .email-text {
-  max-width:160px;
+  max-width: 160px;
 }
 
 .list-contact {
@@ -346,10 +338,7 @@ const people = [
 @media (max-width: 1100px) {
   .person-row {
     grid-template-columns:
-      56px
-      minmax(120px, 1fr)
-      minmax(120px, 1fr)
-      minmax(170px, 1.2fr);
+      56px minmax(120px, 1fr) minmax(120px, 1fr) minmax(170px, 1.2fr);
   }
 
   .list-dept {
@@ -370,9 +359,7 @@ const people = [
 
   .person-row {
     grid-template-columns:
-      56px
-      minmax(130px, 1fr)
-      minmax(170px, 1.2fr);
+      56px minmax(130px, 1fr) minmax(170px, 1.2fr);
   }
 
   .list-position,
@@ -385,7 +372,9 @@ const people = [
 :deep(.v-theme--dark) .phone-card,
 
 :deep(.v-theme--dark) .list-position,
-:deep(.v-theme--dark) .list-dept {color:rgba(var(--v-theme-on-surface), .45) !important;}
+:deep(.v-theme--dark) .list-dept {
+  color: rgba(var(--v-theme-on-surface), .45) !important;
+}
 
 
 
