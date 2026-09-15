@@ -35,7 +35,7 @@
             <span
               class="text-center leading-tight sidebar-label"
               :style="{
-                fontSize: '8px',
+                fontSize: '12px',
                 fontWeight: currentPage === item.page ? '600' : '500',
                 color: currentPage === item.page ? themeColors.primary : (isDark ? themeColors.textMuted : themeColors.textGrey),
                 lineHeight: '1.1',
@@ -64,14 +64,14 @@
           <div class="sidebar-btn-content" :class="[isActivePage(item.page) ? 'active-content' : '']">
             <v-icon
               :icon="item.icon"
-              :size="22"
+              :size="20"
               :color="isActivePage(item.page) ? themeColors.primary : (isDark ? themeColors.textMuted : themeColors.textGrey)"
               class="sidebar-icon"
             />
             <span
               class="text-center uppercase tracking-wide sidebar-label"
               :style="{
-                fontSize: '8px',
+                fontSize: '12px',
                 fontWeight: isActivePage(item.page) ? '600' : '500',
                 color: isActivePage(item.page) ? themeColors.primary : (isDark ? themeColors.textMuted : themeColors.textGrey),
                 lineHeight: '1.1',
@@ -155,11 +155,6 @@ const handleNavigate = (page: string) => {
   min-height: 100%;
 }
 
-.sidebar-desktop.sidebar-open {
-  width: 76px !important;
-  min-width: 76px !important;
-}
-
 .sidebar-desktop.sidebar-closed {
   width: 0 !important;
   min-width: 0 !important;
@@ -168,25 +163,9 @@ const handleNavigate = (page: string) => {
   overflow: hidden !important;
 }
 
-.sidebar-scroll {
-  scrollbar-width: thin;
-  scrollbar-color: v-bind('themeColors.border') transparent;
-  height: 100%;
-  flex: 1;
-}
 
-.sidebar-scroll::-webkit-scrollbar {
-  width: 2px;
-}
 
-.sidebar-scroll::-webkit-scrollbar-track {
-  background: transparent;
-}
 
-.sidebar-scroll::-webkit-scrollbar-thumb {
-  background: v-bind('themeColors.border');
-  border-radius: 10px;
-}
 
 .sidebar-scroll::-webkit-scrollbar-thumb:hover {
   background: v-bind('themeColors.textMuted');
@@ -199,10 +178,10 @@ const handleNavigate = (page: string) => {
   background: transparent !important;
   position: relative;
   cursor: pointer;
-  min-height: 56px !important;
+  min-height: 62px !important;
   flex-shrink: 0;
   width: 100% !important;
-  padding: 2px !important;
+  padding: 6px !important;
   margin: 0 !important;
   border-radius: 0 !important;
 }
@@ -214,10 +193,10 @@ const handleNavigate = (page: string) => {
   justify-content: center;
   width: 100%;
   height: 100%;
-  padding: 4px 2px;
+  padding: 6px 4px;
   border-radius: 8px;
   transition: all 0.2s ease;
-  min-height: 52px;
+  min-height: 58px;
 }
 
 .sidebar-btn:not(.active) .sidebar-btn-content:hover {
@@ -232,7 +211,7 @@ const handleNavigate = (page: string) => {
 .sidebar-btn.active {
   background: v-bind('themeColors.primaryBg') !important;
   border-radius: 0 !important;
-  padding: 2px !important;
+  padding: 6px !important;
   margin: 0 !important;
 }
 

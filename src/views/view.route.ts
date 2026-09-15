@@ -2,6 +2,55 @@
 import { RouteRecordRaw } from 'vue-router';
 
 const viewRoutes: RouteRecordRaw[] = [
+  {
+    name: 'Announcements',
+    path: 'announcements',
+    component: () => import('@/views/Announcements.vue'),
+    meta: {
+      title: 'Announcements'
+    }
+  },
+
+
+  {
+    name: 'Quick Access',
+    path: 'quick-access',
+    component: () => import('@/views/QuickAccess.vue'),
+    meta: {
+      title: 'Quick Access'
+    }
+  },
+
+
+  {
+    name: 'Pending Actions',
+    path: 'pending-actions',
+    component: () => import('@/views/PendingActions.vue'),
+    meta: {
+      title: 'Pending Actions'
+    }
+  },
+
+
+  {
+    name: 'Recent Activities',
+    path: 'recent-activities',
+    component: () => import('@/views/RecentActivities.vue'),
+    meta: {
+      title: 'Recent Activities'
+    }
+  },
+
+
+  {
+    name: 'Calendar Agenda',
+    path: 'calendar-agenda',
+    component: () => import('@/views/CalendarAgenda.vue'),
+    meta: {
+      title: 'Calendar Agenda'
+    }
+  },
+
   // Profile
   {
     name: 'Profile Details',
@@ -19,60 +68,6 @@ const viewRoutes: RouteRecordRaw[] = [
     props: true,
     meta: {
       title: 'Service'
-    }
-  },
-  // Recent Activities
-  {
-    name: 'Recent Activities',
-    path: 'recent-activities',
-    component: () => import('@/views/RecentActivities.vue'),
-    meta: {
-      title: 'Recent Activities'
-    }
-  },
-  // Pending Action
-  {
-    name: 'Pending Action',
-    path: 'pending',
-    component: () => import('@/views/PendingAction.vue'),
-    meta: {
-      title: 'Pending Action'
-    }
-  },
-  // Quick Access
-  {
-    name: 'Quick Access',
-    path: 'quickaccess',
-    component: () => import('@/views/QuickAccess.vue'),
-    meta: {
-      title: 'Quick Access'
-    }
-  },
-  // Quick Access
-  {
-    name: 'Quick Access',
-    path: 'quickaccess',
-    component: () => import('@/views/QuickAccess.vue'),
-    meta: {
-      title: 'Quick Access'
-    }
-  },
-  // Calendar
-  {
-    name: 'Calendar Agenda',
-    path: 'calendar',
-    component: () => import('@/views/Calendar.vue'),
-    meta: {
-      title: 'Calendar Agenda'
-    }
-  },
-  // Announcement
-  {
-    name: 'Announcement',
-    path: 'announcements',
-    component: () => import('@/views/Announcement.vue'),
-    meta: {
-      title: 'Announcement'
     }
   },
   // Phone Directory

@@ -1,21 +1,39 @@
 <!-- src/components/AiAssistant.vue -->
 <template>
   <div>
-    <div class="ai-assistant-trigger" @click="toggleAssistant">
+    <div
+      v-if="!aiOpen"
+      class="ai-assistant-trigger"
+      :style="mascotStyle"
+      @mousedown="startMascotDrag"
+      @touchstart="startMascotDrag"
+      @click="handleMascotClick"
+    >
       <div class="ai-assistant-button">
         <div class="ai-glow" />
         <img
-          src="@/assets/images/kpai.png"
+          src="@/assets/images/kpai-body.png"
           alt="KPAI Assistant"
-          class="ai-avatar"
+          class="ai-mascot-body"
+          draggable="false"
+        />
+        <img
+          src="@/assets/images/kpai-left-hand.png"
+          alt=""
+          aria-hidden="true"
+          class="ai-mascot-left-hand"
+          draggable="false"
         />
       </div>
 
-      <div v-if="showBubble" class="hint-bubble">
-        <span>Need Help? Click Me</span>
+      <!-- Floating Bubble -->
+      <div v-if="showBubble" class="hint-bubble" aria-label="Need Help? Click Me!">
+        <span class="help-bounce">Need Help?</span>
+        <span class="help-bounce">Click Me! 😊</span>
       </div>
     </div>
 
+    <!-- AI Assistant-->
     <Teleport to="body">
       <Transition name="ai-fade">
         <div v-if="aiOpen" class="ai-card-wrapper" :style="cardStyle">
@@ -25,6 +43,7 @@
             elevation="24"
             rounded="lg"
           >
+            <!-- Draggable Header -->
             <v-card-title
               class="ai-header pa-3"
               :class="{ 'ai-header--no-drag': isMobile }"
@@ -58,6 +77,7 @@
               </div>
             </v-card-title>
 
+            <!-- Tabs -->
             <v-tabs
               v-model="activeTab"
               color="primary"
@@ -89,11 +109,13 @@
 
             <v-divider class="ai-divider" />
 
+            <!-- Content -->
             <v-card-text class="ai-content pa-0">
               <v-window v-model="activeTab" class="ai-window">
                 <!-- Chat Tab -->
                 <v-window-item value="chat">
                   <div class="chat-container">
+                    <!-- Messages -->
                     <div ref="chatContainer" class="chat-messages">
                       <div
                         v-for="(msg, index) in chatMessages"
@@ -115,15 +137,13 @@
                           >
                             <span class="message-text">{{ msg.text }}</span>
                           </div>
-                          <span
-                            class="message-time"
-                            :class="msg.from === 'user' ? 'time-user' : 'time-ai'"
-                          >
+                          <span class="message-time" :class="msg.from === 'user' ? 'time-user' : 'time-ai'">
                             {{ msg.time }}
                           </span>
                         </div>
                       </div>
 
+                      <!-- Typing indicator -->
                       <div v-if="aiTyping" class="chat-message message-ai">
                         <v-avatar size="28" class="message-avatar">
                           <img src="@/assets/images/kpai.png" alt="AI" />
@@ -136,6 +156,22 @@
                       </div>
                     </div>
 
+                    <!-- Quick replies -->
+                    <!--<div v-if="showQuickReplies" class="quick-replies">
+                      <v-chip
+                        v-for="reply in quickReplies"
+                        :key="reply.label"
+                        size="small"
+                        variant="outlined"
+                        color="primary"
+                        class="quick-reply-chip"
+                        @click="sendQuickReply(reply.value)"
+                      >
+                        {{ reply.label }}
+                      </v-chip>
+                    </div>-->
+
+                    <!-- Input Row: Search + Send -->
                     <div class="chat-input-row">
                       <v-text-field
                         v-model="chatInput"
@@ -249,6 +285,7 @@
 <script setup lang="ts">
 import { ref, computed, nextTick, watch, onMounted, onBeforeUnmount } from 'vue'
 
+// Emits
 const emit = defineEmits<{
   toggleTheme: []
   setDarkMode: []
@@ -257,9 +294,11 @@ const emit = defineEmits<{
   navigate: [routeName: string]
 }>()
 
+// State
 const aiOpen = ref(false)
 const activeTab = ref('chat')
 const chatInput = ref('')
+const hoverTimer = ref<ReturnType<typeof setTimeout> | null>(null)
 const aiTyping = ref(false)
 const hasUnread = ref(true)
 const knowledgeSearch = ref('')
@@ -272,6 +311,14 @@ const dragPositionX = ref<number | null>(null)
 const dragPositionY = ref<number | null>(null)
 const cardWidth = ref(480)
 const cardHeight = ref(600)
+
+// Mascot draggable position
+const mascotX = ref<number | null>(null)
+const mascotY = ref<number | null>(null)
+const mascotDragging = ref(false)
+const mascotOffsetX = ref(0)
+const mascotOffsetY = ref(0)
+const mascotMoved = ref(false)
 
 const chatContainer = ref<HTMLDivElement | null>(null)
 
@@ -292,6 +339,16 @@ const welcomeMessage = (): ChatMessage => ({
 
 const chatMessages = ref<ChatMessage[]>([welcomeMessage()])
 
+// const quickReplies = [
+//   { label: '🏠 Dashboard', value: 'dashboard' },
+//   { label: '👤 Profile', value: 'profile' },
+//   { label: '🌙 Dark mode', value: 'dark mode' },
+//   { label: '🎫 Support', value: 'support' },
+// ]
+
+// const showQuickReplies = computed(() => chatMessages.value.length <= 1 && !aiTyping.value)
+
+// Knowledge items
 const knowledgeItems = ref([
   { title: 'User Manual v3.2', action: 'manual' },
   { title: 'Frequently Asked Questions', action: 'faq' },
@@ -302,11 +359,10 @@ const knowledgeItems = ref([
 const filteredKnowledgeItems = computed(() => {
   const q = knowledgeSearch.value.trim().toLowerCase()
   if (!q) return knowledgeItems.value
-  return knowledgeItems.value.filter((item) =>
-    item.title.toLowerCase().includes(q)
-  )
+  return knowledgeItems.value.filter((item) => item.title.toLowerCase().includes(q))
 })
 
+// Support tickets
 const supportTickets = ref([
   { id: '#4421', name: 'Login Issue', meta: 'Aug 8 · In Progress', status: 'open' },
   { id: '#4423', name: 'API Timeout', meta: 'Aug 7 · Waiting', status: 'waiting' },
@@ -317,7 +373,9 @@ const openTicketCount = computed(
   () => supportTickets.value.filter((t) => t.status !== 'closed').length
 )
 
+//Card Positioning
 const DEFAULT_MARGIN = 16
+const DIALOG_BOTTOM_OFFSET = 120
 const MOBILE_MAX = 600
 const TABLET_MAX = 1024
 
@@ -349,6 +407,74 @@ const calcCardSize = () => {
   cardHeight.value = Math.min(600, vh - 2 * DEFAULT_MARGIN)
 }
 
+const mascotStyle = computed(() => {
+  if (mascotX.value !== null && mascotY.value !== null) {
+    return {
+      left: `${mascotX.value}px`,
+      top: `${mascotY.value}px`,
+      right: 'auto',
+      bottom: 'auto',
+      position: 'fixed',
+      cursor: 'grab',
+    }
+  }
+  return {}
+})
+
+const handleMascotClick = () => {
+  if (!mascotMoved.value) toggleAssistant()
+  mascotMoved.value = false
+}
+
+const startMascotDrag = (e: MouseEvent | TouchEvent) => {
+  const el = e.currentTarget as HTMLElement
+  const rect = el.getBoundingClientRect()
+  const x = 'touches' in e ? e.touches[0].clientX : e.clientX
+  const y = 'touches' in e ? e.touches[0].clientY : e.clientY
+
+  mascotOffsetX.value = x - rect.left
+  mascotOffsetY.value = y - rect.top
+  mascotDragging.value = true
+  mascotMoved.value = false
+
+  document.addEventListener('mousemove', dragMascot)
+  document.addEventListener('mouseup', stopMascotDrag)
+  document.addEventListener('touchmove', dragMascot, { passive: false })
+  document.addEventListener('touchend', stopMascotDrag)
+
+  e.preventDefault()
+}
+
+const dragMascot = (e: MouseEvent | TouchEvent) => {
+  if (!mascotDragging.value) return
+
+  const x = 'touches' in e ? e.touches[0].clientX : e.clientX
+  const y = 'touches' in e ? e.touches[0].clientY : e.clientY
+
+  let nx = x - mascotOffsetX.value
+  let ny = y - mascotOffsetY.value
+
+  nx = Math.max(0, Math.min(nx, window.innerWidth - 110))
+  ny = Math.max(0, Math.min(ny, window.innerHeight - 110))
+
+  if (Math.abs(nx - (mascotX.value ?? nx)) > 2 || Math.abs(ny - (mascotY.value ?? ny)) > 2) {
+    mascotMoved.value = true
+  }
+
+  mascotX.value = nx
+  mascotY.value = ny
+
+  if ('touches' in e) e.preventDefault()
+}
+
+const stopMascotDrag = () => {
+  mascotDragging.value = false
+  document.removeEventListener('mousemove', dragMascot)
+  document.removeEventListener('mouseup', stopMascotDrag)
+  document.removeEventListener('touchmove', dragMascot)
+  document.removeEventListener('touchend', stopMascotDrag)
+}
+
 const cardStyle = computed(() => {
   const baseStyle = {
     width: `${cardWidth.value}px`,
@@ -369,29 +495,43 @@ const cardStyle = computed(() => {
 
   return {
     ...baseStyle,
-    top: '50%',
-    left: '50%',
-    transform: 'translate(-50%, -50%)',
+    right: '24px',
+    bottom: '24px',
+    transform: 'none',
   }
 })
 
+const positionNearTrigger = () => {
+  calcCardSize()
+
+  const trigger = document.querySelector('.ai-assistant-trigger') as HTMLElement | null
+  const rect = trigger?.getBoundingClientRect()
+
+  let x: number
+  let y: number
+
+  x = window.innerWidth - cardWidth.value - 24
+  y = window.innerHeight - cardHeight.value - 24
+
+  x = Math.max(DEFAULT_MARGIN, Math.min(x, window.innerWidth - cardWidth.value - DEFAULT_MARGIN))
+  y = Math.max(DEFAULT_MARGIN, Math.min(y, window.innerHeight - cardHeight.value - DEFAULT_MARGIN))
+
+  dragPositionX.value = x
+  dragPositionY.value = y
+}
+
+// Methods
 const toggleAssistant = () => {
+  aiOpen.value = !aiOpen.value
   if (aiOpen.value) {
-    aiOpen.value = false
-    showBubble.value = true
-    return
+    calcCardSize()
+    hasUnread.value = false
+    activeTab.value = 'chat'
+    dragPositionX.value = null
+    dragPositionY.value = null
+    showBubble.value = false
+    nextTick(() => focusChatInput())
   }
-
-  dragPositionX.value = null
-  dragPositionY.value = null
-  aiOpen.value = true
-  hasUnread.value = false
-  activeTab.value = 'chat'
-  showBubble.value = false
-
-  nextTick(() => {
-    focusChatInput()
-  })
 }
 
 const closeAssistant = () => {
@@ -411,6 +551,27 @@ const resetChat = () => {
   nextTick(() => focusChatInput())
 }
 
+const startHoverTimer = () => {
+  hoverTimer.value = setTimeout(() => {
+    if (!aiOpen.value) {
+      aiOpen.value = true
+      hasUnread.value = false
+      showBubble.value = false
+      nextTick(() => {
+        if (dragPositionX.value === null) positionNearTrigger()
+        focusChatInput()
+      })
+    }
+  }, 500)
+}
+
+const cancelHoverTimer = () => {
+  if (hoverTimer.value) {
+    clearTimeout(hoverTimer.value)
+    hoverTimer.value = null
+  }
+}
+
 const focusChatInput = () => {
   const input = document.querySelector('.chat-input input') as HTMLInputElement
   if (input) {
@@ -425,6 +586,11 @@ const scrollChatToBottom = () => {
     }
   })
 }
+
+// const sendQuickReply = (value: string) => {
+//   chatInput.value = value
+//   sendChat()
+// }
 
 const sendChat = () => {
   const msg = chatInput.value.trim()
@@ -453,40 +619,35 @@ const sendChat = () => {
 const processUserMessage = (message: string): { text: string; action?: () => void } => {
   const lower = message.toLowerCase()
 
-  const routeMap: Record<string, { route: string; label: string }> = {
-    dashboard: { route: 'dashboard', label: 'Dashboard' },
-    home: { route: 'dashboard', label: 'Dashboard' },
-    main: { route: 'dashboard', label: 'Dashboard' },
-    profile: { route: 'profile', label: 'Profile' },
-    'my profile': { route: 'profile', label: 'Profile' },
-    contacts: { route: 'profile', label: 'Profile' },
-    calendar: { route: 'calendar', label: 'Calendar' },
-    'quick access': { route: 'quickaccess', label: 'Quick Access' },
-    'pending action': { route: 'pending', label: 'Pending Actions' },
-    phone: { route: 'phonedirectory', label: 'Phone Directory' },
-    'recent activities': { route: 'recent-activities', label: 'Recent Activities' },
-    announcement: { route: 'announcements', label: 'Announcements' },
-    tasks: { route: 'tasks', label: 'Tasks' },
-    settings: { route: 'settings', label: 'Settings' },
-    plant: { route: 'plant', label: 'Plant' },
-    sales: { route: 'sales', label: 'Sales' },
-    employee: { route: 'employee', label: 'Employee' },
-    employees: { route: 'employee', label: 'Employee' },
-    staff: { route: 'employee', label: 'Employee' },
-    po: { route: 'po', label: 'Purchase Order' },
-    'purchase order': { route: 'po', label: 'Purchase Order' },
-    procurement: { route: 'po', label: 'Purchase Order' },
-    requisition: { route: 'requisition', label: 'Requisition' },
-    inventory: { route: 'inventory', label: 'Inventory' },
-    inventories: { route: 'inventory', label: 'Inventory' },
-    stock: { route: 'inventory', label: 'Inventory' },
+  const routeMap: Record<string, string> = {
+    'dashboard':       'dashboard',
+    'home':            'dashboard',
+    'main':            'dashboard',
+    'profile':         'profile',
+    'my profile':      'profile',
+    'contacts':        'profile',
+    'calendar':        'calendar',
+    'tasks':           'tasks',
+    'settings':        'settings',
+    'plant':           'plant',
+    'sales':           'sales',
+    'employee':        'employee',
+    'employees':       'employee',
+    'staff':           'employee',
+    'po':              'po',
+    'purchase order':  'po',
+    'procurement':     'po',
+    'requisition':     'requisition',
+    'inventory':       'inventory',
+    'inventories':     'inventory',
+    'stock':           'inventory',
   }
 
-  for (const [key, entry] of Object.entries(routeMap)) {
+  for (const [key, routeName] of Object.entries(routeMap)) {
     if (lower.includes(key)) {
       return {
-        text: `📍 Navigating to ${entry.label}...`,
-        action: () => emit('navigate', entry.route),
+        text: `📍 Navigating to ${routeName.charAt(0).toUpperCase() + routeName.slice(1)}...`,
+        action: () => emit('navigate', routeName)
       }
     }
   }
@@ -494,23 +655,13 @@ const processUserMessage = (message: string): { text: string; action?: () => voi
   if (lower.includes('support') || lower.includes('ticket')) {
     return {
       text: '🎫 Here are your support tickets.',
-      action: () => {
-        activeTab.value = 'support'
-      },
+      action: () => { activeTab.value = 'support' }
     }
   }
-
-  if (
-    lower.includes('faq') ||
-    lower.includes('knowledge') ||
-    lower.includes('manual') ||
-    lower.includes('help')
-  ) {
+  if (lower.includes('faq') || lower.includes('knowledge') || lower.includes('manual') || lower.includes('help')) {
     return {
       text: '📚 Opening the Knowledge tab for you.',
-      action: () => {
-        activeTab.value = 'knowledge'
-      },
+      action: () => { activeTab.value = 'knowledge' }
     }
   }
 
@@ -575,6 +726,7 @@ const handleReportIssue = () => {
   scrollChatToBottom()
 }
 
+// Drag functionality
 const startDrag = (e: MouseEvent | TouchEvent) => {
   if (isMobile.value) return
 
@@ -640,6 +792,7 @@ const handleClickOutside = (e: MouseEvent) => {
   }
 }
 
+// Watch & Lifecycle
 watch(activeTab, (newTab) => {
   if (newTab === 'chat') {
     setTimeout(() => focusChatInput(), 100)
@@ -647,25 +800,27 @@ watch(activeTab, (newTab) => {
 })
 
 const handleKeydown = (e: KeyboardEvent) => {
-  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'i') {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
     e.preventDefault()
     if (!aiOpen.value) {
-      dragPositionX.value = null
-      dragPositionY.value = null
       aiOpen.value = true
       hasUnread.value = false
       showBubble.value = false
-      activeTab.value = 'chat'
       nextTick(() => {
+        if (dragPositionX.value === null) positionNearTrigger()
         focusChatInput()
       })
     } else if (activeTab.value === 'chat') {
       focusChatInput()
     }
   }
-
   if (e.key === 'Escape' && aiOpen.value) {
-    closeAssistant()
+    aiOpen.value = false
+    showBubble.value = true
+    if (bubbleTimer) clearTimeout(bubbleTimer)
+    bubbleTimer = setTimeout(() => {
+      showBubble.value = false
+    }, 5000)
   }
 }
 
@@ -704,28 +859,13 @@ onBeforeUnmount(() => {
   document.removeEventListener('touchmove', onDrag)
   document.removeEventListener('touchend', stopDrag)
 })
-
-const openAssistant = () => {
-  if (aiOpen.value) return
-
-  dragPositionX.value = null
-  dragPositionY.value = null
-  aiOpen.value = true
-  hasUnread.value = false
-  showBubble.value = false
-  activeTab.value = 'chat'
-
-  nextTick(() => {
-    focusChatInput()
-  })
-}
-
-defineExpose({ openAssistant })
 </script>
 
 <style scoped>
+/* AI ASSISTANT */
 .ai-assistant-trigger {
   display: flex;
+  touch-action: none;
   flex-direction: column;
   align-items: center;
   gap: 2px;
@@ -760,28 +900,96 @@ defineExpose({ openAssistant })
   animation: pulseGlow 2.4s ease-in-out infinite;
 }
 
-.ai-avatar {
-  position: relative;
+.ai-mascot-body,
+.ai-mascot-left-hand {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   object-fit: contain;
+  pointer-events: none;
+  user-select: none;
+}
+
+.ai-mascot-body {
+  z-index: 1;
   filter: drop-shadow(0 10px 18px rgba(15, 157, 154, 0.35));
-  animation: floaty 3s ease-in-out infinite;
+}
+
+.ai-mascot-left-hand {
+  z-index: 2;
+  transform-origin: 15.7% 49.8%;
+  animation: leftHandWave 3s ease-in-out infinite;
+}
+
+.ai-label {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 9999px;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: rgb(var(--v-theme-surface));
+  color: rgb(var(--v-theme-darkText));
+  border: 1px solid rgb(var(--v-theme-borderLight));
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.help-bounce {
+  display: inline-block;
+  animation: helpBounce 1.8s ease-in-out infinite;
+}
+
+@keyframes helpBounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
 }
 
 .hint-bubble {
   position: absolute;
-  bottom: calc(100% + 28px);
+  bottom: calc(100% + 2px);
   right: 0;
-  background: var(--user-accent, #0f9d9a);
-  color: white;
-  padding: 8px 16px;
-  border-radius: 12px;
+  background: rgb(var(--v-theme-primaryBg));
+  border: 1px solid rgba(var(--v-theme-primary), 0.35);
+  padding: 9px 14px;
+  border-radius: 16px;
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 700;
   white-space: nowrap;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  animation: bubblePop 0.3s ease-out;
+  box-shadow: 0 8px 20px rgba(var(--v-theme-primary), 0.18);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  animation: bubbleBounce 1.8s ease-in-out infinite;
+}
+
+.hint-bubble::after {
+  content: "";
+  position: absolute;
+  bottom: -7px;
+  right: 34px;
+  border-width: 7px 7px 0;
+  border-style: solid;
+  border-color: rgb(var(--v-theme-primaryBg)) transparent transparent;
+}
+
+.help-bounce {
+  display: block;
+}
+
+@keyframes bubbleBounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
 }
 
 @keyframes bubblePop {
@@ -1052,6 +1260,24 @@ defineExpose({ openAssistant })
 .typing-dot:nth-child(2) { animation-delay: 0.2s; }
 .typing-dot:nth-child(3) { animation-delay: 0.4s; }
 
+.quick-replies {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 8px 16px 4px;
+  flex-shrink: 0;
+  background: rgb(var(--v-theme-background));
+}
+
+.quick-reply-chip {
+  cursor: pointer;
+  color: rgb(var(--v-theme-primary)) !important;
+}
+
+.quick-reply-chip:hover {
+  background: rgb(var(--v-theme-primaryBg)) !important;
+}
+
 .chat-input-row {
   display: flex;
   align-items: center;
@@ -1157,6 +1383,27 @@ defineExpose({ openAssistant })
   50% { transform: translateY(-6px); }
 }
 
+@keyframes leftHandWave {
+  0%, 68%, 100% {
+    transform: rotate(0deg);
+  }
+  73% {
+    transform: rotate(-13deg);
+  }
+  78% {
+    transform: rotate(11deg);
+  }
+  83% {
+    transform: rotate(-11deg);
+  }
+  88% {
+    transform: rotate(9deg);
+  }
+  93% {
+    transform: rotate(0deg);
+  }
+}
+
 @keyframes typingBounce {
   0%, 60%, 100% { opacity: 0.4; transform: translateY(0); }
   30% { opacity: 1; transform: translateY(-3px); }
@@ -1197,7 +1444,8 @@ defineExpose({ openAssistant })
     padding: 6px 12px;
     white-space: normal;
     max-width: 160px;
-    bottom: calc(100% + 20px);
+    bottom: calc(100% + 1px);
+    right: -2px;
   }
 
   .chat-input-row {

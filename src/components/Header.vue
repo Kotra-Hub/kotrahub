@@ -1,7 +1,7 @@
 <!-- src/components/Header.vue -->
 <template>
   <!-- IMPORTANT NOTICE SECTION -->
-  <div v-if="hasNotices && showImportantNotice && currentNotice" class="important-notice-wrapper">
+  <div v-if="hasNotices && showBanner && currentNotice" class="important-notice-wrapper">
     <div class="important-notice-banner">
       <v-container fluid class="pa-0">
         <v-row no-gutters align="center" class="pa-3 pa-sm-4" style="min-height: 86px;">
@@ -44,7 +44,7 @@
               style="font-size: 11px; height: 24px; padding:0 12px;">
               NEW
             </v-chip>
-            <v-btn icon size="small" @click="showImportantNotice = false" class="close-btn-3d">
+            <v-btn icon size="small" @click="dismissBanner()" class="close-btn-3d">
               <v-icon size="14">mdi-close</v-icon>
             </v-btn>
           </v-col>
@@ -438,6 +438,7 @@ const {
   hasNotices,
   showBanner,
   getById: getNoticeById,
+  dismissBanner,
 } = useImportantNotices()
 
 // MENU ACTIVATORS

@@ -5,11 +5,11 @@
       <v-container class="fill-height" fluid>
         <v-row align="center" justify="center">
           <v-col cols="12" sm="8" md="6" lg="4" xl="3">
-            <v-card class="pa-5 pa-sm-6 pa-md-7 rounded-xl elevation-12" :style="{
+            <v-card class="pa-5 pa-sm-6 rounded-xl elevation-8" :style="{
               background: `rgba(255,255,255)`,
               backdropFilter: 'blur(8px)',
-              borderRadius: '24px !important',
-              maxWidth: '440px',
+              borderRadius: '22px !important',
+              maxWidth: '420px',
               margin: '0 auto'
             }">
               <v-card-text class="pa-0">
@@ -41,16 +41,16 @@
 
                 <!-- STEP 1: Credentials -->
                 <div v-if="loginStep === 1">
-                  <v-text-field v-model="loginUsername" label="Username" variant="outlined" density="comfortable"
-                    class="mb-2" prepend-inner-icon="mdi-account" rounded="lg" bg-color="#ffffff"
+                  <v-text-field v-model="loginUsername" placeholder="Username" variant="outlined" density="comfortable"
+                    class="mb-2" prepend-inner-icon="mdi-account" rounded="lg" bg-color="#f8fafc"
                     hide-details :color="themeColors.primary">
                   </v-text-field>
 
-                  <v-text-field v-model="loginPassword" :type="showPassword ? 'text' : 'password'" label="Password"
+                  <v-text-field v-model="loginPassword" :type="showPassword ? 'text' : 'password'" placeholder="Password"
                     variant="outlined" density="comfortable" class="mb-3" prepend-inner-icon="mdi-lock"
                     :append-inner-icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'"
                     @click:append-inner="showPassword = !showPassword" @keyup.enter="verifyCredentials" rounded="lg"
-                    bg-color="#ffffff" hide-details :color="themeColors.primary">
+                    bg-color="#f8fafc" hide-details :color="themeColors.primary">
                   </v-text-field>
 
                   <div class="d-flex flex-column ga-2">
@@ -61,6 +61,7 @@
                         letterSpacing: '0.3px',
                         fontSize: '0.9rem'
                       }" @click="loginWithout2FA">
+                      <v-icon start size="18">mdi-login</v-icon>
                       Sign In
                     </v-btn>
 
@@ -88,7 +89,7 @@
                   </div>
 
                   <!-- Warning Section -->
-                  <v-alert class="mt-3" density="compact" variant="tonal" color="warning" rounded="lg"
+                  <v-alert class="mt-3 text-center" density="compact" variant="text" color="warning" rounded="0"
                     style="font-size: 0.75rem;">
                     <div class="d-flex align-center ga-2">
                       <v-icon size="16" color="warning">mdi-alert</v-icon>
@@ -218,9 +219,9 @@ const router = useRouter()
 const { login } = useAuth()
 
 // Define emits
-//const emit = defineEmits<{
-//  (e: 'login-success', user: { username: string; name: string; role: string; email: string; department: string }): void
-//}>()
+const emit = defineEmits<{
+  (e: 'login-success', user: { username: string; name: string; role: string; email: string; department: string }): void
+}>()
 
 // Theme
 const theme = useTheme()

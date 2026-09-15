@@ -293,6 +293,7 @@ const toggleSidebar = () => {
 }
 
 .page-body {
+  overflow-x: hidden;
   display: flex;
   width: 100%;
   align-items: stretch;
@@ -301,13 +302,14 @@ const toggleSidebar = () => {
 }
 
 .sidebar-wrapper {
-  flex: 0 0 76px;
-  width: 76px;
+  flex: 0 0 95px;
+  width: 95px;
   align-self: stretch;
   display: flex;
 }
 
 .content-wrapper {
+  overflow-x: hidden;
   flex: 1;
   min-width: 0;
   display: flex;
@@ -316,6 +318,8 @@ const toggleSidebar = () => {
 
 .content-wrapper .v-container {
   flex: 1;
+  padding-left: 24px !important;
+  padding-right: 24px !important;
 }
 
 .footer-wrapper {
