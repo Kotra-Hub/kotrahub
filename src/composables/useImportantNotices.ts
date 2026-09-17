@@ -53,6 +53,7 @@ const showBannerNow = () => { showBanner.value = true }
 export const useImportantNotices = () => ({
   notices,
   latest,
+  currentNotice: latest,
   hasNotices,
   showBanner,
   getById,

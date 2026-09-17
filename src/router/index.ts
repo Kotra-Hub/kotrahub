@@ -4,6 +4,18 @@ import MainRoutes from './main.routes';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
+  scrollBehavior(_to, _from, savedPosition) {
+    // Restore browser back/forward position
+    if (savedPosition) {
+      return savedPosition;
+    }
+
+    // New page navigation always starts at top
+    return {
+      top: 0,
+      behavior: 'smooth'
+    };
+  },
   routes: [
     {
       path: '/',

@@ -521,14 +521,6 @@ const openNotice = (id: string) => {
   noticeModalOpen.value = true
 }
 
-const showImportantNotice = computed({
-  get: () => props.showImportantNotice ?? showBanner.value,
-  set: (val) => {
-    showBanner.value = val
-    emit('update:show-important-notice', val)
-  }
-})
-
 // DIALOG
 const noticeBodyHtml = computed(() => {
   const notice = activeNotice.value

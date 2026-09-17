@@ -1,5 +1,5 @@
 <template>
-  <v-card class="dash-card">
+  <v-card class="dash-card phone-directory-card">
     <div class="head">
       <div class="head-title">
         <span class="head-icon">
@@ -10,7 +10,12 @@
 
       <div class="actions">
         <v-btn class="action-btn icon-btn" variant="outlined" icon="mdi-magnify" />
-        <v-btn class="action-btn" variant="outlined" prepend-icon="mdi-filter">
+        <v-btn
+          class="action-btn"
+          variant="outlined"
+          prepend-icon="mdi-filter"
+          @click="showFilters = !showFilters"
+        >
           Filters
         </v-btn>
         <v-btn class="action-btn" variant="outlined"
@@ -20,7 +25,41 @@
       </div>
     </div>
 
-    <v-row v-if="!isList" dense class="directory-grid">
+    <v-card v-if="showFilters" class="filter-panel" elevation="0">
+      <div class="filter-grid">
+        <div class="filter-item">
+          <label>Department</label>
+          <v-select
+            :items="['All Departments','Commercial','Sales','Finance','Human Resource','Quality Control']"
+            model-value="All Departments"
+            density="comfortable"
+            variant="outlined"
+            rounded="lg"
+            hide-details
+          />
+        </div>
+        <div class="filter-item">
+          <label>Team</label>
+          <v-select
+            :items="['All Teams','Management','Executive','Support']"
+            model-value="All Teams"
+            density="comfortable"
+            variant="outlined"
+            rounded="lg"
+            hide-details
+          />
+        </div>
+        <div class="filter-reset">
+          <v-btn variant="outlined" rounded="lg" color="primary">
+            <v-icon size="16" class="mr-2">mdi-restore</v-icon>
+            Reset
+          </v-btn>
+        </div>
+      </div>
+    </v-card>
+
+    <div v-if="!isList" class="directory-content-scroll directory-grid-scroll">
+    <v-row dense class="directory-grid">
       <v-col cols="12" sm="6" lg="4" v-for="p in people" :key="`grid-${p.name}`">
         <v-card class="person-card" elevation="0">
           <div class="person-top">
@@ -42,8 +81,9 @@
         </v-card>
       </v-col>
     </v-row>
+    </div>
 
-    <div v-else class="directory-list-scroll">
+    <div v-else class="directory-content-scroll directory-list-scroll">
       <div class="directory-list">
         <div v-for="p in people" :key="`list-${p.name}`" class="person-row">
           <div class="avatar list-avatar">{{ p.initial }}</div>
@@ -80,6 +120,7 @@
 import { ref } from 'vue'
 
 const isList = ref(false)
+const showFilters = ref(false)
 
 const people = [
   ['AH', 'Amirul Hakim', 'Product Manager', 'Commercial', '1702', 'amirul.hakim@kotra.com'],
@@ -102,14 +143,50 @@ const people = [
 </script>
 
 <style scoped>
+.filter-panel {
+  padding: 16px;
+  border-radius: 20px;
+  background: rgba(var(--v-theme-primary), 0.06);
+  border: 1px solid rgba(var(--v-theme-primary), 0.08);
+}
+
+.filter-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 16px;
+  align-items: end;
+}
+
+.filter-item label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: rgb(var(--v-theme-on-surface));
+}
+
+@media(max-width:900px){
+  .filter-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 .dash-card {
   padding: 18px;
   border-radius: 24px;
   border: 1px solid rgba(var(--v-theme-on-surface), 0.12);
   background: rgb(var(--v-theme-surface));
-  height: 100%;
+  height: 650px;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
+
+.directory-content-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
 
 .head {
   display: flex;
@@ -167,6 +244,14 @@ const people = [
 }
 
 /* GRID VIEW */
+.directory-grid-scroll {
+  height: calc(100% - 75px);
+  max-height: none;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 4px;
+}
+
 .directory-grid {
   margin: 0 -6px;
 }
@@ -405,4 +490,23 @@ const people = [
 :deep(.v-theme--dark) span {
   color: rgb(var(--v-theme-on-surface));
 }
+
+/* V52 FIX: match Calendar Agenda height without forcing empty space */
+.phone-directory-card {
+  height: auto;
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.phone-directory-card .directory-content-scroll {
+  flex: 1;
+  min-height: 0;
+}
+
+.phone-directory-card .directory-grid-scroll,
+.phone-directory-card .directory-list-scroll {
+  overflow-y: auto;
+}
+
 </style>

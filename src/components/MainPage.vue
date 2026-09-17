@@ -1,19 +1,6 @@
 <!-- src/components/MainPage.vue -->
 <template>
   <v-app>
-    <!-- Important Notice Banner (global above header) -->
-    <v-alert
-      v-if="hasNotices && showBanner && currentNotice"
-      class="important-notice-banner ma-0 rounded-0"
-      type="warning"
-      variant="tonal"
-      closable
-      @click:close="dismissBanner"
-    >
-      <strong>{{ currentNotice.title }}</strong>
-      <span class="ml-2">{{ currentNotice.date }}</span>
-    </v-alert>
-
     <!-- Header -->
     <Header
       :key="`header-${showImportantNotice}`"
@@ -116,7 +103,7 @@ const savedTheme = localStorage.getItem('theme') || AppTheme.LIGHT
 const isDark = ref(savedTheme === AppTheme.DARK)
 const settingsDialog = ref(false)
 const showImportantNotice = ref(true)
-const { currentNotice, hasNotices, showBanner, dismissBanner } = useImportantNotices()
+useImportantNotices()
 
 // Navigation loading state
 const navigationLoading = ref(false)
