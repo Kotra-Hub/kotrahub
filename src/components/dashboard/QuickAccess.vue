@@ -15,17 +15,15 @@
         </v-row>
     </v-card>
 </template>
-<script setup>
-const items = [
-    { name: 'Staff Purchase', icon: 'mdi-account-tie' },
-    { name: 'Training Record System (TRS)', icon: 'mdi-school' },
-    { name: 'Purchase Order Management', icon: 'mdi-file-document' },
-    { name: 'Material Management', icon: 'mdi-package-variant' },
-    { name: 'Sales Automation Solutions (SAS)', icon: 'mdi-chart-box' },
-    { name: 'AP Management', icon: 'mdi-account-group' },
-    { name: 'Work Order', icon: 'mdi-tools' },
-    { name: 'Technical Service Requisition (TSR)', icon: 'mdi-clipboard-text' },
-    { name: 'Easy Loader', icon: 'mdi-upload' }]
+<script setup lang="ts">
+import { computed } from 'vue'
+import { useQuickAccess } from '@/composables/useQuickAccess'
+
+const { quickAccessItems } = useQuickAccess()
+const items = computed(() => quickAccessItems.value.map(i => ({
+  ...i,
+  name: i.label
+})))
 </script>
 <style scoped>
 .dash-card {

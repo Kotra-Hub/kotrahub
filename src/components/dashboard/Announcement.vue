@@ -12,9 +12,9 @@
     </div>
 
     <div class="announcement-shell" @mouseenter="paused = true" @mouseleave="paused = false">
-      <div v-if="current.featured" class="featured-badge">
+      <div v-if="current.featuredTag" class="featured-badge">
         <v-icon size="13">mdi-star</v-icon>
-        <span>FEATURED</span>
+        <span>{{ current.featuredTag }}</span>
       </div>
 
       <h2 class="announcement-title">{{ current.title }}</h2>
@@ -22,7 +22,7 @@
       <div class="meta-row">
         <span class="meta-item"><v-icon size="18">mdi-calendar-outline</v-icon>{{ current.date }}</span>
         <span class="meta-item"><v-icon size="18">mdi-clock-outline</v-icon>{{ current.time }}</span>
-        <span v-if="current.isNew" class="new-badge">New</span>
+        <span v-if="isLatestSlide" class="new-badge">New</span>
       </div>
 
       <div class="details-box">
@@ -31,37 +31,25 @@
           <span>Announcement Details</span>
         </div>
 
-        <div v-if="current.type === 'holiday'" class="holiday-detail">
-          <div class="detail-label"><v-icon size="18">mdi-calendar-outline</v-icon>Holiday Date</div>
-          <div class="detail-main">24 August 2026 (Monday)</div>
-        </div>
-
-        <div v-else-if="current.type === 'replacement'" class="split-details">
-          <div class="detail-col">
-            <div class="detail-label"><v-icon size="18">mdi-calendar-outline</v-icon>Start Date</div>
-            <div class="detail-main">31 August 2026 (Monday)</div>
-          </div>
-          <div class="detail-col with-divider">
-            <div class="detail-label"><v-icon size="18">mdi-calendar-outline</v-icon>End Date</div>
-            <div class="detail-main">1 September 2026 (Tuesday)</div>
+        <div v-if="current.details?.length" class="split-details dynamic-details">
+          <div v-for="(detail, i) in current.details" :key="i" class="detail-col" :class="{ 'with-divider': i === 1, 'venue-detail': i === 2 }">
+            <div class="detail-label">
+              <v-icon size="18">mdi-calendar-outline</v-icon>{{ detail.label }}
+            </div>
+            <div class="detail-main">{{ detail.value }}</div>
+            <div v-if="detail.subValue" class="detail-time">{{ detail.subValue }}</div>
           </div>
         </div>
 
         <div v-else class="split-details">
           <div class="detail-col">
-            <div class="detail-label"><v-icon size="18">mdi-calendar-outline</v-icon>Start Date & Time</div>
-            <div class="detail-main">15 May 2026 (Friday)</div>
-            <div class="detail-time">09:00 AM</div>
-          </div>
-          <div class="detail-col with-divider">
-            <div class="detail-label"><v-icon size="18">mdi-calendar-outline</v-icon>End Date & Time</div>
-            <div class="detail-main">22 May 2026 (Friday)</div>
-            <div class="detail-time">05:00 PM</div>
+            <div class="detail-label"><v-icon size="18">mdi-calendar-outline</v-icon>Details</div>
+            <div class="detail-main">No details available</div>
           </div>
         </div>
       </div>
 
-      <button class="read-more-btn" type="button">Read More</button>
+      <button class="read-more-btn" type="button" @click="openDetails">Read More</button>
     </div>
 
     <div class="carousel-nav">
@@ -70,64 +58,101 @@
         @click="index = i" :aria-label="`Announcement ${i + 1}`"></button>
       <button class="nav-btn" type="button" @click="next"><v-icon size="18">mdi-chevron-right</v-icon></button>
     </div>
+
+    <v-dialog v-model="detailsDialog" max-width="820">
+      <v-card rounded="xl" class="announcement-dialog">
+        <v-card-text class="pa-0">
+          <div class="dialog-header pa-6">
+            <div class="d-flex align-center">
+              <div class="ml-4 flex-grow-1">
+                <div class="text-caption font-weight-bold text-medium-emphasis">ANNOUNCEMENT DETAILS</div>
+                <div class="text-h5 font-weight-bold">{{ current.title }}</div>
+                <div class="text-body-2 text-medium-emphasis mt-2">
+                  <v-icon size="16" color="teal">mdi-calendar</v-icon>
+                  Published Date: {{ current.date }}
+                </div>
+              </div>
+              <v-btn icon variant="tonal" @click="detailsDialog=false"><v-icon>mdi-close</v-icon></v-btn>
+            </div>
+          </div>
+          <v-divider />
+          <div class="pa-6">
+            <h4 class="mb-3">Description</h4>
+            <p class="text-body-1">{{ current.excerpt || `Further information regarding ${current.title}.` }}</p>
+
+            <v-card v-if="current.details?.length" variant="outlined" rounded="xl" class="pa-5 my-5 border-teal">
+              <div class="text-subtitle-1 font-weight-bold text-teal mb-4">
+                <v-icon>mdi-calendar</v-icon> Announcement Details
+              </div>
+
+              <div v-for="(detail, i) in current.details" :key="i" class="mb-4">
+                <div class="text-caption text-teal font-weight-bold">{{ detail.label }}</div>
+                <div class="font-weight-bold">{{ detail.value }}</div>
+                <div v-if="detail.subValue" class="text-body-2">{{ detail.subValue }}</div>
+              </div>
+            </v-card>
+
+            <div v-if="current.warning" class="text-subtitle-1 font-weight-bold text-teal mb-2">
+              <v-icon size="18">mdi-information</v-icon> Additional Information
+            </div>
+            <p v-if="current.warning">{{ current.warning }}</p>
+          </div>
+          <v-divider/>
+        </v-card-text>
+      </v-card>
+    </v-dialog>
   </v-card>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { computed, ref, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
+import { useAnnouncements } from '@/composables/useAnnouncements'
 
 const router = useRouter()
-const goAnnouncements = () => router.push('/main/announcements')
-
-const announcements = [
-  {
-    featured: true,
-    title: "Public Holiday – Melaka Governor's Birthday",
-    date: 'Monday, 17 August 2026',
-    time: '09:30 AM',
-    isNew: true,
-    type: 'holiday',
-  },
-  {
-    featured: true,
-    title: 'Replacement Holiday – HQ only',
-    date: '24 August 2026',
-    time: '09:30 AM',
-    isNew: false,
-    type: 'replacement',
-  },
-  {
-    featured: true,
-    title: 'Staff Purchase – Special Offer',
-    date: '12 May 2026',
-    time: '09:00 AM',
-    isNew: false,
-    type: 'offer',
-  },
-]
+const { announcements } = useAnnouncements()
 
 const index = ref(0)
-const current = computed(() => announcements[index.value])
-const prev = () => { index.value = (index.value - 1 + announcements.length) % announcements.length }
-const next = () => { index.value = (index.value + 1) % announcements.length }
-
-let timer = null
 const paused = ref(false)
+const detailsDialog = ref(false)
 
-const startAutoSlide = () => {
-  clearInterval(timer)
+const isLatestSlide = computed(() => index.value === 0)
+
+let timer: ReturnType<typeof setInterval> | undefined
+
+const current = computed(() => {
+  const a: any = announcements.value[index.value] || {}
+  return {
+    ...a,
+    featured: a.isFeatured,
+    type: a.category || a.type
+  }
+})
+
+const next = () => {
+  if (!announcements.value.length) return
+  index.value = (index.value + 1) % announcements.value.length
+}
+
+const prev = () => {
+  if (!announcements.value.length) return
+  index.value = (index.value - 1 + announcements.value.length) % announcements.value.length
+}
+
+const openDetails = () => {
+  detailsDialog.value = true
+}
+
+const goAnnouncements = () => router.push('/main/announcements')
+
+onMounted(() => {
   timer = setInterval(() => {
     if (!paused.value) next()
   }, 5000)
-}
-
-onMounted(() => {
-  startAutoSlide()
 })
 
 onBeforeUnmount(() => {
-  clearInterval(timer)
+  if (timer) clearInterval(timer)
 })
 </script>
 
@@ -210,7 +235,8 @@ onBeforeUnmount(() => {
   background: rgb(var(--v-theme-surface-variant));
   border: 1px solid rgb(var(--v-theme-primary));
   border-radius: 22px;
-  padding: 22px
+  padding: 18px;
+  min-height: 420px
 }
 
 .featured-badge {
@@ -228,7 +254,7 @@ onBeforeUnmount(() => {
 .announcement-title {
   font-size: 23px;
   line-height: 1.25;
-  margin: 16px 0 12px;
+  margin: 12px 0 10px;
   color: rgb(var(--v-theme-on-surface));
   font-weight: 800
 }
@@ -239,7 +265,7 @@ onBeforeUnmount(() => {
   gap: 16px;
   flex-wrap: wrap;
   color: rgba(var(--v-theme-on-surface), 0.7);
-  margin-bottom: 18px
+  margin-bottom: 12px
 }
 
 .meta-item {
@@ -261,7 +287,7 @@ onBeforeUnmount(() => {
   background: rgb(var(--v-theme-surface));
   border: 1px solid rgb(var(--v-theme-primary));
   border-radius: 18px;
-  padding: 18px
+  padding: 18px;
 }
 
 .details-heading {
@@ -271,23 +297,47 @@ onBeforeUnmount(() => {
   color: rgb(var(--v-theme-primary));
   font-weight: 800;
   font-size: 16px;
-  margin-bottom: 14px
+  margin-bottom: 16px;
 }
 
 .split-details {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0;
 }
 
 .detail-col {
-  padding-right: 18px
+  padding: 0 18px 0 0;
+  min-height: 70px;
 }
 
 .with-divider {
-  border-left: 1px solid rgb(var(--v-theme-surface-variant));
+  border-left: 1px solid rgba(var(--v-theme-primary), .18);
   padding-left: 18px;
-  padding-right: 0
+  padding-right: 0;
+}
+
+.detail-label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: rgb(var(--v-theme-primary));
+  font-weight: 800;
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+
+.detail-main {
+  font-weight: 800;
+  color: rgb(var(--v-theme-on-surface));
+  font-size: 16px;
+  line-height: 1.3;
+}
+
+.detail-time {
+  font-size: 14px;
+  color: rgba(var(--v-theme-on-surface), .75);
+  margin-top: 4px;
 }
 
 .detail-label {
@@ -303,7 +353,7 @@ onBeforeUnmount(() => {
 .detail-main {
   font-weight: 800;
   color: rgb(var(--v-theme-on-surface));
-  font-size: 17px
+  font-size: 16px
 }
 
 .detail-time {
@@ -317,7 +367,7 @@ onBeforeUnmount(() => {
 }
 
 .read-more-btn {
-  margin-top: 14px;
+  margin-top: 12px;
   background: rgb(var(--v-theme-primary));
   color: rgb(var(--v-theme-surface));
   border: 0;
@@ -348,6 +398,21 @@ onBeforeUnmount(() => {
 .dot.active {
   background: rgb(var(--v-theme-primary));
   transform: scale(1.08)
+}
+
+
+.dynamic-details .venue-detail {
+  grid-column: 1;
+  margin-top: 10px;
+  padding-left: 0;
+}
+
+.dynamic-details .venue-detail .detail-label {
+  margin-bottom: 6px;
+}
+
+.dynamic-details .venue-detail .detail-main {
+  max-width: 100%;
 }
 
 @media (max-width:700px) {

@@ -15,3 +15,5 @@ app.use(vuetify)
 app.use(router)
 app.use(createPinia())
 app.mount('#app')
+
+import "./assets/phone-directory.css"

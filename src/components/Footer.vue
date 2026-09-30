@@ -29,7 +29,7 @@ const themeColors = computed(() => theme.current.value.colors)
   flex-shrink: 0;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
+  white-space: normal;
   padding: 0 4px;
 }
 

@@ -14,6 +14,7 @@ export interface Announcement {
   time?: string
   isNew: boolean
   isFeatured?: boolean
+  featuredTag?: 'EVENT' | 'TRAINING' | 'REMINDER' | 'MEETING' | 'PROMOTION' | 'ACHIEVEMENT' | 'POLICY' | 'SYSTEM' | 'CELEBRATION' | 'CSR' | 'SAFETY' | 'HEALTH' | 'SPORTS'
   excerpt?: string
   category?: string
   warning?: string
@@ -32,6 +33,7 @@ const announcements = ref<Announcement[]>([
     time: '09:30 AM',
     isNew: true,
     isFeatured: true,
+    featuredTag: 'EVENT',
     category: 'Holiday',
     excerpt: 'Please be informed that this year\'s Melaka Governor\'s Birthday falls on Monday, 24 August 2026. All offices will be closed in observance of the public holiday.',
     warning: 'Please plan your work accordingly and ensure all urgent matters are attended to before the holiday.',
@@ -77,6 +79,7 @@ const announcements = ref<Announcement[]>([
     time: '09:00 AM',
     isNew: false,
     isFeatured: true,
+    featuredTag: 'PROMOTION',
     category: 'Staff Purchase',
     excerpt: 'Exclusive staff purchase event with special discounts on selected products. Don\'t miss out on this limited-time offer!',
     warning: 'The special offer is valid while stocks last. Terms and conditions apply.',

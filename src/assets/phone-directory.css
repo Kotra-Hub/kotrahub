@@ -1,0 +1,17 @@
+
+
+/* Phone Directory email single line ellipsis */
+.phone-email-ellipsis {
+  display: block;
+  max-width: 150px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+
+.email-ellipsis { display:block; max-width:120px; white-space:nowrap !important; overflow:hidden !important; text-overflow:ellipsis !important; }
+
+.enterprise-data-table .v-data-table__tr {
+ border-bottom: 1px solid rgba(0,0,0,.12);
+}

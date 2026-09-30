@@ -10,23 +10,31 @@
                     ALL</v-btn>
             </div>
         </div>
-        <div v-for="a in activities" :key="a.title" class="activity">
+        <div v-for="a in displayActivities" :key="a.title" class="activity">
             <div class="activity-icon"><v-icon>{{ a.icon }}</v-icon></div>
-            <div><strong>{{ a.title }}</strong><small>{{ a.time }}</small></div>
+            <div>
+                <strong>{{ a.title }}</strong>
+                <small>{{ a.date }} | {{ a.time }} • {{ a.relativeTime }}</small>
+            </div>
         </div>
     </v-card>
 </template>
-<script setup>
-import { useRouter } from "vue-router"
-const router = useRouter()
+<script setup lang="ts">
+import { useRouter } from 'vue-router'
+import { computed } from 'vue'
+import { useRecentActivities } from '@/composables/useRecentActivities'
 
-const activities = [
-    { icon: 'mdi-login', title: 'Logged in to the system', time: '27 Aug 2026 | 02:15 PM • 2 Minutes Ago' },
-    { icon: 'mdi-lightning-bolt-outline', title: 'Updated Quick Access shortcuts', time: '27 Aug 2026 | 02:02 PM • 15 Minutes Ago' },
-    { icon: 'mdi-check-circle-outline', title: 'Completed pending action', time: '27 Aug 2026 | 01:15 PM • 1 Hour Ago' },
-    { icon: 'mdi-calendar-check-outline', title: 'Checked Calendar events', time: '27 Aug 2026 | 12:15 PM • 2 Hours Ago' },
-    { icon: 'mdi-bullhorn-outline', title: 'Viewed Announcements', time: '27 Aug 2026 | 11:15 AM • 3 Hours Ago' },
-    { icon: 'mdi-history', title: 'Viewed Recent Activities', time: '27 Aug 2026 | 11:10 AM • 3 Hours Ago' }]
+const router = useRouter()
+const { activities } = useRecentActivities()
+const displayActivities = computed(() => activities.value
+  .slice()
+  .sort((a, b) => b.id - a.id)
+  .slice(0, 6)
+  .map(a => ({
+    ...a,
+    title: a.action.replace(/\\b\\w/g, c => c.toUpperCase())
+  }))
+)
 </script>
 <style scoped>
 .dash-card {

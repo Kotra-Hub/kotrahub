@@ -23,7 +23,33 @@ const MainRoutes = {
       }
     },
     ...viewRoutes,
-  ]
+  
+{
+  path: '/main/inventory/requests',
+  name: 'InventoryRequests',
+  component: () => import('@/views/inventory/Requests.vue')
+},
+{
+  path: '/main/inventory/assets-equipment',
+  name: 'AssetsEquipment',
+  component: () => import('@/views/inventory/AssetsEquipment.vue')
+},
+{
+  path: '/main/inventory/consumables',
+  name: 'Consumables',
+  component: () => import('@/views/inventory/Consumables.vue')
+},
+{
+  path: '/main/inventory/raw-material',
+  name: 'RawMaterial',
+  component: () => import('@/views/inventory/RawMaterial.vue')
+},
+{
+  path: '/main/inventory/lots',
+  name: 'Lots',
+  component: () => import('@/views/inventory/Lots.vue')
+},
+]
 };
 
 export default MainRoutes;

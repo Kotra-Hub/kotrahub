@@ -266,7 +266,9 @@
 
                 <v-list-item @click="toggleTheme" class="cursor-pointer menu-item">
                   <template #prepend>
-                    <v-icon :color="themeColors.primary" size="18">mdi-theme-light-dark</v-icon>
+                    <v-icon :color="themeColors.primary" size="18">
+                    {{ isDark ? 'mdi-weather-sunny' : 'mdi-weather-night' }}
+                  </v-icon>
                   </template>
                   <v-list-item-title class="text-body-2">
                     {{ isDark ? 'Light Mode' : 'Dark Mode' }}
@@ -404,7 +406,6 @@ import { useImportantNotices } from '@/composables/useImportantNotices'
 // PROPS & EMITS
 const props = defineProps<{
   user: { name: string; email: string; role: string }
-  isDark: boolean
   showImportantNotice?: boolean
 }>()
 
@@ -422,6 +423,7 @@ const emit = defineEmits<{
 // THEME
 const theme = useTheme()
 const themeColors = computed(() => theme.current.value.colors)
+const isDark = computed(() => theme.global.current.value.dark)
 const toggleTheme = () => { emit('toggle-theme') }
 
 // COMPOSABLES
@@ -520,6 +522,14 @@ const openNotice = (id: string) => {
   activeNoticeId.value = id
   noticeModalOpen.value = true
 }
+
+const showImportantNotice = computed({
+  get: () => props.showImportantNotice ?? showBanner.value,
+  set: (val) => {
+    showBanner.value = val
+    emit('update:show-important-notice', val)
+  }
+})
 
 // DIALOG
 const noticeBodyHtml = computed(() => {
@@ -727,7 +737,7 @@ onBeforeUnmount(() => {
   letter-spacing: -0.8px;
   line-height: 0.92;
   text-transform: uppercase;
-  white-space: nowrap;
+  white-space: normal;
   font-size: 24px;
 }
 
@@ -1127,4 +1137,27 @@ onBeforeUnmount(() => {
     display: inline-flex !important;
   }
 }
+</style>
+
+<style scoped>
+
+
+/* Profile menu theme sync */
+.v-theme--DarkTheme .profile-card,
+.v-theme--DarkTheme .dropdown-card {
+  background: rgb(22, 35, 56) !important;
+  color: #ffffff !important;
+}
+
+.v-theme--DarkTheme .profile-card .v-list-item-title,
+.v-theme--DarkTheme .profile-card p,
+.v-theme--DarkTheme .profile-card span {
+  color: #ffffff !important;
+}
+
+.v-theme--LightTheme .profile-card,
+.v-theme--LightTheme .dropdown-card {
+  background: rgb(255,255,255) !important;
+}
+
 </style>

@@ -26,6 +26,33 @@ const contacts = ref<Contact[]>([
   { name: 'Nur Aisyah', jobTitle: 'Marketing Executive', ext: '2345', email: 'nur.aisyah@kotra.com', department: 'MKT', team: 'Marketing', phone: '+60123456712' }
 ])
 
+
+const headers = [
+  {
+    title: "Employee Name",
+    key: "name"
+  },
+  {
+    title: "Department",
+    key: "department"
+  },
+  {
+    title: "Position",
+    key: "jobTitle"
+  },
+  {
+    title: "Extension",
+    key: "ext"
+  },
+  {
+    title: "Actions",
+    key: "actions",
+    sortable: false
+  }
+]
+
+const filteredItems = computed(() => contacts.value)
+
 const departmentOptions = computed(() => {
   const depts = ['All', ...new Set(contacts.value.map(c => c.department))]
   return depts.map(d => ({ title: d, value: d }))
@@ -81,6 +108,8 @@ const sendEmail = (email: string) => {
 
 export const usePhoneDirectory = () => ({
   contacts,
+  headers,
+  filteredItems,
   departmentOptions,
   teamOptionsFor,
   filterContacts,
