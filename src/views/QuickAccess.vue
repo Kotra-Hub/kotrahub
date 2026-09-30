@@ -483,7 +483,7 @@ const onDragEnd = () => {
   font-weight: 700;
   background: rgba(var(--v-theme-primary), 0.08);
   color: rgb(var(--v-theme-primary));
-  white-space: nowrap;
+  white-space: normal;
 }
 
 .category-items {
@@ -570,7 +570,7 @@ const onDragEnd = () => {
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
+  white-space: normal;
   color: rgba(var(--v-theme-on-surface));
 }
 
@@ -584,7 +584,7 @@ const onDragEnd = () => {
   background: transparent;
   cursor: pointer;
   transition: all 0.2s ease;
-  white-space: nowrap;
+  white-space: normal;
   flex-shrink: 0;
   min-width: 56px;
 }
@@ -600,7 +600,7 @@ const onDragEnd = () => {
   font-weight: 700;
   background: rgba(var(--v-theme-success), 0.1);
   color: rgb(var(--v-theme-success));
-  white-space: nowrap;
+  white-space: normal;
   flex-shrink: 0;
   min-width: 56px;
   text-align: center;

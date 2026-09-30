@@ -298,7 +298,7 @@ const emit = defineEmits<{
 const aiOpen = ref(false)
 const activeTab = ref('chat')
 const chatInput = ref('')
-
+const hoverTimer = ref<ReturnType<typeof setTimeout> | null>(null)
 const aiTyping = ref(false)
 const hasUnread = ref(true)
 const knowledgeSearch = ref('')
@@ -375,6 +375,7 @@ const openTicketCount = computed(
 
 //Card Positioning
 const DEFAULT_MARGIN = 16
+const DIALOG_BOTTOM_OFFSET = 120
 const MOBILE_MAX = 600
 const TABLET_MAX = 1024
 
@@ -406,7 +407,7 @@ const calcCardSize = () => {
   cardHeight.value = Math.min(600, vh - 2 * DEFAULT_MARGIN)
 }
 
-const mascotStyle = computed<import('vue').CSSProperties>(() => {
+const mascotStyle = computed((): Record<string, string> => {
   if (mascotX.value !== null && mascotY.value !== null) {
     return {
       left: `${mascotX.value}px`,
@@ -503,6 +504,8 @@ const cardStyle = computed(() => {
 const positionNearTrigger = () => {
   calcCardSize()
 
+  const trigger = document.querySelector('.ai-assistant-trigger') as HTMLElement | null
+  const rect = trigger?.getBoundingClientRect()
 
   let x: number
   let y: number
@@ -531,8 +534,6 @@ const toggleAssistant = () => {
   }
 }
 
-const openAssistant = () => { aiOpen.value = true }
-
 const closeAssistant = () => {
   aiOpen.value = false
   isDragging.value = false
@@ -543,11 +544,34 @@ const closeAssistant = () => {
   }, 3000)
 }
 
+defineExpose({ openAssistant: toggleAssistant })
+
 const resetChat = () => {
   chatMessages.value = []
   knowledgeSearch.value = ''
   activeTab.value = 'chat'
   nextTick(() => focusChatInput())
+}
+
+const startHoverTimer = () => {
+  hoverTimer.value = setTimeout(() => {
+    if (!aiOpen.value) {
+      aiOpen.value = true
+      hasUnread.value = false
+      showBubble.value = false
+      nextTick(() => {
+        if (dragPositionX.value === null) positionNearTrigger()
+        focusChatInput()
+      })
+    }
+  }, 500)
+}
+
+const cancelHoverTimer = () => {
+  if (hoverTimer.value) {
+    clearTimeout(hoverTimer.value)
+    hoverTimer.value = null
+  }
 }
 
 const focusChatInput = () => {
@@ -837,7 +861,6 @@ onBeforeUnmount(() => {
   document.removeEventListener('touchmove', onDrag)
   document.removeEventListener('touchend', stopDrag)
 })
-defineExpose({ openAssistant })
 </script>
 
 <style scoped>
@@ -863,7 +886,7 @@ defineExpose({ openAssistant })
 
 .ai-assistant-button {
   position: relative;
-  width: 110px;
+  width: 120px;
   height: 110px;
   display: flex;
   align-items: center;
@@ -906,7 +929,7 @@ defineExpose({ openAssistant })
   font-weight: 700;
   padding: 4px 12px;
   border-radius: 9999px;
-  white-space: nowrap;
+  white-space: normal;
   display: flex;
   align-items: center;
   gap: 4px;
@@ -940,7 +963,7 @@ defineExpose({ openAssistant })
   border-radius: 16px;
   font-size: 13px;
   font-weight: 700;
-  white-space: nowrap;
+  white-space: normal;
   box-shadow: 0 8px 20px rgba(var(--v-theme-primary), 0.18);
   display: flex;
   flex-direction: column;
@@ -1443,3 +1466,4 @@ defineExpose({ openAssistant })
   }
 }
 </style>
+

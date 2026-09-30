@@ -19,16 +19,24 @@
     </div>
   </v-card>
 </template>
-<script setup>
-import { useRouter } from "vue-router"
+<script setup lang="ts">
+import { computed } from 'vue'
+import { useRouter } from 'vue-router'
+import { useCalendar } from '@/composables/useCalendar'
+
 const router = useRouter()
-const goCalendar = () => router.push("/main/calendar-agenda")
-const events = [
-  { day: '16', month: 'SEP 2026', title: 'Hari Malaysia', type: 'Public Holiday', time: 'All Day' },
-  { day: '29', month: 'SEP 2026', title: 'Hari Keputeraan Sultan Kelantan', type: 'Public Holiday', time: 'All Day' },
-  { day: '30', month: 'SEP 2026', title: 'Hari Keputeraan Sultan Kelantan', type: 'Public Holiday', time: 'All Day' },
-  { day: '10', month: 'OCT 2026', title: 'Hari Jadi Yang di-Pertua Negeri Sarawak', type: 'Public Holiday', time: 'All Day' },
-  { day: '06', month: 'NOV 2026', title: 'Hari Keputeraan Sultan Perak', type: 'Public Holiday', time: 'All Day' }]
+const { getUpcomingEvents } = useCalendar()
+const capitalize = (text: string = '') =>
+  text.replace(/\b\w/g, c => c.toUpperCase())
+
+const events = computed(() => getUpcomingEvents(6).map((e:any) => ({
+  day: e.day ?? '',
+  month: e.monthLabel ?? '',
+  title: capitalize(e.title),
+  type: capitalize(e.type),
+  time: e.time
+})))
+const goCalendar = () => router.push('/main/calendar-agenda')
 </script>
 <style scoped>
 .dash-card {
@@ -89,26 +97,26 @@ const events = [
   align-items: center;
   border: 1px solid rgba(var(--v-theme-on-surface), .12);
   border-radius: 18px;
-  padding: 8px 14px;
-  margin-bottom: 10px;
-  gap: 14px;
-  min-height: 68px
+  padding: 6px 12px;
+  margin-bottom: 8px;
+  gap: 12px;
+  min-height: 58px
 }
 
 .date {
-  width: 95px;
-  height: 58px;
+  width: 82px;
+  height: 64px;
   background: rgb(var(--v-theme-surface-variant));
-  border-radius: 18px;
+  border-radius: 14px;
   text-align: center;
-  padding: 8px;
+  padding: 6px;
   color: rgb(var(--v-theme-primary));
   flex-shrink: 0
 }
 
 .date b {
   display: block;
-  font-size: 20px;
+  font-size: 26px;
   font-weight: 700
 }
 
@@ -118,7 +126,7 @@ const events = [
 
 .title {
   flex: 1;
-  font-size: 17px;
+  font-size: 15px;
   font-weight: 700;
   color: rgb(var(--v-theme-on-surface));
   display: flex;
@@ -138,8 +146,8 @@ const events = [
 .meta {
   color: rgb(var(--v-theme-on-background));
   line-height: 30px;
-  min-width: 160px;
-  font-size: 15px
+  min-width: 145px;
+  font-size: 13px
 }
 
 /* DARK MODE OVERRIDE */

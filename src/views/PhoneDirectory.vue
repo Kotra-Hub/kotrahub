@@ -16,19 +16,31 @@
           </p>
         </div>
       </div>
-      <v-btn
-        variant="outlined"
-        rounded="lg"
-        color="primary"
-        prepend-icon="mdi-arrow-left"
-        @click="$emit('navigate', 'dashboard')"
-      >
-        Back
-      </v-btn>
+      <div class="d-flex align-center ga-2">
+        <v-btn
+          variant="outlined"
+          rounded="lg"
+          color="primary"
+          prepend-icon="mdi-filter"
+          @click="showFilters = !showFilters"
+        >
+          Filters
+        </v-btn>
+        <v-btn
+          variant="outlined"
+          rounded="lg"
+          color="primary"
+          prepend-icon="mdi-arrow-left"
+          @click="$emit('navigate', 'dashboard')"
+        >
+          Back
+        </v-btn>
+      </div>
     </div>
 
     <!-- FILTERS SECTION -->
-    <v-card class="rounded-xl mb-4" elevation="0" border>
+    <v-expand-transition>
+    <v-card v-if="showFilters" class="rounded-xl mb-4 filter-panel" elevation="0" border>
       <v-card-text class="pa-4">
         <v-row dense align="center">
           <v-col cols="12" md="4" lg="3">
@@ -83,6 +95,7 @@
         </div>
       </v-card-text>
     </v-card>
+    </v-expand-transition>
 
     <!-- RESULTS HEADER -->
     <div class="d-flex align-center justify-space-between mb-3 flex-wrap gap-2">
@@ -375,6 +388,7 @@ const directoryView = ref<'grid' | 'list'>('grid')
 const contactSearch = ref('')
 const selectedDepartment = ref('All')
 const selectedTeam = ref('All')
+const showFilters = ref(false)
 const contactDialog = ref(false)
 const selectedContact = ref<Contact | null>(null)
 
@@ -409,10 +423,26 @@ const openContactDialog = (contact: Contact) => {
 }
 </script>
 
-<style scoped>
+<style
+.filter-panel { background: #edf7f7; }
+ scoped>
 .phone-directory-page {
   width: 100%;
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
   padding: 16px 0;
+}
+
+.filter-panel {
+  flex-shrink: 0;
+}
+
+.contact-grid-card,
+.contact-list-item {
+  min-width: 0;
 }
 
 .page-header {
@@ -556,3 +586,13 @@ const openContactDialog = (contact: Contact) => {
   }
 }
 </style>
+
+
+/* Phone Directory email single line ellipsis */
+.phone-email-ellipsis {
+  display: block;
+  max-width: 150px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

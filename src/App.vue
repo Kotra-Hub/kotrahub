@@ -1,11 +1,14 @@
 <script setup lang="ts">
-import { watch } from "vue";
+import { watch, nextTick } from "vue";
 import { useRoute } from "vue-router";
 import { useTheme } from "vuetify";
 import { AppTheme } from "@/interfaces/common.interface";
+import LoadingOverlay from "@/components/LoadingOverlay.vue";
+import { useRouteLoading } from "@/composables/useRouteLoading";
 
 const route = useRoute();
 const theme = useTheme();
+const { loading } = useRouteLoading();
 
 watch(
   () => route.name,
@@ -15,18 +18,29 @@ watch(
       return;
     }
 
-    const savedTheme = localStorage.getItem("theme");
+    const appearance = localStorage.getItem("kotra-appearance-mode") || "light";
 
     theme.change(
-      savedTheme === AppTheme.DARK
-        ? AppTheme.DARK
-        : AppTheme.LIGHT
+      appearance === "dark" ? AppTheme.DARK : AppTheme.LIGHT
     );
   },
   { immediate: true }
 );
+
+watch(
+  () => route.fullPath,
+  async () => {
+    loading.value = true;
+    await nextTick();
+
+    setTimeout(() => {
+      loading.value = false;
+    }, 350);
+  }
+);
 </script>
 
 <template>
+  <LoadingOverlay v-model="loading" title="Loading" message="Opening page..." />
   <router-view />
 </template>

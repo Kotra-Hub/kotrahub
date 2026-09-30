@@ -8,9 +8,7 @@ export type ActivityType =
   | 'Action'
   | 'Update'
   | 'View'
-  | 'System'
-
-export type TimeRange =
+  export type TimeRange =
   | 'All Time'
   | 'Today'
   | 'This Week'
@@ -145,7 +143,7 @@ const activities = ref<Activity[]>([
     date: '25 Aug 2026',
     time: '11:30 PM',
     relativeTime: '2 Days Ago',
-    type: 'System',
+    type: 'Update',
     icon: 'mdi-server',
     details: 'Database backup and performance optimization'
   }
@@ -159,8 +157,7 @@ const activityTypes: (ActivityType | 'All')[] = [
   'Action',
   'Update',
   'View',
-  'System'
-]
+  ]
 
 const timeRanges: TimeRange[] = [
   'All Time',

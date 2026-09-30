@@ -301,3 +301,13 @@ watch(
   background: rgb(var(--v-theme-background));
 }
 </style>
+
+
+/* Phone Directory email single line ellipsis */
+.phone-email-ellipsis {
+  display: block;
+  max-width: 150px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

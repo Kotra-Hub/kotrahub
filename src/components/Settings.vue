@@ -104,22 +104,22 @@
             <h3 class="text-h6 font-weight-bold text-high-emphasis mb-1">Appearance</h3>
             <p class="text-caption text-medium-emphasis mb-4">Customize how Kotra Hub looks.</p>
 
-            <!-- Dark Mode -->
-            <div class="d-flex align-center justify-space-between py-3" style="border-bottom: 1px solid rgb(var(--v-theme-outline-variant));">
-              <div>
-                <div class="text-body-2 font-weight-semibold text-high-emphasis">Dark Mode</div>
-                <div class="text-caption text-medium-emphasis">Switch between light and dark</div>
-              </div>
-              <div class="d-flex align-center ga-2">
-                <v-switch
-                  v-model="isDark"
-                  color="primary"
-                  hide-details
-                  density="compact"
-                  inset
-                  @update:model-value="toggleTheme"
-                />
-              </div>
+            <!-- Appearance Mode Cards -->
+            <div class="appearance-cards">
+              <v-card
+                v-for="option in appearanceOptions"
+                :key="option.value"
+                class="appearance-card"
+                :class="{ 'appearance-active': appearanceMode === option.value }"
+                variant="outlined"
+                @click="selectAppearance(option.value)"
+              >
+                <v-icon size="32" class="mb-2">{{ option.icon }}</v-icon>
+                <div class="text-body-2 font-weight-semibold">{{ option.label }}</div>
+                <div v-if="appearanceMode === option.value" class="selected-badge">
+                  ✓ Selected
+                </div>
+              </v-card>
             </div>
 
             <!-- Theme Color -->
@@ -191,6 +191,7 @@ const props = defineProps<{
 const emit = defineEmits<{
   (e: 'update:modelValue', value: boolean): void
   (e: 'toggle-theme'): void
+  (e: 'change-theme-mode', mode: string): void
   (e: 'update:show-important-notice', value: boolean): void
   (e: 'settings-saved', settings: any): void
 }>()
@@ -215,6 +216,18 @@ const languages = ['English', 'Bahasa Malaysia', 'Chinese']
 
 // Appearance settings
 const isDark = ref(props.isDark ?? false)
+const appearanceMode = ref(localStorage.getItem('kotra-appearance-mode') || 'system')
+
+const appearanceOptions = [
+  { value: 'light', label: 'Light', icon: 'mdi-white-balance-sunny' },
+  { value: 'dark', label: 'Dark', icon: 'mdi-weather-night' },
+]
+
+function selectAppearance(mode: string) {
+  appearanceMode.value = mode
+  localStorage.setItem('kotra-appearance-mode', mode)
+  emit('change-theme-mode', mode)
+}
 const themeColor = ref('#0f9d9a')
 const customColorPicker = ref(false)
 
@@ -273,6 +286,38 @@ watch(customColorPicker, (val) => {
   flex-direction: column;
   background: rgb(var(--v-theme-surface));
   animation: settingsPop 0.25s ease-out;
+}
+
+.appearance-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.appearance-card {
+  height: 110px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border-radius: 14px;
+  transition: .2s ease;
+}
+
+.appearance-card:hover {
+  border-color: rgb(var(--v-theme-primary));
+}
+
+.appearance-active {
+  border: 2px solid rgb(var(--v-theme-primary));
+  color: rgb(var(--v-theme-primary));
+}
+
+@media (max-width: 600px) {
+  .appearance-cards {
+    grid-template-columns: 1fr;
+  }
 }
 
 .settings-select {
@@ -417,5 +462,16 @@ watch(customColorPicker, (val) => {
     opacity: 1;
     transform: scale(1) translateY(0);
   }
+}
+
+.selected-badge {
+  margin-top: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #0f9d9a;
+}
+
+.appearance-active {
+  border-color: #0f9d9a !important;
 }
 </style>
