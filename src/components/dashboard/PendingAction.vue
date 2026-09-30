@@ -11,8 +11,8 @@
     </div>
 
     <div class="summary">
-      <span><b>{{ totalCount }}</b> awaiting action</span>
-      <span class="urgent">⚠ {{ urgentCount }} urgent</span>
+      <span><b>5</b> awaiting action</span>
+      <span class="urgent">⚠ 2 urgent</span>
     </div>
 
     <div class="progress">
@@ -22,9 +22,9 @@
     </div>
 
     <div class="legend">
-      <span class="red">● Urgent&nbsp; <b>{{ urgentCount }}</b></span>
-      <span class="orange">● Normal&nbsp; <b>{{ normalCount }}</b></span>
-      <span class="grey">● Low&nbsp; <b>{{ lowCount }}</b></span>
+      <span class="red">● Urgent&nbsp; <b>2</b></span>
+      <span class="orange">● Normal&nbsp; <b>2</b></span>
+      <span class="grey">● Low&nbsp; <b>1</b></span>
     </div>
 
     <div v-for="item in items" :key="item.title" class="row">
@@ -43,26 +43,21 @@
   </v-card>
 </template>
 
-<script setup lang="ts">
-import { computed } from 'vue'
-import { usePendingActions } from '@/composables/usePendingActions'
-
-const { pendingActions, totalCount, urgentCount, normalCount, lowCount } = usePendingActions()
-const items = computed(() => pendingActions.value.slice(0, 5).map(i => ({
-  ...i,
-  title: i.name,
-  level: i.urgency.toUpperCase(),
-  time: i.date
-})))
+<script setup>
+const items = [
+  { icon: 'mdi-calendar-outline', title: 'Leave Application', ref: 'LA-2026-000123', level: 'URGENT', status: 'Pending Approval', time: '24 Jul 2026, 10:30 AM' },
+  { icon: 'mdi-wrench-outline', title: 'Work Order', ref: 'WO-2026-000456', level: 'URGENT', status: 'Pending IT Approval', time: '24 Jul 2026, 09:15 AM' },
+  { icon: 'mdi-account-group-outline', title: 'Training Attendance', ref: 'TR-2026-000789', level: 'NORMAL', status: 'Pending Verification', time: '23 Jul 2026, 04:45 PM' },
+  { icon: 'mdi-file-document-outline', title: 'Purchase Requisition', ref: 'PR-2026-000321', level: 'NORMAL', status: 'Pending Approval', time: '23 Jul 2026, 03:45 PM' },
+  { icon: 'mdi-account-plus-outline', title: 'HR Requisition', ref: 'HR-2026-000654', level: 'LOW', status: 'Pending Review', time: '22 Jul 2026, 02:30 PM' }
+]
 </script>
 
 <style scoped>
 .pending-card {
-  width: 100%;
   height: 560px;
   padding: 18px 18px 8px;
-  border-radius: 24px;
-  box-sizing: border-box;
+  border-radius: 24px
 }
 
 .dash-card {

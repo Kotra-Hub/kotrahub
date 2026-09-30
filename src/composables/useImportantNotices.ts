@@ -43,7 +43,6 @@ const notices = ref<ImportantNotice[]>([
 const showBanner = ref(true)
 
 const latest     = computed(() => notices.value[0] ?? null)
-const currentNotice = latest
 const hasNotices = computed(() => notices.value.length > 0)
 
 const getById = (id: string) => notices.value.find(n => n.id === id)
@@ -54,7 +53,7 @@ const showBannerNow = () => { showBanner.value = true }
 export const useImportantNotices = () => ({
   notices,
   latest,
-  currentNotice,
+  currentNotice: latest,
   hasNotices,
   showBanner,
   getById,

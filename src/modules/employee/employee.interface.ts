@@ -1,2 +1,15 @@
-export interface EmployeeBasic { id?: string; name?: string; [key:string]: unknown }
-export interface CrtUser { id?: string; name?: string; [key:string]: unknown }
+export interface EmployeeBasic {
+  id?: string | number;
+  name?: string;
+  employeeNo?: string;
+  email?: string;
+  departmentId?: string | number;
+}
+export interface CrtUser {
+  id?: string | number;
+  name?: string;
+  email?: string;
+  code?: string;
+  roles?: Array<{ name: string }>;
+  departments?: Array<{ id: string | number }>;
+}

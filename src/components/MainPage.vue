@@ -11,7 +11,6 @@
       @logout="handleLogout"
       @toggle-sidebar="toggleSidebar"
       @toggle-theme="toggleTheme"
-      @change-theme-mode="changeThemeMode"
       @open-settings="openSettings"
       @navigate="navigate"
       @update:show-important-notice="updateShowImportantNotice"
@@ -23,7 +22,6 @@
       :is-dark="isDark"
       :show-important-notice="showImportantNotice"
       @toggle-theme="toggleTheme"
-      @change-theme-mode="changeThemeMode"
       @update:show-important-notice="updateShowImportantNotice"
     />
 
@@ -31,19 +29,20 @@
     <div class="page-body">
 
       <!-- Sidebar -->
-      <Sidebar
-        v-if="sidebarOpen"
-        :is-open="sidebarOpen"
-        :current-page="currentRouteName"
-        @navigate="navigate"
-      />
+      <aside v-if="sidebarOpen" class="sidebar-wrapper">
+        <Sidebar
+          :is-open="sidebarOpen"
+          :current-page="currentRouteName"
+          @navigate="navigate"
+        />
+      </aside>
 
       <!-- Main Content -->
       <main class="content-wrapper">
         <v-container fluid class="pa-4">
           <!-- Router -->
           <router-view v-slot="{ Component }">
-            <transition name="page-fade" mode="out-in" @after-enter="resetScroll">
+            <transition name="page-fade" mode="out-in">
               <component
                 :is="Component"
                 @navigate="navigate"
@@ -69,8 +68,14 @@
       @set-dark-mode="setDarkMode"
       @set-light-mode="setLightMode"
       @toggle-theme="toggleTheme"
-      @change-theme-mode="changeThemeMode"
       @logout="handleLogout"
+    />
+
+    <!-- Navigation Loading Overlay -->
+    <LoadingOverlay
+      v-model="navigationLoading"
+      :title="navigationTitle"
+      :message="navigationMessage"
     />
   </v-app>
 </template>
@@ -84,6 +89,7 @@ import Sidebar from '@/components/Sidebar.vue'
 import Footer from '@/components/Footer.vue'
 import AiAssistant from '@/components/AiAssistant.vue'
 import Settings from '@/components/Settings.vue'
+import LoadingOverlay from '@/components/LoadingOverlay.vue'
 import { useAuth } from '@/composables/useAuth'
 import { AppTheme } from '@/interfaces/common.interface'
 import { useImportantNotices } from '@/composables/useImportantNotices'
@@ -91,69 +97,13 @@ import { useImportantNotices } from '@/composables/useImportantNotices'
 const theme = useTheme()
 const router = useRouter()
 const route = useRoute()
-
-const resetScroll = () => {
-  const selectors = [
-    '.content-wrapper',
-    '.v-main',
-    '.v-main__wrap',
-    '.v-container',
-    '.page-body'
-  ]
-
-  selectors.forEach((selector) => {
-    document.querySelectorAll(selector).forEach((el) => {
-      const element = el as HTMLElement
-      element.scrollTop = 0
-      element.scrollLeft = 0
-    })
-  })
-
-  window.scrollTo({
-    top: 0,
-    left: 0,
-    behavior: 'instant'
-  })
-}
-
-watch(() => route.fullPath, async () => {
-  await nextTick()
-
-  const runResetScroll = () => {
-    const selectors = [
-      '.content-wrapper',
-      '.v-main',
-      '.v-main__wrap',
-      '.v-container',
-      '.page-body'
-    ]
-
-    selectors.forEach((selector) => {
-      document.querySelectorAll(selector).forEach((el) => {
-        const element = el as HTMLElement
-        element.scrollTop = 0
-        element.scrollLeft = 0
-      })
-    })
-
-    window.scrollTo({
-      top: 0,
-      left: 0,
-      behavior: 'instant'
-    })
-  }
-
-  // run twice because transition/router-view may render after route change
-  resetScroll()
-  setTimeout(resetScroll, 50)
-})
 const { user, logout } = useAuth()
-const sidebarOpen = ref(false)
-const savedTheme = localStorage.getItem('kotra-appearance-mode') || 'system'
+const sidebarOpen = ref(true)
+const savedTheme = localStorage.getItem('theme') || AppTheme.LIGHT
 const isDark = ref(savedTheme === AppTheme.DARK)
 const settingsDialog = ref(false)
 const showImportantNotice = ref(true)
-const { currentNotice, hasNotices, showBanner, dismissBanner } = useImportantNotices()
+useImportantNotices()
 
 // Navigation loading state
 const navigationLoading = ref(false)
@@ -162,16 +112,6 @@ const navigationMessage = ref('')
 let loadingTimer: ReturnType<typeof setTimeout> | null = null
 
 const currentRouteName = computed(() => route.name as string)
-
-// Close sidebar automatically after login redirect to dashboard
-watch(
-  () => route.name,
-  (name) => {
-    if (name === 'Dashboard') {
-      sidebarOpen.value = false
-    }
-  }
-)
 const pageDisplayNames: Record<string, string> = {
   // Route names
   'Dashboard': 'Dashboard',
@@ -310,24 +250,10 @@ const setLightMode = () => {
 }
 
 const toggleTheme = () => {
-  // Profile menu toggle should update Appearance selection, not only runtime theme
   if (isDark.value) {
-    localStorage.setItem('kotra-appearance-mode', 'light')
     setLightMode()
   } else {
-    localStorage.setItem('kotra-appearance-mode', 'dark')
     setDarkMode()
-  }
-}
-
-
-const changeThemeMode = (mode: string) => {
-  localStorage.setItem('kotra-appearance-mode', mode)
-
-  if (mode === 'dark') {
-    setDarkMode()
-  } else if (mode === 'light') {
-    setLightMode()
   }
 }
 
@@ -352,15 +278,10 @@ watch(user, (newUser) => {
 })
 
 onMounted(() => {
-  if (savedTheme === 'dark') {
-    theme.change(AppTheme.DARK)
-  } else if (savedTheme === 'light') {
-    theme.change(AppTheme.LIGHT)
-  } else {
-  }
+  theme.change(savedTheme as AppTheme)
 
   const handleResize = () => {
-    if (route.name === 'Dashboard') sidebarOpen.value = false
+    sidebarOpen.value = window.innerWidth >= 600
   }
   window.addEventListener('resize', handleResize)
   handleResize()
@@ -450,13 +371,3 @@ const toggleSidebar = () => {
   }
 }
 </style>
-
-
-/* Phone Directory email single line ellipsis */
-.phone-email-ellipsis {
-  display: block;
-  max-width: 150px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}

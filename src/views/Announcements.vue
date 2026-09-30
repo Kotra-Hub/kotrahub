@@ -162,7 +162,7 @@
                 <template #append>
                   <div class="d-flex align-center ga-3 announcement-right-section">
                     <!-- Details Preview (Desktop) -->
-                    <div v-if="announcement.details && announcement.details.length > 0" class="d-none d-md-flex flex-column align-end text-right announcement-details-preview" style="min-width: 120px; flex-shrink: 0;">
+                    <div v-if="announcement.details && announcement.details.length > 0" class="d-none d-md-flex flex-column align-end text-right announcement-details-preview" style="min-width: 150px; flex-shrink: 0;">
                       <div v-for="(detail, idx) in announcement.details.slice(0, 2)" :key="idx" class="text-caption">
                         <span class="font-weight-medium" style="color: rgb(var(--v-theme-on-surface));">
                           {{ detail.label }}:
@@ -440,13 +440,13 @@ watch([searchQuery, selectedFilter, selectedSort], () => {
 .announcement-title {
   color: rgb(var(--v-theme-on-surface)) !important;
   line-height: 1.3;
-  white-space: normal;
+  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .announcement-excerpt {
-  white-space: normal;
+  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   margin-top: 2px;
@@ -459,7 +459,7 @@ watch([searchQuery, selectedFilter, selectedSort], () => {
 }
 
 .announcement-details-preview {
-  min-width: 120px;
+  min-width: 150px;
   line-height: 1.4;
 }
 

@@ -7,16 +7,16 @@ export class PermissionChecker {
   // access user store dynamically to ensure it works when called
   private get user() {
     const userStore = useUserStore();
-    return (userStore as any).me ?? (userStore as any).user;
+    return userStore.me;
   }
 
   public hasAnyRole(requiredRoles: string[]): boolean {
-    return !!this.user?.roles?.some((r: any) => requiredRoles.includes(r.name));
+    return !!this.user?.roles?.some(r => requiredRoles.includes(r.name));
   }
 
   public hasDepartment(targetDeptId: string | undefined): boolean {
     if (!targetDeptId) return false;
-    return !!this.user?.departments?.some((d: any) => d.id === targetDeptId);
+    return !!this.user?.departments?.some(d => d.id === targetDeptId);
   }
 
   public canPerformAction(

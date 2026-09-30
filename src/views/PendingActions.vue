@@ -111,11 +111,11 @@
               <div class="d-flex align-center ga-3 pending-right-section">
                 <!-- Status & Date (hidden on mobile) -->
                 <div class="d-none d-md-flex flex-column align-end text-right pending-datetime">
-                  <span class="text-caption font-weight-medium" style="color: rgb(var(--v-theme-error)); white-space: normal;">
+                  <span class="text-caption font-weight-medium" style="color: rgb(var(--v-theme-error)); white-space: nowrap;">
                     <span class="pending-status-dot"></span>
                     {{ action.status }}
                   </span>
-                  <span class="text-caption" style="color: rgb(var(--v-theme-textMuted)); white-space: normal;">
+                  <span class="text-caption" style="color: rgb(var(--v-theme-textMuted)); white-space: nowrap;">
                     {{ action.date }}
                   </span>
                 </div>
@@ -279,13 +279,13 @@ const handleActionClick = (action: PendingAction) => {
 .pending-title {
   color: rgb(var(--v-theme-on-surface)) !important;
   line-height: 1.3;
-  white-space: normal;
+  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .pending-subtitle {
-  white-space: normal;
+  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   margin-top: 2px;

@@ -1,5 +1,5 @@
 <template>
-  <v-card class="dash-card phone-directory-card" :class="{ 'filter-open': showFilters }">
+  <v-card class="dash-card phone-directory-card">
     <div class="head">
       <div class="head-title">
         <span class="head-icon">
@@ -9,26 +9,7 @@
       </div>
 
       <div class="actions">
-        <v-text-field
-          v-if="showSearch"
-          v-model="searchText"
-          class="search-inline"
-          width="280"
-          placeholder="Search by name, job title, or email..."
-          density="compact"
-          variant="outlined"
-          rounded="lg"
-          hide-details
-          @keydown.esc="showSearch = false"
-        />
-        <v-btn
-          v-else
-          class="action-btn icon-btn"
-          variant="outlined"
-          icon="mdi-magnify"
-          @click="showSearch = true"
-        />
-
+        <v-btn class="action-btn icon-btn" variant="outlined" icon="mdi-magnify" />
         <v-btn
           class="action-btn"
           variant="outlined"
@@ -37,7 +18,6 @@
         >
           Filters
         </v-btn>
-
         <v-btn class="action-btn" variant="outlined"
           :prepend-icon="isList ? 'mdi-view-grid-outline' : 'mdi-format-list-bulleted'" @click="isList = !isList">
           {{ isList ? 'Grid' : 'List' }}
@@ -45,8 +25,7 @@
       </div>
     </div>
 
-    <div v-if="showFilters" class="filter-wrap">
-    <v-card class="filter-panel" elevation="0">
+    <v-card v-if="showFilters" class="filter-panel" elevation="0">
       <div class="filter-grid">
         <div class="filter-item">
           <label>Department</label>
@@ -78,11 +57,10 @@
         </div>
       </div>
     </v-card>
-    </div>
 
     <div v-if="!isList" class="directory-content-scroll directory-grid-scroll">
     <v-row dense class="directory-grid">
-      <v-col cols="12" sm="6" lg="4" v-for="p in filteredPeople" :key="`grid-${p.name}`">
+      <v-col cols="12" sm="6" lg="4" v-for="p in people" :key="`grid-${p.name}`">
         <v-card class="person-card" elevation="0">
           <div class="person-top">
             <div class="avatar">{{ p.initial }}</div>
@@ -93,7 +71,7 @@
               </div>
               <div class="contact-line email-line" :title="p.email">
                 <v-icon size="16">mdi-email-outline</v-icon>
-                <span class="email-text email-ellipsis">{{ p.email }}</span>
+                <span class="email-text">{{ p.email }}</span>
               </div>
             </div>
           </div>
@@ -107,7 +85,7 @@
 
     <div v-else class="directory-content-scroll directory-list-scroll">
       <div class="directory-list">
-        <div v-for="p in filteredPeople" :key="`list-${p.name}`" class="person-row">
+        <div v-for="p in people" :key="`list-${p.name}`" class="person-row">
           <div class="avatar list-avatar">{{ p.initial }}</div>
 
           <div class="list-name">
@@ -129,7 +107,7 @@
             </div>
             <div class="contact-line email-line" :title="p.email">
               <v-icon size="16">mdi-email-outline</v-icon>
-              <span class="email-text email-ellipsis">{{ p.email }}</span>
+              <span class="email-text">{{ p.email }}</span>
             </div>
           </div>
         </div>
@@ -138,49 +116,33 @@
   </v-card>
 </template>
 
-<script setup lang="ts">
-import { ref, computed } from 'vue'
-import { usePhoneDirectory } from '@/composables/usePhoneDirectory'
+<script setup>
+import { ref } from 'vue'
 
-const { contacts, filterContacts, getInitials } = usePhoneDirectory()
-const showFilters = ref(false)
-const showSearch = ref(false)
 const isList = ref(false)
-const searchText = ref('')
+const showFilters = ref(false)
 
-const filteredPeople = computed(() => {
-  const list = !searchText.value ? contacts.value : filterContacts(searchText.value, 'All', 'All')
-  return list.map(p => ({
-    ...p,
-    initial: getInitials(p.name),
-    position: p.jobTitle,
-    dept: p.department
-  }))
-})
+const people = [
+  ['AH', 'Amirul Hakim', 'Product Manager', 'Commercial', '1702', 'amirul.hakim@kotra.com'],
+  ['SN', 'Siti Nur Aina', 'Regulatory Executive', 'Regulatory Affairs', '2345', 'siti.aina@kotra.com'],
+  ['MK', 'Muhammad Khairul', 'Medical Representative', 'Sales', '2901', 'khairul.m@kotra.com'],
+  ['YW', 'Yvonne Wong', 'HR Executive', 'Human Resource', '4567', 'yvonne.wong@kotra.com'],
+  ['FA', 'Faris Azman', 'Finance Analyst', 'Finance', '5678', 'faris.azman@kotra.com'],
+  ['NL', 'Nurul Liyana', 'QC Chemist', 'Quality Control', '6789', 'nurul.liyana@kotra.com'],
+  ['AR', 'Aisyah Rahman', 'Admin Executive', 'Administration', '7890', 'aisyah.rahman@kotra.com'],
+  ['DL', 'Daniel Lee', 'IT Specialist', 'Information Technology', '8901', 'daniel.lee@kotra.com'],
+  ['NI', 'Nur Izzati', 'Marketing Executive', 'Marketing', '9012', 'nur.izzati@kotra.com'],
+].map(x => ({
+  initial: x[0],
+  name: x[1],
+  position: x[2],
+  dept: x[3],
+  ext: x[4],
+  email: x[5],
+}))
 </script>
 
 <style scoped>
-.search-box {
-  flex: 0 0 auto;
-  margin-bottom: 10px;
-}
-
-.search-expand-enter-active,
-.search-expand-leave-active {
-  transition: all .2s ease;
-}
-
-.search-expand-enter-from,
-.search-expand-leave-to {
-  opacity: 0;
-  transform: translateX(20px);
-}
-
-.filter-wrap {
-  flex: 0 0 auto;
-  min-height: 0;
-}
-
 .filter-panel {
   padding: 16px;
   border-radius: 20px;
@@ -220,7 +182,7 @@ const filteredPeople = computed(() => {
 }
 
 .directory-content-scroll {
-  flex: 1 1 0;
+  flex: 1;
   min-height: 0;
   overflow-y: auto;
 }
@@ -230,15 +192,13 @@ const filteredPeople = computed(() => {
   display: flex;
   align-items: center;
   gap: 12px;
-  justify-content: space-between;
   margin-bottom: 12px;
   min-width: 0;
 }
 
 .head-title {
-  min-width: 180px;
-  flex: 1 1 auto;
-  overflow: hidden;
+  min-width: 0;
+  flex: 1;
   display: flex;
   align-items: center;
   gap: 10px;
@@ -248,7 +208,7 @@ const filteredPeople = computed(() => {
   margin: 0;
   font-size: 18px;
   font-weight: 800;
-  white-space: normal;
+  white-space: nowrap;
 }
 
 .head-icon {
@@ -264,10 +224,8 @@ const filteredPeople = computed(() => {
 
 .actions {
   display: flex;
-  flex: 0 0 auto;
   align-items: center;
   gap: 10px;
-  flex: 0 0 auto;
 }
 
 .action-btn {
@@ -280,32 +238,15 @@ const filteredPeople = computed(() => {
   text-transform: none;
 }
 
-.search-inline {
-  width: 180px;
-  max-width: 180px;
-}
-
 .icon-btn {
   width: 48px;
   min-width: 48px !important;
 }
 
-.search-inline {
-  width: 180px;
-  min-width: 160px;
-}
-
-.search-inline :deep(.v-field) {
-  border-radius: 13px;
-}
-
-
 /* GRID VIEW */
 .directory-grid-scroll {
-  height: auto;
-  max-height: 500px;
-  flex: 1 1 auto;
-  min-height: 0;
+  height: calc(100% - 75px);
+  max-height: none;
   overflow-y: auto;
   overflow-x: hidden;
   padding-right: 4px;
@@ -367,7 +308,7 @@ const filteredPeople = computed(() => {
   display: block;
   min-width: 0;
   max-width: 100%;
-  white-space: normal;
+  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
@@ -385,14 +326,14 @@ const filteredPeople = computed(() => {
   font-size: 13px;
   line-height: 17px;
   font-weight: 600;
-  white-space: normal;
+  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 /* LIST VIEW */
 .directory-list-scroll {
-  max-height: 500px;
+  max-height: 430px;
   overflow-y: auto;
   overflow-x: hidden;
   padding-right: 4px;
@@ -444,7 +385,7 @@ const filteredPeople = computed(() => {
   color: rgb(var(--v-theme-on-surface));
   font-size: 15px;
   font-weight: 800;
-  white-space: normal;
+  white-space: nowrap;
   overflow: visible;
   text-overflow: clip;
 }
@@ -455,7 +396,7 @@ const filteredPeople = computed(() => {
   color: rgb(var(--v-theme-on-background));
   font-size: 13px;
   font-weight: 700;
-  white-space: normal;
+  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
@@ -553,43 +494,19 @@ const filteredPeople = computed(() => {
 /* V52 FIX: match Calendar Agenda height without forcing empty space */
 .phone-directory-card {
   height: auto;
-  min-height: 0;
-  max-height: 650px;
-  overflow: hidden;
+  min-height: 100%;
   display: flex;
   flex-direction: column;
 }
 
-.phone-directory-card .head {
-  flex: 0 0 auto;
-}
-
-
-.phone-directory-card .filter-panel {
-  flex: 0 0 auto;
-}
-
 .phone-directory-card .directory-content-scroll {
-  flex: 1 1 auto;
+  flex: 1;
   min-height: 0;
-  overflow: hidden;
 }
 
 .phone-directory-card .directory-grid-scroll,
 .phone-directory-card .directory-list-scroll {
-  flex: 1 1 auto;
-  min-height: 0;
   overflow-y: auto;
 }
 
 </style>
-
-
-/* Phone Directory email single line ellipsis */
-.phone-email-ellipsis {
-  display: block;
-  max-width: 150px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}

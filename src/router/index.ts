@@ -4,9 +4,17 @@ import MainRoutes from './main.routes';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
-  scrollBehavior(to, from, savedPosition) {
-    if (savedPosition) return savedPosition;
-    return { top: 0, left: 0, behavior: 'instant' };
+  scrollBehavior(_to, _from, savedPosition) {
+    // Restore browser back/forward position
+    if (savedPosition) {
+      return savedPosition;
+    }
+
+    // New page navigation always starts at top
+    return {
+      top: 0,
+      behavior: 'smooth'
+    };
   },
   routes: [
     {
@@ -58,17 +66,6 @@ router.beforeEach(async (to, _from, next) => {
   }
 });
 
-
-router.afterEach(() => {
-  requestAnimationFrame(() => {
-    document.querySelectorAll('.content-wrapper, .page-body').forEach((el) => {
-      const element = el as HTMLElement
-      element.scrollTop = 0
-      element.scrollLeft = 0
-    })
-    window.scrollTo(0, 0)
-  })
-})
 
 
 export default router;

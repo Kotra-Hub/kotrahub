@@ -131,10 +131,10 @@
                 <div class="d-flex align-center ga-3 activity-right-section">
                   <!-- Date & Time -->
                   <div class="d-flex flex-column align-end text-right activity-datetime" style="flex-shrink: 0; min-width: 130px;">
-                    <span class="text-caption font-weight-medium" style="color: rgb(var(--v-theme-on-surface)); white-space: normal;">
+                    <span class="text-caption font-weight-medium" style="color: rgb(var(--v-theme-on-surface)); white-space: nowrap;">
                       {{ activity.date }}
                     </span>
-                    <span class="text-caption" style="color: rgb(var(--v-theme-textMuted)); white-space: normal;">
+                    <span class="text-caption" style="color: rgb(var(--v-theme-textMuted)); white-space: nowrap;">
                       {{ activity.time }}
                       <span class="font-weight-medium" :style="{ color: getRelativeTimeColor(activity.relativeTime) }">
                         • {{ activity.relativeTime }}
@@ -322,13 +322,13 @@ watch([searchQuery, selectedType, selectedTimeRange], () => {
 .activity-title {
   color: rgb(var(--v-theme-on-surface)) !important;
   line-height: 1.3;
-  white-space: normal;
+  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .activity-subtitle {
-  white-space: normal;
+  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   margin-top: 2px;

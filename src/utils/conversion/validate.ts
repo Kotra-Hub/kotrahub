@@ -197,7 +197,7 @@ export const minAmount = (value: number) => {
 
 export const attachFileRules = (files: File[]) => {
   let messages: any[] = [];
-  files.forEach((f: File, i: number) => {
+  files.forEach((f: File) => {
     // return !files || !files.length || f.size < 2000000 || `The size of the file '${f.name}' should be less than 2 MB!`
     if (f.size > 2000000) {
       messages.push(`The size of the file '${f.name}' should be less than 2 MB!`);
