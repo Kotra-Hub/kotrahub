@@ -1,832 +1,409 @@
-import {
-  computed,
-  ref,
-} from "vue"
+import { computed, ref } from "vue"
 
-
-/* =============================================================
-   TYPES
-============================================================= */
-
-export type RequisitionStatus =
+export type SystemRequisitionStatus =
   | "Draft"
-  | "Submitted"
-  | "In Review"
+  | "Pending Approval"
   | "Approved"
   | "Rejected"
   | "Completed"
 
-
-export type RequisitionPriority =
+export type SystemRequisitionPriority =
   | "Low"
   | "Medium"
   | "High"
   | "Urgent"
 
+export type SystemAccessType =
+  | "New Access"
+  | "Modify Access"
+  | "Remove Access"
+  | "Role Change"
 
-export type RequisitionAction =
-  | "Created"
-  | "Updated"
-  | "Submitted"
-  | "Approved"
-  | "Rejected"
-  | "Completed"
-
+export type SystemEnvironment =
+  | "Production"
+  | "UAT"
+  | "Development"
 
 export interface SystemRequisition {
-
   id: string
-
   requestNo: string
-
   requester: string
-
   department: string
-
+  system: string
   module: string
-
-  accessType: string
-
-  priority: RequisitionPriority
-
-  requiredDate: string
-
-  status: RequisitionStatus
-
+  accessType: SystemAccessType
+  environment: SystemEnvironment
+  title: string
   description: string
-
-  createdDate: string
-
+  businessJustification: string
+  requestDate: string
+  requiredDate: string
+  priority: SystemRequisitionPriority
+  status: SystemRequisitionStatus
+  approver?: string
+  rejectionReason?: string
   completedDate?: string
-
 }
 
+/* */
 
-export interface RequisitionHistory {
+const systemRequisitions = ref<SystemRequisition[]>([
+  {
+    id: "sr-001",
+    requestNo: "SR-2026-001",
+    requester: "Aiman",
+    department: "Information Technology",
+    system: "ERP",
+    module: "User Management",
+    accessType: "New Access",
+    environment: "Production",
+    title: "ERP User Access",
+    description:
+      "Request production ERP access for application support activities.",
+    businessJustification:
+      "Required to support users and perform application-related tasks.",
+    requestDate: "2026-09-01",
+    requiredDate: "2026-10-01",
+    priority: "High",
+    status: "Pending Approval",
+  },
 
-  id: string
+  {
+    id: "sr-002",
+    requestNo: "SR-2026-002",
+    requester: "Nur Amirah",
+    department: "Human Resources",
+    system: "HR System",
+    module: "Employee Management",
+    accessType: "New Access",
+    environment: "Production",
+    title: "HR System Access",
+    description:
+      "Request access to employee management module.",
+    businessJustification:
+      "Required to perform daily HR administrative activities.",
+    requestDate: "2026-09-02",
+    requiredDate: "2026-09-30",
+    priority: "Medium",
+    status: "Approved",
+    approver: "HR Manager",
+  },
 
-  requestNo: string
+  {
+    id: "sr-003",
+    requestNo: "SR-2026-003",
+    requester: "Farhan",
+    department: "Finance",
+    system: "ERP",
+    module: "Finance",
+    accessType: "Role Change",
+    environment: "Production",
+    title: "Finance Role Update",
+    description:
+      "Request to update ERP finance role permissions.",
+    businessJustification:
+      "Required following changes to finance responsibilities.",
+    requestDate: "2026-08-20",
+    requiredDate: "2026-09-05",
+    priority: "High",
+    status: "Completed",
+    approver: "Finance Manager",
+    completedDate: "2026-09-06",
+  },
 
-  requester: string
+  {
+    id: "sr-004",
+    requestNo: "SR-2026-004",
+    requester: "Siti",
+    department: "Administration",
+    system: "Document Management",
+    module: "Document Library",
+    accessType: "New Access",
+    environment: "Production",
+    title: "Document System Access",
+    description:
+      "Request access to the document management system.",
+    businessJustification:
+      "Required to manage departmental documents.",
+    requestDate: "2026-09-03",
+    requiredDate: "2026-09-25",
+    priority: "Low",
+    status: "Rejected",
+    rejectionReason:
+      "Access is not required for the current job responsibility.",
+  },
 
-  department: string
+  {
+    id: "sr-005",
+    requestNo: "SR-2026-005",
+    requester: "Daniel",
+    department: "Marketing",
+    system: "CRM",
+    module: "Customer Management",
+    accessType: "New Access",
+    environment: "Production",
+    title: "CRM User Access",
+    description:
+      "Request CRM access for customer management activities.",
+    businessJustification:
+      "Required for marketing campaign and customer activities.",
+    requestDate: "2026-09-05",
+    requiredDate: "2026-10-05",
+    priority: "Medium",
+    status: "Pending Approval",
+  },
 
-  action: RequisitionAction
+  {
+    id: "sr-006",
+    requestNo: "SR-2026-006",
+    requester: "Hakim",
+    department: "Procurement",
+    system: "Procurement System",
+    module: "Purchase Request",
+    accessType: "Modify Access",
+    environment: "Production",
+    title: "Procurement Permission Update",
+    description:
+      "Request modification of purchase request permissions.",
+    businessJustification:
+      "Required to support the user's updated procurement role.",
+    requestDate: "2026-08-28",
+    requiredDate: "2026-09-20",
+    priority: "Medium",
+    status: "Approved",
+    approver: "Procurement Manager",
+  },
 
-  effectiveDate: string
+  {
+    id: "sr-007",
+    requestNo: "SR-2026-007",
+    requester: "Aina",
+    department: "Administration",
+    system: "E-Services",
+    module: "Request Management",
+    accessType: "New Access",
+    environment: "Production",
+    title: "E-Services Access",
+    description:
+      "Request access to the E-Services request management module.",
+    businessJustification:
+      "Required to submit and monitor internal service requests.",
+    requestDate: "2026-08-15",
+    requiredDate: "2026-08-30",
+    priority: "Low",
+    status: "Completed",
+    approver: "Department Manager",
+    completedDate: "2026-08-29",
+  },
 
-  changedBy: string
+  {
+    id: "sr-008",
+    requestNo: "SR-2026-008",
+    requester: "Aiman",
+    department: "Information Technology",
+    system: "Integration Platform",
+    module: "API Management",
+    accessType: "New Access",
+    environment: "UAT",
+    title: "UAT API Access",
+    description:
+      "Request UAT access for API integration testing.",
+    businessJustification:
+      "Required for application integration development and testing.",
+    requestDate: "2026-09-08",
+    requiredDate: "2026-10-10",
+    priority: "High",
+    status: "Draft",
+  },
 
-  status: RequisitionStatus
+  {
+    id: "sr-009",
+    requestNo: "SR-2026-009",
+    requester: "Melissa",
+    department: "Human Resources",
+    system: "HR System",
+    module: "Reports",
+    accessType: "New Access",
+    environment: "Production",
+    title: "HR Reporting Access",
+    description:
+      "Request access to HR reporting functions.",
+    businessJustification:
+      "Required to prepare departmental reports.",
+    requestDate: "2026-09-07",
+    requiredDate: "2026-10-15",
+    priority: "Medium",
+    status: "Rejected",
+    rejectionReason:
+      "Reporting access is restricted to the designated HR reporting role.",
+  },
 
-  remarks?: string
+  {
+    id: "sr-010",
+    requestNo: "SR-2026-010",
+    requester: "Rizal",
+    department: "Information Technology",
+    system: "IT Helpdesk",
+    module: "Ticket Management",
+    accessType: "Role Change",
+    environment: "Production",
+    title: "Helpdesk Role Update",
+    description:
+      "Request to update helpdesk role permissions.",
+    businessJustification:
+      "Required to support additional helpdesk responsibilities.",
+    requestDate: "2026-08-12",
+    requiredDate: "2026-08-25",
+    priority: "High",
+    status: "Completed",
+    approver: "IT Manager",
+    completedDate: "2026-08-26",
+  },
+])
 
+/* */
+
+const departments = computed(() => {
+  return [
+    ...new Set(
+      systemRequisitions.value.map(item => item.department),
+    ),
+  ]
+})
+
+const systems = computed(() => {
+  return [
+    ...new Set(
+      systemRequisitions.value.map(item => item.system),
+    ),
+  ]
+})
+
+const modules = computed(() => {
+  return [
+    ...new Set(
+      systemRequisitions.value.map(item => item.module),
+    ),
+  ]
+})
+
+const accessTypes: SystemAccessType[] = [
+  "New Access",
+  "Modify Access",
+  "Remove Access",
+  "Role Change",
+]
+
+const environments: SystemEnvironment[] = [
+  "Production",
+  "UAT",
+  "Development",
+]
+
+const priorities: SystemRequisitionPriority[] = [
+  "Low",
+  "Medium",
+  "High",
+  "Urgent",
+]
+
+/* */
+
+function addRequisition(
+  payload: Omit<
+    SystemRequisition,
+    "id" | "requestNo" | "status"
+  >,
+) {
+  const year = new Date().getFullYear()
+
+  const numbers = systemRequisitions.value
+    .map(item => {
+      const match = item.requestNo.match(/(\d+)$/)
+
+      return match ? Number(match[1]) : 0
+    })
+    .filter(number => !Number.isNaN(number))
+
+  const nextNumber =
+    numbers.length > 0
+      ? Math.max(...numbers) + 1
+      : 1
+
+  const requestNo = `SR-${year}-${String(nextNumber).padStart(
+    3,
+    "0",
+  )}`
+
+  const newRequisition: SystemRequisition = {
+    id: `sr-${Date.now()}`,
+    requestNo,
+    ...payload,
+    status: "Pending Approval",
+  }
+
+  systemRequisitions.value.unshift(newRequisition)
+
+  return newRequisition
 }
 
+/* */
 
-/* =============================================================
-   COMPOSABLE
-============================================================= */
+function updateRequisitionStatus(
+  id: string,
+  status: SystemRequisitionStatus,
+  options?: {
+    rejectionReason?: string
+    completedDate?: string
+  },
+) {
+  const item = systemRequisitions.value.find(
+    requisition => requisition.id === id,
+  )
+
+  if (!item) return
+
+  item.status = status
+
+  if (status === "Approved") {
+    item.approver = "Current Approver"
+    item.rejectionReason = undefined
+  }
+
+  if (status === "Rejected") {
+    item.rejectionReason =
+      options?.rejectionReason ||
+      "No reason provided."
+  }
+
+  if (status === "Completed") {
+    item.completedDate =
+      options?.completedDate ||
+      new Date().toISOString().slice(0, 10)
+  }
+}
+
+/* */
+
+function getRequisition(id: string) {
+  return systemRequisitions.value.find(
+    item => item.id === id,
+  )
+}
+
+/* */
 
 export function useSystemRequisitions() {
-
-
-  /* ===========================================================
-     MASTER OPTIONS
-  =========================================================== */
-
-  const departments = ref<string[]>([
-    "Administration",
-    "Corporate Affairs",
-    "Finance",
-    "Human Resources",
-    "Information Technology",
-    "Production",
-    "Quality Assurance",
-    "Regulatory Affairs",
-    "Sales & Marketing",
-  ])
-
-
-  const modules = ref<string[]>([
-    "Dashboard",
-    "Employee Onboarding",
-    "Requisitions",
-    "Staff Management",
-    "Announcements",
-    "Reports",
-    "IT Account",
-    "Access Management",
-  ])
-
-
-  const accessTypes = ref<string[]>([
-    "New Access",
-    "Modify Access",
-    "Remove Access",
-    "Temporary Access",
-    "Additional Access",
-  ])
-
-
-  const priorities = ref<RequisitionPriority[]>([
-    "Low",
-    "Medium",
-    "High",
-    "Urgent",
-  ])
-
-
-  const statuses = ref<RequisitionStatus[]>([
-    "Draft",
-    "Submitted",
-    "In Review",
-    "Approved",
-    "Rejected",
-    "Completed",
-  ])
-
-
-  const historyActions = ref<RequisitionAction[]>([
-    "Created",
-    "Updated",
-    "Submitted",
-    "Approved",
-    "Rejected",
-    "Completed",
-  ])
-
-
-  /* ===========================================================
-     SAMPLE REQUISITIONS
-  =========================================================== */
-
-  const requisitions = ref<SystemRequisition[]>([
-
-    {
-      id: "SR-001",
-      requestNo: "SR-2026-001",
-      requester: "Aiman Asri",
-      department: "Information Technology",
-      module: "Employee Onboarding",
-      accessType: "New Access",
-      priority: "High",
-      requiredDate: "2026-10-05",
-      status: "Submitted",
-      description:
-        "Request system access for employee onboarding activities.",
-      createdDate: "2026-09-20",
-    },
-
-    {
-      id: "SR-002",
-      requestNo: "SR-2026-002",
-      requester: "Nur Amirah",
-      department: "Human Resources",
-      module: "Employee Onboarding",
-      accessType: "Modify Access",
-      priority: "Medium",
-      requiredDate: "2026-10-03",
-      status: "In Review",
-      description:
-        "Additional access required to process new joiner records.",
-      createdDate: "2026-09-21",
-    },
-
-    {
-      id: "SR-003",
-      requestNo: "SR-2026-003",
-      requester: "Vivian",
-      department: "Finance",
-      module: "Reports",
-      accessType: "New Access",
-      priority: "Medium",
-      requiredDate: "2026-10-08",
-      status: "Approved",
-      description:
-        "Access required for finance reporting and monitoring.",
-      createdDate: "2026-09-22",
-    },
-
-    {
-      id: "SR-004",
-      requestNo: "SR-2026-004",
-      requester: "Teo",
-      department: "Human Resources",
-      module: "Staff Management",
-      accessType: "Modify Access",
-      priority: "Low",
-      requiredDate: "2026-09-15",
-      status: "Completed",
-      description:
-        "Modify existing staff management access.",
-      createdDate: "2026-09-10",
-      completedDate: "2026-09-18",
-    },
-
-    {
-      id: "SR-005",
-      requestNo: "SR-2026-005",
-      requester: "Iqbal",
-      department: "Information Technology",
-      module: "Access Management",
-      accessType: "Additional Access",
-      priority: "Urgent",
-      requiredDate: "2026-10-01",
-      status: "Submitted",
-      description:
-        "Additional access required for system administration tasks.",
-      createdDate: "2026-09-24",
-    },
-
-    {
-      id: "SR-006",
-      requestNo: "SR-2026-006",
-      requester: "Nisha",
-      department: "Corporate Affairs",
-      module: "Announcements",
-      accessType: "New Access",
-      priority: "Low",
-      requiredDate: "2026-09-20",
-      status: "Rejected",
-      description:
-        "Request access to manage corporate announcements.",
-      createdDate: "2026-09-12",
-    },
-
-    {
-      id: "SR-007",
-      requestNo: "SR-2026-007",
-      requester: "Admin",
-      department: "Administration",
-      module: "Dashboard",
-      accessType: "New Access",
-      priority: "Medium",
-      requiredDate: "2026-09-18",
-      status: "Completed",
-      description:
-        "Dashboard access for administration monitoring.",
-      createdDate: "2026-08-30",
-      completedDate: "2026-09-17",
-    },
-
-    {
-      id: "SR-008",
-      requestNo: "SR-2026-008",
-      requester: "Farah",
-      department: "Quality Assurance",
-      module: "Reports",
-      accessType: "New Access",
-      priority: "High",
-      requiredDate: "2026-10-12",
-      status: "Draft",
-      description:
-        "Request reporting access for quality monitoring.",
-      createdDate: "2026-09-26",
-    },
-
-  ])
-
-
-  /* ===========================================================
-     SAMPLE HISTORY
-  =========================================================== */
-
-  const requisitionHistory = ref<RequisitionHistory[]>([
-
-    {
-      id: "RH-001",
-      requestNo: "SR-2026-001",
-      requester: "Aiman Asri",
-      department: "Information Technology",
-      action: "Created",
-      effectiveDate: "2026-09-20T09:15:00",
-      changedBy: "Aiman Asri",
-      status: "Draft",
-      remarks:
-        "System requisition created.",
-    },
-
-    {
-      id: "RH-002",
-      requestNo: "SR-2026-001",
-      requester: "Aiman Asri",
-      department: "Information Technology",
-      action: "Submitted",
-      effectiveDate: "2026-09-20T09:30:00",
-      changedBy: "Aiman Asri",
-      status: "Submitted",
-      remarks:
-        "Request submitted for approval.",
-    },
-
-    {
-      id: "RH-003",
-      requestNo: "SR-2026-002",
-      requester: "Nur Amirah",
-      department: "Human Resources",
-      action: "Created",
-      effectiveDate: "2026-09-21T10:00:00",
-      changedBy: "Nur Amirah",
-      status: "Draft",
-      remarks:
-        "System access request created.",
-    },
-
-    {
-      id: "RH-004",
-      requestNo: "SR-2026-002",
-      requester: "Nur Amirah",
-      department: "Human Resources",
-      action: "Submitted",
-      effectiveDate: "2026-09-21T10:15:00",
-      changedBy: "Nur Amirah",
-      status: "Submitted",
-      remarks:
-        "Request submitted for review.",
-    },
-
-    {
-      id: "RH-005",
-      requestNo: "SR-2026-003",
-      requester: "Vivian",
-      department: "Finance",
-      action: "Approved",
-      effectiveDate: "2026-09-23T14:20:00",
-      changedBy: "IT Manager",
-      status: "Approved",
-      remarks:
-        "Access request approved.",
-    },
-
-    {
-      id: "RH-006",
-      requestNo: "SR-2026-004",
-      requester: "Teo",
-      department: "Human Resources",
-      action: "Completed",
-      effectiveDate: "2026-09-18T16:00:00",
-      changedBy: "IT Support",
-      status: "Completed",
-      remarks:
-        "Requested access has been configured.",
-    },
-
-    {
-      id: "RH-007",
-      requestNo: "SR-2026-006",
-      requester: "Nisha",
-      department: "Corporate Affairs",
-      action: "Rejected",
-      effectiveDate: "2026-09-13T11:30:00",
-      changedBy: "IT Manager",
-      status: "Rejected",
-      remarks:
-        "Requested access was not required for the current role.",
-    },
-
-    {
-      id: "RH-008",
-      requestNo: "SR-2026-007",
-      requester: "Admin",
-      department: "Administration",
-      action: "Completed",
-      effectiveDate: "2026-09-17T15:30:00",
-      changedBy: "IT Support",
-      status: "Completed",
-      remarks:
-        "Dashboard access successfully configured.",
-    },
-
-  ])
-
-
-  /* ===========================================================
-     DATE HELPER
-  =========================================================== */
-
-  function getToday() {
-
-    const date = new Date()
-
-    const year = date.getFullYear()
-
-    const month = String(
-      date.getMonth() + 1,
-    ).padStart(2, "0")
-
-    const day = String(
-      date.getDate(),
-    ).padStart(2, "0")
-
-    return `${year}-${month}-${day}`
-
-  }
-
-
-  /* ===========================================================
-     DATETIME HELPER
-  =========================================================== */
-
-  function getNow() {
-
-    return new Date().toISOString()
-
-  }
-
-
-  /* ===========================================================
-     NEXT REQUEST NUMBER
-  =========================================================== */
-
-  function getNextRequestNo() {
-
-    const year = new Date().getFullYear()
-
-    const numbers = requisitions.value
-      .map(item => {
-
-        const number =
-          item.requestNo.split("-").pop()
-
-        return Number(number)
-
-      })
-      .filter(Number.isFinite)
-
-    const next =
-      Math.max(0, ...numbers) + 1
-
-    return `SR-${year}-${String(next).padStart(3, "0")}`
-
-  }
-
-
-  /* ===========================================================
-     NEXT HISTORY ID
-  =========================================================== */
-
-  function getNextHistoryId() {
-
-    const numbers = requisitionHistory.value
-      .map(item => {
-
-        const number =
-          item.id.split("-").pop()
-
-        return Number(number)
-
-      })
-      .filter(Number.isFinite)
-
-    const next =
-      Math.max(0, ...numbers) + 1
-
-    return `RH-${String(next).padStart(3, "0")}`
-
-  }
-
-
-  /* ===========================================================
-     ADD HISTORY
-  =========================================================== */
-
-  function addHistory(
-    requisition: SystemRequisition,
-    action: RequisitionAction,
-    changedBy = "Current User",
-    remarks = "",
-  ) {
-
-    requisitionHistory.value.unshift({
-
-      id: getNextHistoryId(),
-
-      requestNo:
-        requisition.requestNo,
-
-      requester:
-        requisition.requester,
-
-      department:
-        requisition.department,
-
-      action,
-
-      effectiveDate:
-        getNow(),
-
-      changedBy,
-
-      status:
-        requisition.status,
-
-      remarks,
-
-    })
-
-  }
-
-
-  /* ===========================================================
-     CREATE
-  =========================================================== */
-
-  function createRequisition(data: {
-
-    requestNo: string
-
-    requester: string
-
-    department: string
-
-    module: string
-
-    accessType: string
-
-    priority: string
-
-    requiredDate: string
-
-    description: string
-
-  }) {
-
-    const requisition: SystemRequisition = {
-
-      id: data.requestNo,
-
-      requestNo: data.requestNo,
-
-      requester: data.requester,
-
-      department: data.department,
-
-      module: data.module,
-
-      accessType: data.accessType,
-
-      priority:
-        data.priority as RequisitionPriority,
-
-      requiredDate: data.requiredDate,
-
-      status: "Draft",
-
-      description: data.description,
-
-      createdDate: getToday(),
-
-    }
-
-
-    requisitions.value.unshift(
-      requisition,
-    )
-
-
-    addHistory(
-      requisition,
-      "Created",
-      data.requester,
-      "System requisition created.",
-    )
-
-
-    return requisition
-
-  }
-
-
-  /* ===========================================================
-     SUBMIT
-  =========================================================== */
-
-  function submitRequisition(
-    requisition: SystemRequisition,
-  ) {
-
-    requisition.status = "Submitted"
-
-
-    addHistory(
-      requisition,
-      "Submitted",
-      requisition.requester,
-      "Request submitted for approval.",
-    )
-
-  }
-
-
-  /* ===========================================================
-     APPROVE
-  =========================================================== */
-
-  function approveRequisition(
-    requisition: SystemRequisition,
-  ) {
-
-    requisition.status = "Approved"
-
-
-    addHistory(
-      requisition,
-      "Approved",
-      "IT Manager",
-      "System access requisition approved.",
-    )
-
-  }
-
-
-  /* ===========================================================
-     REJECT
-  =========================================================== */
-
-  function rejectRequisition(
-    requisition: SystemRequisition,
-  ) {
-
-    requisition.status = "Rejected"
-
-
-    addHistory(
-      requisition,
-      "Rejected",
-      "IT Manager",
-      "System access requisition rejected.",
-    )
-
-  }
-
-
-  /* ===========================================================
-     COMPLETE
-  =========================================================== */
-
-  function completeRequisition(
-    requisition: SystemRequisition,
-  ) {
-
-    requisition.status = "Completed"
-
-    requisition.completedDate = getToday()
-
-
-    addHistory(
-      requisition,
-      "Completed",
-      "IT Support",
-      "System access has been configured and completed.",
-    )
-
-  }
-
-
-  /* ===========================================================
-     RESUBMIT
-  =========================================================== */
-
-  function resubmitRequisition(
-    requisition: SystemRequisition,
-  ) {
-
-    requisition.status = "Submitted"
-
-    requisition.completedDate = undefined
-
-
-    addHistory(
-      requisition,
-      "Submitted",
-      requisition.requester,
-      "Rejected request resubmitted for approval.",
-    )
-
-  }
-
-
-  /* ===========================================================
-     UPDATE
-  =========================================================== */
-
-  function updateRequisition(
-    requisition: SystemRequisition,
-    data: Partial<SystemRequisition>,
-    changedBy = "Current User",
-  ) {
-
-    Object.assign(
-      requisition,
-      data,
-    )
-
-
-    addHistory(
-      requisition,
-      "Updated",
-      changedBy,
-      "System requisition information was updated.",
-    )
-
-  }
-
-
-  /* ===========================================================
-     COMPUTED COUNTS
-  =========================================================== */
-
-  const pendingApprovalCount = computed(() => {
-
-    return requisitions.value.filter(
-      item =>
-        item.status === "Submitted" ||
-        item.status === "In Review",
-    ).length
-
-  })
-
-
-  const approvedCount = computed(() => {
-
-    return requisitions.value.filter(
-      item =>
-        item.status === "Approved",
-    ).length
-
-  })
-
-
-  const completedCount = computed(() => {
-
-    return requisitions.value.filter(
-      item =>
-        item.status === "Completed",
-    ).length
-
-  })
-
-
-  const rejectedCount = computed(() => {
-
-    return requisitions.value.filter(
-      item =>
-        item.status === "Rejected",
-    ).length
-
-  })
-
-
-  /* ===========================================================
-     RETURN
-  =========================================================== */
-
   return {
-
-    requisitions,
-
-    requisitionHistory,
-
+    systemRequisitions,
     departments,
-
+    systems,
     modules,
-
     accessTypes,
-
+    environments,
     priorities,
-
-    statuses,
-
-    historyActions,
-
-    pendingApprovalCount,
-
-    approvedCount,
-
-    completedCount,
-
-    rejectedCount,
-
-    getToday,
-
-    getNextRequestNo,
-
-    createRequisition,
-
-    submitRequisition,
-
-    approveRequisition,
-
-    rejectRequisition,
-
-    completeRequisition,
-
-    resubmitRequisition,
-
-    updateRequisition,
-
+    addRequisition,
+    updateRequisitionStatus,
+    getRequisition,
   }
-
 }

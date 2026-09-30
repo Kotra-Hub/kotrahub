@@ -1,5866 +1,2539 @@
+<script setup lang="ts">
+import { computed, ref, watch } from "vue"
+
+import AppSummaryCard from "@/components/common/AppSummaryCard.vue"
+import AppStatusChip from "@/components/common/AppStatusChip.vue"
+
+import {
+  useSystemRequisitions,
+} from "@/composables/useSystemRequisitions"
+
+import type {
+  SystemRequisition,
+  SystemRequisitionPriority,
+  SystemRequisitionStatus,
+  SystemAccessType,
+  SystemEnvironment,
+} from "@/composables/useSystemRequisitions"
+
+/* */
+
+const {
+  systemRequisitions,
+  departments,
+  systems,
+  modules,
+  accessTypes,
+  environments,
+  priorities,
+  addRequisition,
+  updateRequisitionStatus,
+} = useSystemRequisitions()
+
+/* */
+
+const tab = ref("requisition")
+
+/* */
+
+const search = ref("")
+const filterDepartment = ref("")
+const filterSystem = ref("")
+const filterModule = ref("")
+const filterStatus = ref("")
+const filterPriority = ref<SystemRequisitionPriority | null>(null)
+
+/* */
+
+const page = ref(1)
+const itemsPerPage = ref(10)
+
+/* */
+
+const form = ref({
+  requester: "Aiman",
+  department: "",
+  system: "",
+  module: "",
+  accessType: "New Access" as SystemAccessType,
+  environment: "Production" as SystemEnvironment,
+  title: "",
+  description: "",
+  businessJustification: "",
+  requestDate: new Date()
+    .toISOString()
+    .slice(0, 10),
+  requiredDate: "",
+  priority: "Medium" as SystemRequisitionPriority,
+})
+
+/* */
+
+const detailsDialog = ref(false)
+
+const selectedRequisition =
+  ref<SystemRequisition | null>(null)
+
+/* */
+
+const approvalDialog = ref(false)
+
+const approvalAction = ref<
+  "approve" | "reject" | "complete"
+>("approve")
+
+const approvalTarget =
+  ref<SystemRequisition | null>(null)
+
+const rejectionReason = ref("")
+
+/* */
+
+const pendingCount = computed(() => {
+  return systemRequisitions.value.filter(
+    item => item.status === "Pending Approval",
+  ).length
+})
+
+const approvedCount = computed(() => {
+  return systemRequisitions.value.filter(
+    item => item.status === "Approved",
+  ).length
+})
+
+const rejectedCount = computed(() => {
+  return systemRequisitions.value.filter(
+    item => item.status === "Rejected",
+  ).length
+})
+
+const completedCount = computed(() => {
+  return systemRequisitions.value.filter(
+    item => item.status === "Completed",
+  ).length
+})
+
+/* */
+
+function formatDate(value?: string) {
+  if (!value) return "-"
+
+  const date = new Date(value)
+
+  if (Number.isNaN(date.getTime())) {
+    return value
+  }
+
+  return new Intl.DateTimeFormat("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  }).format(date)
+}
+
+function getStatusColor(
+  status: SystemRequisitionStatus,
+) {
+  switch (status) {
+    case "Draft":
+      return "grey"
+
+    case "Pending Approval":
+      return "warning"
+
+    case "Approved":
+      return "info"
+
+    case "Rejected":
+      return "error"
+
+    case "Completed":
+      return "success"
+
+    default:
+      return "grey"
+  }
+}
+
+function getPriorityColor(
+  priority: SystemRequisitionPriority,
+) {
+  switch (priority) {
+    case "Urgent":
+      return "error"
+
+    case "High":
+      return "orange"
+
+    case "Medium":
+      return "warning"
+
+    case "Low":
+      return "success"
+
+    default:
+      return "grey"
+  }
+}
+
+/* */
+
+const filteredRequisitions = computed(() => {
+  const keyword = search.value
+    .trim()
+    .toLowerCase()
+
+  return systemRequisitions.value.filter(item => {
+    const matchesSearch =
+      !keyword ||
+      item.requestNo
+        .toLowerCase()
+        .includes(keyword) ||
+      item.requester
+        .toLowerCase()
+        .includes(keyword) ||
+      item.title
+        .toLowerCase()
+        .includes(keyword) ||
+      item.system
+        .toLowerCase()
+        .includes(keyword) ||
+      item.module
+        .toLowerCase()
+        .includes(keyword)
+
+    const matchesDepartment =
+      !filterDepartment.value ||
+      item.department === filterDepartment.value
+
+    const matchesSystem =
+      !filterSystem.value ||
+      item.system === filterSystem.value
+
+    const matchesModule =
+      !filterModule.value ||
+      item.module === filterModule.value
+
+    const matchesStatus =
+      !filterStatus.value ||
+      item.status === filterStatus.value
+
+    const matchesPriority =
+      !filterPriority.value ||
+      item.priority === filterPriority.value
+
+    return (
+      matchesSearch &&
+      matchesDepartment &&
+      matchesSystem &&
+      matchesModule &&
+      matchesStatus &&
+      matchesPriority
+    )
+  })
+})
+
+const paginatedRequisitions = computed(() => {
+  const start =
+    (page.value - 1) * itemsPerPage.value
+
+  const end = start + itemsPerPage.value
+
+  return filteredRequisitions.value.slice(
+    start,
+    end,
+  )
+})
+
+/* */
+
+const approvalRequisitions = computed(() => {
+  const keyword = search.value
+    .trim()
+    .toLowerCase()
+
+  return systemRequisitions.value
+    .filter(
+      item =>
+        item.status === "Pending Approval" ||
+        item.status === "Approved",
+    )
+    .filter(item => {
+      const matchesSearch =
+        !keyword ||
+        item.requestNo
+          .toLowerCase()
+          .includes(keyword) ||
+        item.requester
+          .toLowerCase()
+          .includes(keyword) ||
+        item.title
+          .toLowerCase()
+          .includes(keyword) ||
+        item.system
+          .toLowerCase()
+          .includes(keyword) ||
+        item.module
+          .toLowerCase()
+          .includes(keyword)
+
+      const matchesDepartment =
+        !filterDepartment.value ||
+        item.department === filterDepartment.value
+
+      const matchesSystem =
+        !filterSystem.value ||
+        item.system === filterSystem.value
+
+      const matchesModule =
+        !filterModule.value ||
+        item.module === filterModule.value
+
+      const matchesPriority =
+        !filterPriority.value ||
+        item.priority === filterPriority.value
+
+      return (
+        matchesSearch &&
+        matchesDepartment &&
+        matchesSystem &&
+        matchesModule &&
+        matchesPriority
+      )
+    })
+})
+
+/* */
+
+const rejectedRequisitions = computed(() => {
+  const keyword = search.value
+    .trim()
+    .toLowerCase()
+
+  return systemRequisitions.value
+    .filter(item => item.status === "Rejected")
+    .filter(item => {
+      const matchesSearch =
+        !keyword ||
+        item.requestNo
+          .toLowerCase()
+          .includes(keyword) ||
+        item.requester
+          .toLowerCase()
+          .includes(keyword) ||
+        item.title
+          .toLowerCase()
+          .includes(keyword) ||
+        item.system
+          .toLowerCase()
+          .includes(keyword)
+
+      const matchesDepartment =
+        !filterDepartment.value ||
+        item.department === filterDepartment.value
+
+      const matchesSystem =
+        !filterSystem.value ||
+        item.system === filterSystem.value
+
+      return (
+        matchesSearch &&
+        matchesDepartment &&
+        matchesSystem
+      )
+    })
+})
+
+/* */
+
+const completedRequisitions = computed(() => {
+  const keyword = search.value
+    .trim()
+    .toLowerCase()
+
+  return systemRequisitions.value
+    .filter(item => item.status === "Completed")
+    .filter(item => {
+      const matchesSearch =
+        !keyword ||
+        item.requestNo
+          .toLowerCase()
+          .includes(keyword) ||
+        item.requester
+          .toLowerCase()
+          .includes(keyword) ||
+        item.title
+          .toLowerCase()
+          .includes(keyword) ||
+        item.system
+          .toLowerCase()
+          .includes(keyword)
+
+      const matchesDepartment =
+        !filterDepartment.value ||
+        item.department === filterDepartment.value
+
+      const matchesSystem =
+        !filterSystem.value ||
+        item.system === filterSystem.value
+
+      return (
+        matchesSearch &&
+        matchesDepartment &&
+        matchesSystem
+      )
+    })
+})
+
+/* */
+
+function clearFilters() {
+  search.value = ""
+  filterDepartment.value = ""
+  filterSystem.value = ""
+  filterModule.value = ""
+  filterStatus.value = ""
+  filterPriority.value = null
+
+  page.value = 1
+}
+
+/* */
+
+function viewDetails(
+  item: SystemRequisition,
+) {
+  selectedRequisition.value = item
+  detailsDialog.value = true
+}
+
+/* */
+
+function resetForm() {
+  form.value = {
+    requester: "Aiman",
+    department: "",
+    system: "",
+    module: "",
+    accessType: "New Access" as SystemAccessType,
+    environment: "Production" as SystemEnvironment,
+    title: "",
+    description: "",
+    businessJustification: "",
+    requestDate: new Date()
+      .toISOString()
+      .slice(0, 10),
+    requiredDate: "",
+    priority: "Medium",
+  }
+}
+
+function submitRequisition() {
+  if (
+    !form.value.requester ||
+    !form.value.department ||
+    !form.value.system ||
+    !form.value.module ||
+    !form.value.accessType ||
+    !form.value.environment ||
+    !form.value.title ||
+    !form.value.requiredDate ||
+    !form.value.businessJustification
+  ) {
+    return
+  }
+
+  addRequisition({
+    requester: form.value.requester,
+    department: form.value.department,
+    system: form.value.system,
+    module: form.value.module,
+    accessType: form.value.accessType as any,
+    environment: form.value.environment as any,
+    title: form.value.title,
+    description: form.value.description,
+    businessJustification:
+      form.value.businessJustification,
+    requestDate: form.value.requestDate,
+    requiredDate: form.value.requiredDate,
+    priority: form.value.priority,
+  })
+
+  resetForm()
+
+  tab.value = "approval"
+}
+
+/* */
+
+function openApprovalDialog(
+  item: SystemRequisition,
+  action: "approve" | "reject" | "complete",
+) {
+  approvalTarget.value = item
+  approvalAction.value = action
+  rejectionReason.value = ""
+  approvalDialog.value = true
+}
+
+function closeApprovalDialog() {
+  approvalDialog.value = false
+  approvalTarget.value = null
+  rejectionReason.value = ""
+}
+
+function confirmApprovalAction() {
+  if (!approvalTarget.value) return
+
+  const id = approvalTarget.value.id
+
+  if (approvalAction.value === "approve") {
+    updateRequisitionStatus(
+      id,
+      "Approved",
+    )
+  }
+
+  if (approvalAction.value === "reject") {
+    if (!rejectionReason.value.trim()) {
+      return
+    }
+
+    updateRequisitionStatus(
+      id,
+      "Rejected",
+      {
+        rejectionReason:
+          rejectionReason.value.trim(),
+      },
+    )
+  }
+
+  if (approvalAction.value === "complete") {
+    updateRequisitionStatus(
+      id,
+      "Completed",
+    )
+  }
+
+  closeApprovalDialog()
+}
+
+/* */
+
+watch(
+  [
+    search,
+    filterDepartment,
+    filterSystem,
+    filterModule,
+    filterStatus,
+    filterPriority,
+    itemsPerPage,
+  ],
+  () => {
+    page.value = 1
+  },
+)
+
+watch(tab, () => {
+  page.value = 1
+})
+</script>
+
 <template>
-
-  <v-container fluid class="pa-6">
-
-    <!-- ============================================================
+  <div class="pa-6">
+    <!-- ======================================================
          BREADCRUMB
-         ============================================================ -->
+         ====================================================== -->
 
     <div class="d-flex align-center mb-6">
-
-      <v-icon
-        size="20"
+      <VIcon
+        icon="mdi-file-document-multiple-outline"
+        size="22"
         class="mr-2"
-      >
-        mdi-clipboard-text-outline
-      </v-icon>
+      />
 
       <span class="text-body-2 text-medium-emphasis">
         Requisitions
       </span>
 
-      <v-icon
-        size="18"
-        class="mx-2"
-      >
-        mdi-chevron-right
-      </v-icon>
+      <VIcon
+        icon="mdi-chevron-right"
+        size="20"
+        class="mx-1 text-medium-emphasis"
+      />
 
       <span class="text-body-2 font-weight-medium">
         System Requisitions
       </span>
-
     </div>
 
-
-    <!-- ============================================================
-         PAGE HEADER
-         ============================================================ -->
+    <!-- ======================================================
+         HEADER
+         ====================================================== -->
 
     <div
-      class="d-flex flex-wrap align-center justify-space-between mb-6"
+      class="d-flex align-center justify-space-between mb-6"
     >
-
       <div>
-
-        <h1 class="text-h5 font-weight-bold">
-          System Requisition
+        <h1 class="text-h5 font-weight-bold mb-1">
+          System Requisitions
         </h1>
 
-        <p class="text-body-2 text-medium-emphasis mt-1">
-          Manage system access requisition requests and access records
+        <p class="text-body-2 text-medium-emphasis mb-0">
+          Manage and monitor system access and system-related requests
         </p>
-
       </div>
 
-
-      <v-btn
+      <VBtn
         color="primary"
-        prepend-icon="mdi-plus"
-        rounded="lg"
+        prepend-icon="mdi-file-plus-outline"
         @click="tab = 'new'"
       >
         New Requisition
-      </v-btn>
-
+      </VBtn>
     </div>
 
+    <!-- ======================================================
+         SUMMARY
+         ====================================================== -->
 
-    <!-- ============================================================
-         SUMMARY CARDS
-         ============================================================ -->
-
-    <v-row class="mb-6">
-
-      <v-col
+    <VRow class="mb-4">
+      <VCol
         cols="12"
         sm="6"
         md="3"
       >
-
-        <AppSummaryCard
-          title="New Requisitions"
-          :value="newRequisitionCount"
-          icon="mdi-file-plus-outline"
-        />
-
-      </v-col>
-
-
-      <v-col
-        cols="12"
-        sm="6"
-        md="3"
-      >
-
         <AppSummaryCard
           title="Pending Approval"
-          :value="approvalRequisitionCount"
-          icon="mdi-file-clock-outline"
+          :value="pendingCount"
+          icon="mdi-clock-outline"
         />
+      </VCol>
 
-      </v-col>
-
-
-      <v-col
+      <VCol
         cols="12"
         sm="6"
         md="3"
       >
+        <AppSummaryCard
+          title="Approved"
+          :value="approvedCount"
+          icon="mdi-check-decagram-outline"
+        />
+      </VCol>
 
+      <VCol
+        cols="12"
+        sm="6"
+        md="3"
+      >
         <AppSummaryCard
           title="Rejected"
-          :value="rejectedRequisitionCount"
-          icon="mdi-file-remove-outline"
+          :value="rejectedCount"
+          icon="mdi-close-circle-outline"
         />
+      </VCol>
 
-      </v-col>
-
-
-      <v-col
+      <VCol
         cols="12"
         sm="6"
         md="3"
       >
-
         <AppSummaryCard
           title="Completed"
-          :value="completedRequisitionCount"
-          icon="mdi-file-check-outline"
+          :value="completedCount"
+          icon="mdi-check-circle-outline"
         />
+      </VCol>
+    </VRow>
 
-      </v-col>
+    <!-- ======================================================
+         MAIN CARD
+         ====================================================== -->
 
-    </v-row>
+    <VCard>
+      <!-- ====================================================
+           TABS
+           ==================================================== -->
 
-
-    <!-- ============================================================
-         TABS
-         ============================================================ -->
-
-    <v-card
-      rounded="xl"
-      elevation="0"
-      border
-    >
-
-      <v-tabs
+      <VTabs
         v-model="tab"
         color="primary"
-        grow
+        class="px-4"
       >
+        <VTab
+          value="requisition"
+          prepend-icon="mdi-file-document-outline"
+        >
+          Requisition
+        </VTab>
 
-        <v-tab value="list">
+        <VTab
+          value="new"
+          prepend-icon="mdi-file-plus-outline"
+        >
+          New
+        </VTab>
 
-          <v-icon start>
-            mdi-clipboard-text-outline
-          </v-icon>
-
-          Requisitions
-
-        </v-tab>
-
-
-        <v-tab value="new">
-
-          <v-icon start>
-            mdi-file-plus-outline
-          </v-icon>
-
-          New Requisition
-
-        </v-tab>
-
-
-        <v-tab value="approval">
-
-          <v-icon start>
-            mdi-file-clock-outline
-          </v-icon>
-
+        <VTab
+          value="approval"
+          prepend-icon="mdi-check-decagram-outline"
+        >
           Approval
+        </VTab>
 
-        </v-tab>
+        <VTab
+          value="reject"
+          prepend-icon="mdi-close-circle-outline"
+        >
+          Reject
+        </VTab>
 
-
-        <v-tab value="rejected">
-
-          <v-icon start>
-            mdi-file-remove-outline
-          </v-icon>
-
-          Rejected
-
-        </v-tab>
-
-
-        <v-tab value="completed">
-
-          <v-icon start>
-            mdi-file-check-outline
-          </v-icon>
-
+        <VTab
+          value="completed"
+          prepend-icon="mdi-check-circle-outline"
+        >
           Completed
+        </VTab>
+      </VTabs>
 
-        </v-tab>
+      <VDivider />
 
+      <VWindow v-model="tab">
+        <!-- ==================================================
+             REQUISITION
+             ================================================== -->
 
-        <v-tab value="history">
-
-          <v-icon start>
-            mdi-history
-          </v-icon>
-
-          History
-
-        </v-tab>
-
-      </v-tabs>
-
-    </v-card>
-
-
-    <!-- ============================================================
-         TAB CONTENT
-         ============================================================ -->
-
-    <v-window
-      v-model="tab"
-      class="mt-6"
-    >
-
-
-      <!-- ==========================================================
-           REQUISITIONS
-           ========================================================== -->
-
-      <v-window-item value="list">
-
-        <v-card
-          rounded="xl"
-          elevation="0"
-          border
-        >
-
-          <div
-            class="d-flex flex-wrap align-center justify-space-between pa-5"
-          >
-
-            <div>
-
-              <h2 class="text-h6 font-weight-bold">
-                Requisition List
-              </h2>
-
-              <p class="text-body-2 text-medium-emphasis mt-1">
-                View and manage system access requisition requests
-              </p>
-
-            </div>
-
-
-            <!-- FILTER -->
-
-            <v-menu
-              v-model="filterMenu"
-              :close-on-content-click="false"
-              location="bottom end"
-            >
-
-              <template #activator="{ props }">
-
-                <v-btn
-                  v-bind="props"
-                  variant="outlined"
-                  rounded="lg"
-                  prepend-icon="mdi-filter-outline"
-                >
-                  Filter
-                </v-btn>
-
-              </template>
-
-
-              <v-card
-                width="340"
-                rounded="lg"
-                elevation="8"
-              >
-
-                <v-card-title
-                  class="text-subtitle-1 font-weight-bold"
-                >
-                  Filter Requisitions
-                </v-card-title>
-
-
-                <v-divider />
-
-
-                <v-card-text>
-
-                  <v-select
-                    v-model="departmentFilter"
-                    label="Department"
-                    :items="departmentOptions"
-                    variant="outlined"
-                    density="comfortable"
-                    clearable
-                    rounded="lg"
-                    prepend-inner-icon="mdi-domain"
-                    class="mb-3"
-                  />
-
-
-                  <v-select
-                    v-model="moduleFilter"
-                    label="Module"
-                    :items="moduleOptions"
-                    variant="outlined"
-                    density="comfortable"
-                    clearable
-                    rounded="lg"
-                    prepend-inner-icon="mdi-view-module-outline"
-                    class="mb-3"
-                  />
-
-
-                  <v-select
-                    v-model="accessTypeFilter"
-                    label="Access Type"
-                    :items="accessTypeOptions"
-                    variant="outlined"
-                    density="comfortable"
-                    clearable
-                    rounded="lg"
-                    prepend-inner-icon="mdi-key-outline"
-                    class="mb-3"
-                  />
-
-
-                  <v-select
-                    v-model="priorityFilter"
-                    label="Priority"
-                    :items="priorityOptions"
-                    variant="outlined"
-                    density="comfortable"
-                    clearable
-                    rounded="lg"
-                    prepend-inner-icon="mdi-flag-outline"
-                    class="mb-3"
-                  />
-
-
-                  <v-select
-                    v-model="statusFilter"
-                    label="Status"
-                    :items="statusOptions"
-                    variant="outlined"
-                    density="comfortable"
-                    clearable
-                    rounded="lg"
-                    prepend-inner-icon="mdi-list-status"
-                  />
-
-                </v-card-text>
-
-
-                <v-divider />
-
-
-                <v-card-actions class="pa-4">
-
-                  <v-btn
-                    variant="text"
-                    @click="clearFilters"
-                  >
-                    Clear
-                  </v-btn>
-
-                  <v-spacer />
-
-                  <v-btn
-                    color="primary"
-                    rounded="lg"
-                    @click="filterMenu = false"
-                  >
-                    Apply
-                  </v-btn>
-
-                </v-card-actions>
-
-              </v-card>
-
-            </v-menu>
-
-          </div>
-
-
-          <v-divider />
-
-
-          <!-- SEARCH -->
-
+        <VWindowItem value="requisition">
           <div class="pa-5">
-
-            <v-text-field
-              v-model="search"
-              label="Search Requisition"
-              placeholder="Search request no, requester, department or module"
-              variant="outlined"
-              density="comfortable"
-              clearable
-              rounded="lg"
-              prepend-inner-icon="mdi-magnify"
-              hide-details
-            />
-
-          </div>
-
-
-          <v-divider />
-
-
-          <!-- TABLE -->
-
-          <div class="table-wrapper">
-
-            <v-table>
-
-              <thead>
-
-                <tr>
-
-                  <th>Request No</th>
-
-                  <th>Requester</th>
-
-                  <th>Department</th>
-
-                  <th>Module</th>
-
-                  <th>Access Type</th>
-
-                  <th>Priority</th>
-
-                  <th>Required Date</th>
-
-                  <th>Status</th>
-
-                  <th class="text-center">
-                    Actions
-                  </th>
-
-                </tr>
-
-              </thead>
-
-
-              <tbody>
-
-                <tr
-                  v-for="requisition in paginatedRequisitions"
-                  :key="requisition.id"
-                >
-
-                  <td>
-
-                    <span class="font-weight-medium">
-                      {{ requisition.requestNo }}
-                    </span>
-
-                  </td>
-
-
-                  <td>
-                    {{ requisition.requester }}
-                  </td>
-
-
-                  <td>
-                    {{ requisition.department }}
-                  </td>
-
-
-                  <td>
-
-                    <span class="font-weight-medium">
-                      {{ requisition.module }}
-                    </span>
-
-                  </td>
-
-
-                  <td>
-
-                    <AppStatusChip
-                      :status="requisition.accessType"
-                      :color="getAccessTypeColor(requisition.accessType)"
-                    />
-
-                  </td>
-
-
-                  <td>
-
-                    <AppStatusChip
-                      :status="requisition.priority"
-                      :color="getPriorityColor(requisition.priority)"
-                    />
-
-                  </td>
-
-
-                  <td>
-                    {{ requisition.requiredDate }}
-                  </td>
-
-
-                  <td>
-
-                    <AppStatusChip
-                      :status="requisition.status"
-                      :color="getStatusColor(requisition.status)"
-                    />
-
-                  </td>
-
-
-                  <td class="text-center">
-
-                    <v-tooltip text="View">
-
-                      <template #activator="{ props }">
-
-                        <v-btn
-                          v-bind="props"
-                          icon="mdi-eye-outline"
-                          variant="text"
-                          size="small"
-                          color="primary"
-                          @click="viewRequisition(requisition)"
-                        />
-
-                      </template>
-
-                    </v-tooltip>
-
-
-                    <v-tooltip
-                      v-if="
-                        requisition.status === 'New' ||
-                        requisition.status === 'Approval'
-                      "
-                      text="Reject"
-                    >
-
-                      <template #activator="{ props }">
-
-                        <v-btn
-                          v-bind="props"
-                          icon="mdi-file-remove-outline"
-                          variant="text"
-                          size="small"
-                          color="error"
-                          @click="rejectRequisition(requisition)"
-                        />
-
-                      </template>
-
-                    </v-tooltip>
-
-                  </td>
-
-                </tr>
-
-
-                <tr
-                  v-if="paginatedRequisitions.length === 0"
-                >
-
-                  <td
-                    colspan="9"
-                    class="text-center py-10"
-                  >
-
-                    <v-icon
-                      size="48"
-                      color="grey"
-                      class="mb-3"
-                    >
-                      mdi-clipboard-text-outline
-                    </v-icon>
-
-                    <div class="text-body-1 font-weight-medium">
-                      No requisitions found
-                    </div>
-
-                    <div class="text-body-2 text-medium-emphasis mt-1">
-                      Try changing your search or filter.
-                    </div>
-
-                  </td>
-
-                </tr>
-
-              </tbody>
-
-            </v-table>
-
-          </div>
-
-
-          <v-divider />
-
-
-          <!-- PAGINATION -->
-
-          <div class="pagination-wrapper">
-
-            <div class="d-flex align-center ga-2">
-
-              <span class="text-body-2 text-medium-emphasis">
-                Rows per page
-              </span>
-
-              <v-select
-                v-model="itemsPerPage"
-                :items="itemsPerPageOptions"
-                variant="outlined"
-                density="compact"
-                hide-details
-                rounded="lg"
-                style="width: 90px"
-              />
-
-            </div>
-
-
-            <div class="text-body-2 text-medium-emphasis">
-
-              Showing
-
-              <span class="font-weight-medium">
-                {{ displayedStart }}
-              </span>
-
-              –
-
-              <span class="font-weight-medium">
-                {{ displayedEnd }}
-              </span>
-
-              of
-
-              <span class="font-weight-medium">
-                {{ filteredRequisitions.length }}
-              </span>
-
-            </div>
-
-
-            <v-pagination
-              v-model="page"
-              :length="totalPages"
-              :total-visible="5"
-              density="comfortable"
-              rounded="circle"
-            />
-
-          </div>
-
-        </v-card>
-
-      </v-window-item>
-
-
-      <!-- ==========================================================
-           NEW REQUISITION
-           ========================================================== -->
-
-      <v-window-item value="new">
-
-        <v-row>
-
-          <v-col
-            cols="12"
-            md="8"
-          >
-
-            <v-card
-              rounded="xl"
-              elevation="0"
-              border
+            <div
+              class="d-flex align-center justify-space-between flex-wrap ga-3 mb-5"
             >
+              <div>
+                <h2 class="text-h6 font-weight-semibold">
+                  Requisition
+                </h2>
 
-              <v-card-title class="pa-5">
+                <p class="text-body-2 text-medium-emphasis mb-0">
+                  View and monitor all system requisition requests
+                </p>
+              </div>
 
-                <div>
+              <div class="d-flex align-center ga-3">
+                <VTextField
+                  v-model="search"
+                  density="compact"
+                  variant="outlined"
+                  placeholder="Search requisition..."
+                  prepend-inner-icon="mdi-magnify"
+                  hide-details
+                  clearable
+                  style="min-width: 280px"
+                />
 
-                  <div class="text-h6 font-weight-bold">
-                    New System Requisition
-                  </div>
-
-                  <div class="text-body-2 text-medium-emphasis mt-1">
-                    Enter system access requisition information
-                  </div>
-
-                </div>
-
-              </v-card-title>
-
-
-              <v-divider />
-
-
-              <v-card-text class="pa-5">
-
-                <v-row>
-
-                  <v-col
-                    cols="12"
-                    md="6"
-                  >
-
-                    <v-text-field
-                      v-model="requestNoInput"
-                      label="Request No"
-                      placeholder="e.g. SR-2026-001"
+                <VMenu>
+                  <template #activator="{ props }">
+                    <VBtn
+                      v-bind="props"
                       variant="outlined"
-                      rounded="lg"
-                      prepend-inner-icon="mdi-identifier"
-                    />
-
-                  </v-col>
-
-
-                  <v-col
-                    cols="12"
-                    md="6"
-                  >
-
-                    <v-text-field
-                      v-model="requesterInput"
-                      label="Requester"
-                      placeholder="e.g. Aiman Asri"
-                      variant="outlined"
-                      rounded="lg"
-                      prepend-inner-icon="mdi-account-outline"
-                    />
-
-                  </v-col>
-
-
-                  <v-col
-                    cols="12"
-                    md="6"
-                  >
-
-                    <v-select
-                      v-model="selectedDepartment"
-                      label="Department"
-                      :items="departmentOptions"
-                      variant="outlined"
-                      rounded="lg"
-                      clearable
-                      prepend-inner-icon="mdi-domain"
-                    />
-
-                  </v-col>
-
-
-                  <v-col
-                    cols="12"
-                    md="6"
-                  >
-
-                    <v-select
-                      v-model="selectedModule"
-                      label="Module"
-                      :items="moduleOptions"
-                      variant="outlined"
-                      rounded="lg"
-                      clearable
-                      prepend-inner-icon="mdi-view-module-outline"
-                    />
-
-                  </v-col>
-
-
-                  <v-col
-                    cols="12"
-                    md="6"
-                  >
-
-                    <v-select
-                      v-model="selectedAccessType"
-                      label="Access Type"
-                      :items="accessTypeOptions"
-                      variant="outlined"
-                      rounded="lg"
-                      prepend-inner-icon="mdi-key-outline"
-                    />
-
-                  </v-col>
-
-
-                  <v-col
-                    cols="12"
-                    md="6"
-                  >
-
-                    <v-select
-                      v-model="selectedPriority"
-                      label="Priority"
-                      :items="priorityOptions"
-                      variant="outlined"
-                      rounded="lg"
-                      prepend-inner-icon="mdi-flag-outline"
-                    />
-
-                  </v-col>
-
-
-                  <v-col
-                    cols="12"
-                    md="6"
-                  >
-
-                    <v-text-field
-                      v-model="requiredDateInput"
-                      label="Required Date"
-                      type="date"
-                      variant="outlined"
-                      rounded="lg"
-                      prepend-inner-icon="mdi-calendar-outline"
-                    />
-
-                  </v-col>
-
-
-                  <v-col
-                    cols="12"
-                  >
-
-                    <v-textarea
-                      v-model="descriptionInput"
-                      label="Description / Justification"
-                      placeholder="Enter the reason or justification for this system access"
-                      variant="outlined"
-                      rounded="lg"
-                      rows="4"
-                      prepend-inner-icon="mdi-text-box-outline"
-                    />
-
-                  </v-col>
-
-                </v-row>
-
-              </v-card-text>
-
-
-              <v-divider />
-
-
-              <v-card-actions class="pa-5">
-
-                <v-btn
-                  variant="text"
-                  @click="clearRegistrationForm"
-                >
-                  Clear
-                </v-btn>
-
-                <v-spacer />
-
-                <v-btn
-                  color="primary"
-                  rounded="lg"
-                  :disabled="!canRegisterRequisition"
-                  @click="registerRequisition"
-                >
-                  Submit Requisition
-                </v-btn>
-
-              </v-card-actions>
-
-            </v-card>
-
-          </v-col>
-
-
-          <!-- PREVIEW -->
-
-          <v-col
-            cols="12"
-            md="4"
-          >
-
-            <v-card
-              rounded="xl"
-              elevation="0"
-              border
-              height="100%"
-            >
-
-              <v-card-title class="pa-5">
-
-                <div class="text-h6 font-weight-bold">
-                  Preview
-                </div>
-
-              </v-card-title>
-
-
-              <v-divider />
-
-
-              <v-card-text class="pa-5">
-
-                <div class="d-flex flex-column ga-4">
-
-                  <div>
-
-                    <div class="text-caption text-medium-emphasis">
-                      Request No
-                    </div>
-
-                    <div class="text-body-1 font-weight-medium">
-                      {{ requestNoInput || "-" }}
-                    </div>
-
-                  </div>
-
-
-                  <div>
-
-                    <div class="text-caption text-medium-emphasis">
-                      Requester
-                    </div>
-
-                    <div class="text-body-1 font-weight-medium">
-                      {{ requesterInput || "-" }}
-                    </div>
-
-                  </div>
-
-
-                  <div>
-
-                    <div class="text-caption text-medium-emphasis">
-                      Department
-                    </div>
-
-                    <div class="text-body-1 font-weight-medium">
-                      {{ selectedDepartment || "-" }}
-                    </div>
-
-                  </div>
-
-
-                  <div>
-
-                    <div class="text-caption text-medium-emphasis">
-                      Module
-                    </div>
-
-                    <div class="text-body-1 font-weight-medium">
-                      {{ selectedModule || "-" }}
-                    </div>
-
-                  </div>
-
-
-                  <div>
-
-                    <div class="text-caption text-medium-emphasis">
-                      Access Type
-                    </div>
-
-                    <div class="mt-1">
-
-                      <AppStatusChip
-                        v-if="selectedAccessType"
-                        :status="selectedAccessType"
-                        :color="getAccessTypeColor(selectedAccessType)"
+                      prepend-icon="mdi-filter-variant"
+                    >
+                      Filter
+                    </VBtn>
+                  </template>
+
+                  <VCard width="340">
+                    <VCardTitle class="text-subtitle-1">
+                      Filter Requisitions
+                    </VCardTitle>
+
+                    <VCardText>
+                      <VSelect
+                        v-model="filterDepartment"
+                        :items="departments"
+                        label="Department"
+                        density="compact"
+                        variant="outlined"
+                        clearable
+                        class="mb-3"
                       />
 
-                      <span
-                        v-else
-                        class="text-body-1 font-weight-medium"
-                      >
-                        -
-                      </span>
-
-                    </div>
-
-                  </div>
-
-
-                  <div>
-
-                    <div class="text-caption text-medium-emphasis">
-                      Priority
-                    </div>
-
-                    <div class="mt-1">
-
-                      <AppStatusChip
-                        :status="selectedPriority"
-                        :color="getPriorityColor(selectedPriority)"
+                      <VSelect
+                        v-model="filterSystem"
+                        :items="systems"
+                        label="System"
+                        density="compact"
+                        variant="outlined"
+                        clearable
+                        class="mb-3"
                       />
 
-                    </div>
-
-                  </div>
-
-
-                  <div>
-
-                    <div class="text-caption text-medium-emphasis">
-                      Required Date
-                    </div>
-
-                    <div class="text-body-1 font-weight-medium">
-                      {{ requiredDateInput || "-" }}
-                    </div>
-
-                  </div>
-
-
-                  <div>
-
-                    <div class="text-caption text-medium-emphasis">
-                      Status
-                    </div>
-
-                    <div class="mt-1">
-
-                      <AppStatusChip
-                        status="New"
-                        color="primary"
+                      <VSelect
+                        v-model="filterModule"
+                        :items="modules"
+                        label="Module"
+                        density="compact"
+                        variant="outlined"
+                        clearable
+                        class="mb-3"
                       />
 
-                    </div>
+                      <VSelect
+                        v-model="filterStatus"
+                        :items="[
+                          'Draft',
+                          'Pending Approval',
+                          'Approved',
+                          'Rejected',
+                          'Completed',
+                        ]"
+                        label="Status"
+                        density="compact"
+                        variant="outlined"
+                        clearable
+                        class="mb-3"
+                      />
 
-                  </div>
+                      <VSelect
+                        v-model="filterPriority"
+                        :items="priorities"
+                        label="Priority"
+                        density="compact"
+                        variant="outlined"
+                        clearable
+                      />
+                    </VCardText>
 
-                </div>
+                    <VDivider />
 
-              </v-card-text>
+                    <VCardActions class="pa-3">
+                      <VSpacer />
 
-            </v-card>
-
-          </v-col>
-
-        </v-row>
-
-      </v-window-item>
-
-
-      <!-- ==========================================================
-           APPROVAL
-           ========================================================== -->
-
-      <v-window-item value="approval">
-
-        <v-card
-          rounded="xl"
-          elevation="0"
-          border
-        >
-
-          <div
-            class="d-flex flex-wrap align-center justify-space-between pa-5"
-          >
-
-            <div>
-
-              <h2 class="text-h6 font-weight-bold">
-                System Requisition Approval
-              </h2>
-
-              <p class="text-body-2 text-medium-emphasis mt-1">
-                Review and process system access requisitions awaiting approval
-              </p>
-
+                      <VBtn
+                        variant="text"
+                        @click="clearFilters"
+                      >
+                        Clear
+                      </VBtn>
+                    </VCardActions>
+                  </VCard>
+                </VMenu>
+              </div>
             </div>
 
+            <div class="table-wrapper">
+              <VTable hover>
+                <thead>
+                  <tr>
+                    <th>Request No.</th>
+                    <th>Requester</th>
+                    <th>Department</th>
+                    <th>System</th>
+                    <th>Module</th>
+                    <th>Access Type</th>
+                    <th>Environment</th>
+                    <th>Required Date</th>
+                    <th>Priority</th>
+                    <th>Status</th>
+                    <th class="text-center">
+                      Action
+                    </th>
+                  </tr>
+                </thead>
 
-            <v-menu
-              v-model="approvalFilterMenu"
-              :close-on-content-click="false"
-              location="bottom end"
-            >
-
-              <template #activator="{ props }">
-
-                <v-btn
-                  v-bind="props"
-                  variant="outlined"
-                  rounded="lg"
-                  prepend-icon="mdi-filter-outline"
-                >
-                  Filter
-                </v-btn>
-
-              </template>
-
-
-              <v-card
-                width="340"
-                rounded="lg"
-                elevation="8"
-              >
-
-                <v-card-title
-                  class="text-subtitle-1 font-weight-bold"
-                >
-                  Filter Approval
-                </v-card-title>
-
-
-                <v-divider />
-
-
-                <v-card-text>
-
-                  <v-select
-                    v-model="approvalDepartmentFilter"
-                    label="Department"
-                    :items="departmentOptions"
-                    variant="outlined"
-                    density="comfortable"
-                    clearable
-                    rounded="lg"
-                    prepend-inner-icon="mdi-domain"
-                    class="mb-3"
-                  />
-
-
-                  <v-select
-                    v-model="approvalModuleFilter"
-                    label="Module"
-                    :items="moduleOptions"
-                    variant="outlined"
-                    density="comfortable"
-                    clearable
-                    rounded="lg"
-                    prepend-inner-icon="mdi-view-module-outline"
-                    class="mb-3"
-                  />
-
-
-                  <v-select
-                    v-model="approvalAccessTypeFilter"
-                    label="Access Type"
-                    :items="accessTypeOptions"
-                    variant="outlined"
-                    density="comfortable"
-                    clearable
-                    rounded="lg"
-                    prepend-inner-icon="mdi-key-outline"
-                  />
-
-                </v-card-text>
-
-
-                <v-divider />
-
-
-                <v-card-actions class="pa-4">
-
-                  <v-btn
-                    variant="text"
-                    @click="clearApprovalFilters"
+                <tbody>
+                  <tr
+                    v-for="item in paginatedRequisitions"
+                    :key="item.id"
                   >
-                    Clear
-                  </v-btn>
-
-                  <v-spacer />
-
-                  <v-btn
-                    color="primary"
-                    rounded="lg"
-                    @click="approvalFilterMenu = false"
-                  >
-                    Apply
-                  </v-btn>
-
-                </v-card-actions>
-
-              </v-card>
-
-            </v-menu>
-
-          </div>
-
-
-          <v-divider />
-
-
-          <div class="pa-5">
-
-            <v-text-field
-              v-model="approvalSearch"
-              label="Search Approval"
-              placeholder="Search request no, requester, module or access type"
-              variant="outlined"
-              density="comfortable"
-              clearable
-              rounded="lg"
-              prepend-inner-icon="mdi-magnify"
-              hide-details
-            />
-
-          </div>
-
-
-          <v-divider />
-
-
-          <div class="table-wrapper">
-
-            <v-table>
-
-              <thead>
-
-                <tr>
-
-                  <th>Request No</th>
-
-                  <th>Requester</th>
-
-                  <th>Department</th>
-
-                  <th>Module</th>
-
-                  <th>Access Type</th>
-
-                  <th>Priority</th>
-
-                  <th>Required Date</th>
-
-                  <th>Status</th>
-
-                  <th class="text-center">
-                    Actions
-                  </th>
-
-                </tr>
-
-              </thead>
-
-
-              <tbody>
-
-                <tr
-                  v-for="requisition in paginatedApprovalRequisitions"
-                  :key="requisition.id"
-                >
-
-                  <td>
-
-                    <span class="font-weight-medium">
-                      {{ requisition.requestNo }}
-                    </span>
-
-                  </td>
-
-
-                  <td>
-                    {{ requisition.requester }}
-                  </td>
-
-
-                  <td>
-                    {{ requisition.department }}
-                  </td>
-
-
-                  <td>
-                    {{ requisition.module }}
-                  </td>
-
-
-                  <td>
-
-                    <AppStatusChip
-                      :status="requisition.accessType"
-                      :color="getAccessTypeColor(requisition.accessType)"
-                    />
-
-                  </td>
-
-
-                  <td>
-
-                    <AppStatusChip
-                      :status="requisition.priority"
-                      :color="getPriorityColor(requisition.priority)"
-                    />
-
-                  </td>
-
-
-                  <td>
-                    {{ requisition.requiredDate }}
-                  </td>
-
-
-                  <td>
-
-                    <AppStatusChip
-                      :status="requisition.status"
-                      :color="getStatusColor(requisition.status)"
-                    />
-
-                  </td>
-
-
-                  <td class="text-center">
-
-                    <v-tooltip text="View">
-
-                      <template #activator="{ props }">
-
-                        <v-btn
-                          v-bind="props"
-                          icon="mdi-eye-outline"
-                          variant="text"
-                          size="small"
-                          color="primary"
-                          @click="viewRequisition(requisition)"
-                        />
-
-                      </template>
-
-                    </v-tooltip>
-
-
-                    <v-tooltip text="Approve">
-
-                      <template #activator="{ props }">
-
-                        <v-btn
-                          v-bind="props"
-                          icon="mdi-check-circle-outline"
-                          variant="text"
-                          size="small"
-                          color="success"
-                          @click="approveRequisition(requisition)"
-                        />
-
-                      </template>
-
-                    </v-tooltip>
-
-
-                    <v-tooltip text="Reject">
-
-                      <template #activator="{ props }">
-
-                        <v-btn
-                          v-bind="props"
-                          icon="mdi-close-circle-outline"
-                          variant="text"
-                          size="small"
-                          color="error"
-                          @click="rejectRequisition(requisition)"
-                        />
-
-                      </template>
-
-                    </v-tooltip>
-
-                  </td>
-
-                </tr>
-
-
-                <tr
-                  v-if="paginatedApprovalRequisitions.length === 0"
-                >
-
-                  <td
-                    colspan="9"
-                    class="text-center py-10"
-                  >
-
-                    <v-icon
-                      size="48"
-                      color="grey"
-                      class="mb-3"
-                    >
-                      mdi-file-clock-outline
-                    </v-icon>
-
-                    <div class="text-body-1 font-weight-medium">
-                      No requisitions awaiting approval
-                    </div>
-
-                    <div class="text-body-2 text-medium-emphasis mt-1">
-                      Requisitions awaiting approval will appear here.
-                    </div>
-
-                  </td>
-
-                </tr>
-
-              </tbody>
-
-            </v-table>
-
-          </div>
-
-
-          <v-divider />
-
-
-          <div class="pagination-wrapper">
-
-            <div class="d-flex align-center ga-2">
-
-              <span class="text-body-2 text-medium-emphasis">
-                Rows per page
-              </span>
-
-              <v-select
-                v-model="approvalItemsPerPage"
-                :items="itemsPerPageOptions"
-                variant="outlined"
-                density="compact"
-                hide-details
-                rounded="lg"
-                style="width: 90px"
-              />
-
-            </div>
-
-
-            <div class="text-body-2 text-medium-emphasis">
-
-              Showing
-
-              <span class="font-weight-medium">
-                {{ approvalDisplayedStart }}
-              </span>
-
-              –
-
-              <span class="font-weight-medium">
-                {{ approvalDisplayedEnd }}
-              </span>
-
-              of
-
-              <span class="font-weight-medium">
-                {{ filteredApprovalRequisitions.length }}
-              </span>
-
-            </div>
-
-
-            <v-pagination
-              v-model="approvalPage"
-              :length="approvalTotalPages"
-              :total-visible="5"
-              density="comfortable"
-              rounded="circle"
-            />
-
-          </div>
-
-        </v-card>
-
-      </v-window-item>
-
-
-      <!-- ==========================================================
-           REJECTED
-           ========================================================== -->
-
-      <v-window-item value="rejected">
-
-        <v-card
-          rounded="xl"
-          elevation="0"
-          border
-        >
-
-          <div
-            class="d-flex flex-wrap align-center justify-space-between pa-5"
-          >
-
-            <div>
-
-              <h2 class="text-h6 font-weight-bold">
-                Rejected Requisitions
-              </h2>
-
-              <p class="text-body-2 text-medium-emphasis mt-1">
-                View system access requisitions that have been rejected
-              </p>
-
-            </div>
-
-
-            <v-menu
-              v-model="rejectedFilterMenu"
-              :close-on-content-click="false"
-              location="bottom end"
-            >
-
-              <template #activator="{ props }">
-
-                <v-btn
-                  v-bind="props"
-                  variant="outlined"
-                  rounded="lg"
-                  prepend-icon="mdi-filter-outline"
-                >
-                  Filter
-                </v-btn>
-
-              </template>
-
-
-              <v-card
-                width="340"
-                rounded="lg"
-                elevation="8"
-              >
-
-                <v-card-title
-                  class="text-subtitle-1 font-weight-bold"
-                >
-                  Filter Rejected Requisitions
-                </v-card-title>
-
-
-                <v-divider />
-
-
-                <v-card-text>
-
-                  <v-select
-                    v-model="rejectedDepartmentFilter"
-                    label="Department"
-                    :items="departmentOptions"
-                    variant="outlined"
-                    density="comfortable"
-                    clearable
-                    rounded="lg"
-                    prepend-inner-icon="mdi-domain"
-                    class="mb-3"
-                  />
-
-
-                  <v-select
-                    v-model="rejectedModuleFilter"
-                    label="Module"
-                    :items="moduleOptions"
-                    variant="outlined"
-                    density="comfortable"
-                    clearable
-                    rounded="lg"
-                    prepend-inner-icon="mdi-view-module-outline"
-                  />
-
-                </v-card-text>
-
-
-                <v-divider />
-
-
-                <v-card-actions class="pa-4">
-
-                  <v-btn
-                    variant="text"
-                    @click="clearRejectedFilters"
-                  >
-                    Clear
-                  </v-btn>
-
-                  <v-spacer />
-
-                  <v-btn
-                    color="primary"
-                    rounded="lg"
-                    @click="rejectedFilterMenu = false"
-                  >
-                    Apply
-                  </v-btn>
-
-                </v-card-actions>
-
-              </v-card>
-
-            </v-menu>
-
-          </div>
-
-
-          <v-divider />
-
-
-          <div class="pa-5">
-
-            <v-text-field
-              v-model="rejectedSearch"
-              label="Search Requisition"
-              placeholder="Search request no, requester, module or access type"
-              variant="outlined"
-              density="comfortable"
-              clearable
-              rounded="lg"
-              prepend-inner-icon="mdi-magnify"
-              hide-details
-            />
-
-          </div>
-
-
-          <v-divider />
-
-
-          <div class="pa-5">
-
-            <v-row>
-
-              <v-col
-                v-for="requisition in paginatedRejectedRequisitions"
-                :key="requisition.id"
-                cols="12"
-                sm="6"
-                lg="4"
-              >
-
-                <v-card
-                  rounded="xl"
-                  elevation="0"
-                  class="requisition-card h-100"
-                >
-
-                  <!-- CARD HEADER -->
-
-                  <div class="d-flex align-start pa-5">
-
-                    <v-avatar
-                      size="48"
-                      color="error"
-                      variant="tonal"
-                      class="mr-4"
-                    >
-
-                      <v-icon size="24">
-                        mdi-file-remove-outline
-                      </v-icon>
-
-                    </v-avatar>
-
-
-                    <div class="flex-grow-1">
-
-                      <div class="text-subtitle-1 font-weight-bold">
-                        {{ requisition.requestNo }}
-                      </div>
-
-                      <div class="text-body-2 text-medium-emphasis">
-                        {{ requisition.requester }}
-                      </div>
-
-                    </div>
-
-
-                    <AppStatusChip
-                      :status="requisition.status"
-                      :color="getStatusColor(requisition.status)"
-                    />
-
-                  </div>
-
-
-                  <v-divider />
-
-
-                  <!-- CARD CONTENT -->
-
-                  <v-card-text class="pa-5">
-
-                    <div class="d-flex align-start mb-4">
-
-                      <v-icon
-                        size="20"
-                        color="grey"
-                        class="mr-3 mt-1"
-                      >
-                        mdi-domain
-                      </v-icon>
-
-                      <div>
-
-                        <div class="text-caption text-medium-emphasis">
-                          Department
-                        </div>
-
-                        <div class="text-body-2 font-weight-medium">
-                          {{ requisition.department }}
-                        </div>
-
-                      </div>
-
-                    </div>
-
-
-                    <div class="d-flex align-start mb-4">
-
-                      <v-icon
-                        size="20"
-                        color="grey"
-                        class="mr-3 mt-1"
-                      >
-                        mdi-view-module-outline
-                      </v-icon>
-
-                      <div>
-
-                        <div class="text-caption text-medium-emphasis">
-                          Module
-                        </div>
-
-                        <div class="text-body-2 font-weight-medium">
-                          {{ requisition.module }}
-                        </div>
-
-                      </div>
-
-                    </div>
-
-
-                    <div class="d-flex align-start mb-4">
-
-                      <v-icon
-                        size="20"
-                        color="grey"
-                        class="mr-3 mt-1"
-                      >
-                        mdi-key-outline
-                      </v-icon>
-
-                      <div>
-
-                        <div class="text-caption text-medium-emphasis">
-                          Access Type
-                        </div>
-
-                        <div class="mt-1">
-
-                          <AppStatusChip
-                            :status="requisition.accessType"
-                            :color="getAccessTypeColor(requisition.accessType)"
-                          />
-
-                        </div>
-
-                      </div>
-
-                    </div>
-
-
-                    <div class="d-flex align-start mb-4">
-
-                      <v-icon
-                        size="20"
-                        color="grey"
-                        class="mr-3 mt-1"
-                      >
-                        mdi-flag-outline
-                      </v-icon>
-
-                      <div>
-
-                        <div class="text-caption text-medium-emphasis">
-                          Priority
-                        </div>
-
-                        <div class="mt-1">
-
-                          <AppStatusChip
-                            :status="requisition.priority"
-                            :color="getPriorityColor(requisition.priority)"
-                          />
-
-                        </div>
-
-                      </div>
-
-                    </div>
-
-
-                    <div class="d-flex align-start">
-
-                      <v-icon
-                        size="20"
-                        color="grey"
-                        class="mr-3 mt-1"
-                      >
-                        mdi-calendar-remove-outline
-                      </v-icon>
-
-                      <div>
-
-                        <div class="text-caption text-medium-emphasis">
-                          Rejected Date
-                        </div>
-
-                        <div class="text-body-2 font-weight-medium">
-                          {{ requisition.rejectedDate || "-" }}
-                        </div>
-
-                      </div>
-
-                    </div>
-
-                  </v-card-text>
-
-
-                  <v-divider />
-
-
-                  <!-- ACTIONS -->
-
-                  <v-card-actions class="pa-4">
-
-                    <v-btn
-                      variant="outlined"
-                      rounded="lg"
-                      prepend-icon="mdi-eye-outline"
-                      color="primary"
-                      @click="viewRequisition(requisition)"
-                    >
-                      View
-                    </v-btn>
-
-                    <v-spacer />
-
-                    <v-btn
-                      variant="outlined"
-                      rounded="lg"
-                      prepend-icon="mdi-restore"
-                      color="primary"
-                      @click="returnToApproval(requisition)"
-                    >
-                      Return
-                    </v-btn>
-
-                  </v-card-actions>
-
-                </v-card>
-
-              </v-col>
-
-
-              <v-col
-                v-if="paginatedRejectedRequisitions.length === 0"
-                cols="12"
-              >
-
-                <div class="text-center py-10">
-
-                  <v-icon
-                    size="48"
-                    color="grey"
-                    class="mb-3"
-                  >
-                    mdi-file-remove-outline
-                  </v-icon>
-
-                  <div class="text-body-1 font-weight-medium">
-                    No rejected requisitions found
-                  </div>
-
-                  <div class="text-body-2 text-medium-emphasis mt-1">
-                    Rejected requisitions will appear here.
-                  </div>
-
-                </div>
-
-              </v-col>
-
-            </v-row>
-
-          </div>
-
-
-          <v-divider />
-
-
-          <div class="pagination-wrapper">
-
-            <div class="d-flex align-center ga-2">
-
-              <span class="text-body-2 text-medium-emphasis">
-                Rows per page
-              </span>
-
-              <v-select
-                v-model="rejectedItemsPerPage"
-                :items="itemsPerPageOptions"
-                variant="outlined"
-                density="compact"
-                hide-details
-                rounded="lg"
-                style="width: 90px"
-              />
-
-            </div>
-
-
-            <div class="text-body-2 text-medium-emphasis">
-
-              Showing
-
-              <span class="font-weight-medium">
-                {{ rejectedDisplayedStart }}
-              </span>
-
-              –
-
-              <span class="font-weight-medium">
-                {{ rejectedDisplayedEnd }}
-              </span>
-
-              of
-
-              <span class="font-weight-medium">
-                {{ filteredRejectedRequisitions.length }}
-              </span>
-
-            </div>
-
-
-            <v-pagination
-              v-model="rejectedPage"
-              :length="rejectedTotalPages"
-              :total-visible="5"
-              density="comfortable"
-              rounded="circle"
-            />
-
-          </div>
-
-        </v-card>
-
-      </v-window-item>
-
-
-      <!-- ==========================================================
-           COMPLETED
-           ========================================================== -->
-
-      <v-window-item value="completed">
-
-        <v-card
-          rounded="xl"
-          elevation="0"
-          border
-        >
-
-          <div
-            class="d-flex flex-wrap align-center justify-space-between pa-5"
-          >
-
-            <div>
-
-              <h2 class="text-h6 font-weight-bold">
-                Completed Requisitions
-              </h2>
-
-              <p class="text-body-2 text-medium-emphasis mt-1">
-                View system access requisitions that have been completed
-              </p>
-
-            </div>
-
-
-            <v-menu
-              v-model="completedFilterMenu"
-              :close-on-content-click="false"
-              location="bottom end"
-            >
-
-              <template #activator="{ props }">
-
-                <v-btn
-                  v-bind="props"
-                  variant="outlined"
-                  rounded="lg"
-                  prepend-icon="mdi-filter-outline"
-                >
-                  Filter
-                </v-btn>
-
-              </template>
-
-
-              <v-card
-                width="340"
-                rounded="lg"
-                elevation="8"
-              >
-
-                <v-card-title
-                  class="text-subtitle-1 font-weight-bold"
-                >
-                  Filter Completed Requisitions
-                </v-card-title>
-
-
-                <v-divider />
-
-
-                <v-card-text>
-
-                  <v-select
-                    v-model="completedDepartmentFilter"
-                    label="Department"
-                    :items="departmentOptions"
-                    variant="outlined"
-                    density="comfortable"
-                    clearable
-                    rounded="lg"
-                    prepend-inner-icon="mdi-domain"
-                    class="mb-3"
-                  />
-
-
-                  <v-select
-                    v-model="completedModuleFilter"
-                    label="Module"
-                    :items="moduleOptions"
-                    variant="outlined"
-                    density="comfortable"
-                    clearable
-                    rounded="lg"
-                    prepend-inner-icon="mdi-view-module-outline"
-                  />
-
-                </v-card-text>
-
-
-                <v-divider />
-
-
-                <v-card-actions class="pa-4">
-
-                  <v-btn
-                    variant="text"
-                    @click="clearCompletedFilters"
-                  >
-                    Clear
-                  </v-btn>
-
-                  <v-spacer />
-
-                  <v-btn
-                    color="primary"
-                    rounded="lg"
-                    @click="completedFilterMenu = false"
-                  >
-                    Apply
-                  </v-btn>
-
-                </v-card-actions>
-
-              </v-card>
-
-            </v-menu>
-
-          </div>
-
-
-          <v-divider />
-
-
-          <div class="pa-5">
-
-            <v-text-field
-              v-model="completedSearch"
-              label="Search Requisition"
-              placeholder="Search request no, requester, module or access type"
-              variant="outlined"
-              density="comfortable"
-              clearable
-              rounded="lg"
-              prepend-inner-icon="mdi-magnify"
-              hide-details
-            />
-
-          </div>
-
-
-          <v-divider />
-
-
-          <div class="pa-5">
-
-            <v-row>
-
-              <v-col
-                v-for="requisition in paginatedCompletedRequisitions"
-                :key="requisition.id"
-                cols="12"
-                sm="6"
-                lg="4"
-              >
-
-                <v-card
-                  rounded="xl"
-                  elevation="0"
-                  class="requisition-card h-100"
-                >
-
-                  <div class="d-flex align-start pa-5">
-
-                    <v-avatar
-                      size="48"
-                      color="success"
-                      variant="tonal"
-                      class="mr-4"
-                    >
-
-                      <v-icon size="24">
-                        mdi-file-check-outline
-                      </v-icon>
-
-                    </v-avatar>
-
-
-                    <div class="flex-grow-1">
-
-                      <div class="text-subtitle-1 font-weight-bold">
-                        {{ requisition.requestNo }}
-                      </div>
-
-                      <div class="text-body-2 text-medium-emphasis">
-                        {{ requisition.requester }}
-                      </div>
-
-                    </div>
-
-
-                    <AppStatusChip
-                      :status="requisition.status"
-                      :color="getStatusColor(requisition.status)"
-                    />
-
-                  </div>
-
-
-                  <v-divider />
-
-
-                  <v-card-text class="pa-5">
-
-                    <div class="d-flex align-start mb-4">
-
-                      <v-icon
-                        size="20"
-                        color="grey"
-                        class="mr-3 mt-1"
-                      >
-                        mdi-domain
-                      </v-icon>
-
-                      <div>
-
-                        <div class="text-caption text-medium-emphasis">
-                          Department
-                        </div>
-
-                        <div class="text-body-2 font-weight-medium">
-                          {{ requisition.department }}
-                        </div>
-
-                      </div>
-
-                    </div>
-
-
-                    <div class="d-flex align-start mb-4">
-
-                      <v-icon
-                        size="20"
-                        color="grey"
-                        class="mr-3 mt-1"
-                      >
-                        mdi-view-module-outline
-                      </v-icon>
-
-                      <div>
-
-                        <div class="text-caption text-medium-emphasis">
-                          Module
-                        </div>
-
-                        <div class="text-body-2 font-weight-medium">
-                          {{ requisition.module }}
-                        </div>
-
-                      </div>
-
-                    </div>
-
-
-                    <div class="d-flex align-start mb-4">
-
-                      <v-icon
-                        size="20"
-                        color="grey"
-                        class="mr-3 mt-1"
-                      >
-                        mdi-key-outline
-                      </v-icon>
-
-                      <div>
-
-                        <div class="text-caption text-medium-emphasis">
-                          Access Type
-                        </div>
-
-                        <div class="mt-1">
-
-                          <AppStatusChip
-                            :status="requisition.accessType"
-                            :color="getAccessTypeColor(requisition.accessType)"
-                          />
-
-                        </div>
-
-                      </div>
-
-                    </div>
-
-
-                    <div class="d-flex align-start mb-4">
-
-                      <v-icon
-                        size="20"
-                        color="grey"
-                        class="mr-3 mt-1"
-                      >
-                        mdi-flag-outline
-                      </v-icon>
-
-                      <div>
-
-                        <div class="text-caption text-medium-emphasis">
-                          Priority
-                        </div>
-
-                        <div class="mt-1">
-
-                          <AppStatusChip
-                            :status="requisition.priority"
-                            :color="getPriorityColor(requisition.priority)"
-                          />
-
-                        </div>
-
-                      </div>
-
-                    </div>
-
-
-                    <div class="d-flex align-start">
-
-                      <v-icon
-                        size="20"
-                        color="grey"
-                        class="mr-3 mt-1"
-                      >
-                        mdi-calendar-check-outline
-                      </v-icon>
-
-                      <div>
-
-                        <div class="text-caption text-medium-emphasis">
-                          Completed Date
-                        </div>
-
-                        <div class="text-body-2 font-weight-medium">
-                          {{ requisition.completedDate || "-" }}
-                        </div>
-
-                      </div>
-
-                    </div>
-
-                  </v-card-text>
-
-
-                  <v-divider />
-
-
-                  <v-card-actions class="pa-4">
-
-                    <v-btn
-                      variant="outlined"
-                      rounded="lg"
-                      prepend-icon="mdi-eye-outline"
-                      color="primary"
-                      @click="viewRequisition(requisition)"
-                    >
-                      View
-                    </v-btn>
-
-                    <v-spacer />
-
-                    <AppStatusChip
-                      status="Completed"
-                      color="success"
-                    />
-
-                  </v-card-actions>
-
-                </v-card>
-
-              </v-col>
-
-
-              <v-col
-                v-if="paginatedCompletedRequisitions.length === 0"
-                cols="12"
-              >
-
-                <div class="text-center py-10">
-
-                  <v-icon
-                    size="48"
-                    color="grey"
-                    class="mb-3"
-                  >
-                    mdi-file-check-outline
-                  </v-icon>
-
-                  <div class="text-body-1 font-weight-medium">
-                    No completed requisitions found
-                  </div>
-
-                  <div class="text-body-2 text-medium-emphasis mt-1">
-                    Completed requisitions will appear here.
-                  </div>
-
-                </div>
-
-              </v-col>
-
-            </v-row>
-
-          </div>
-
-
-          <v-divider />
-
-
-          <div class="pagination-wrapper">
-
-            <div class="d-flex align-center ga-2">
-
-              <span class="text-body-2 text-medium-emphasis">
-                Rows per page
-              </span>
-
-              <v-select
-                v-model="completedItemsPerPage"
-                :items="itemsPerPageOptions"
-                variant="outlined"
-                density="compact"
-                hide-details
-                rounded="lg"
-                style="width: 90px"
-              />
-
-            </div>
-
-
-            <div class="text-body-2 text-medium-emphasis">
-
-              Showing
-
-              <span class="font-weight-medium">
-                {{ completedDisplayedStart }}
-              </span>
-
-              –
-
-              <span class="font-weight-medium">
-                {{ completedDisplayedEnd }}
-              </span>
-
-              of
-
-              <span class="font-weight-medium">
-                {{ filteredCompletedRequisitions.length }}
-              </span>
-
-            </div>
-
-
-            <v-pagination
-              v-model="completedPage"
-              :length="completedTotalPages"
-              :total-visible="5"
-              density="comfortable"
-              rounded="circle"
-            />
-
-          </div>
-
-        </v-card>
-
-      </v-window-item>
-
-
-      <!-- ==========================================================
-           HISTORY
-           ========================================================== -->
-
-      <v-window-item value="history">
-
-        <v-card
-          rounded="xl"
-          elevation="0"
-          border
-        >
-
-          <div
-            class="d-flex flex-wrap align-center justify-space-between pa-5"
-          >
-
-            <div>
-
-              <h2 class="text-h6 font-weight-bold">
-                Requisition History
-              </h2>
-
-              <p class="text-body-2 text-medium-emphasis mt-1">
-                Track changes and activities for system requisitions
-              </p>
-
-            </div>
-
-
-            <v-menu
-              v-model="historyFilterMenu"
-              :close-on-content-click="false"
-              location="bottom end"
-            >
-
-              <template #activator="{ props }">
-
-                <v-btn
-                  v-bind="props"
-                  variant="outlined"
-                  rounded="lg"
-                  prepend-icon="mdi-filter-outline"
-                >
-                  Filter
-                </v-btn>
-
-              </template>
-
-
-              <v-card
-                width="320"
-                rounded="lg"
-                elevation="8"
-              >
-
-                <v-card-title
-                  class="text-subtitle-1 font-weight-bold"
-                >
-                  Filter History
-                </v-card-title>
-
-
-                <v-divider />
-
-
-                <v-card-text>
-
-                  <v-select
-                    v-model="historyActionFilter"
-                    label="Action"
-                    :items="historyActionOptions"
-                    variant="outlined"
-                    density="comfortable"
-                    clearable
-                    rounded="lg"
-                    prepend-inner-icon="mdi-history"
-                  />
-
-                </v-card-text>
-
-
-                <v-divider />
-
-
-                <v-card-actions class="pa-4">
-
-                  <v-btn
-                    variant="text"
-                    @click="clearHistoryFilters"
-                  >
-                    Clear
-                  </v-btn>
-
-                  <v-spacer />
-
-                  <v-btn
-                    color="primary"
-                    rounded="lg"
-                    @click="historyFilterMenu = false"
-                  >
-                    Apply
-                  </v-btn>
-
-                </v-card-actions>
-
-              </v-card>
-
-            </v-menu>
-
-          </div>
-
-
-          <v-divider />
-
-
-          <div class="pa-5">
-
-            <v-text-field
-              v-model="historySearch"
-              label="Search Requisition History"
-              placeholder="Search request no, requester, module or action"
-              variant="outlined"
-              density="comfortable"
-              clearable
-              rounded="lg"
-              prepend-inner-icon="mdi-magnify"
-              hide-details
-            />
-
-          </div>
-
-
-          <v-divider />
-
-
-          <div class="pa-5">
-
-            <v-timeline
-              side="end"
-              align="start"
-              density="comfortable"
-            >
-
-              <v-timeline-item
-                v-for="history in paginatedHistory"
-                :key="history.id"
-                :dot-color="getHistoryColor(history.action)"
-                size="small"
-              >
-
-                <template #icon>
-
-                  <v-icon
-                    size="16"
-                    color="white"
-                  >
-                    {{ getHistoryIcon(history.action) }}
-                  </v-icon>
-
-                </template>
-
-
-                <v-card
-                  rounded="xl"
-                  elevation="0"
-                  class="history-card"
-                >
-
-                  <div class="pa-5">
-
-                    <div
-                      class="d-flex flex-wrap align-start justify-space-between"
-                    >
-
-                      <div>
-
-                        <div class="d-flex align-center ga-2">
-
-                          <span class="text-subtitle-1 font-weight-bold">
-                            {{ history.requestNo }}
-                          </span>
-
-                          <AppStatusChip
-                            :status="history.status"
-                            :color="getStatusColor(history.status)"
-                          />
-
-                        </div>
-
-
-                        <div
-                          class="text-body-2 text-medium-emphasis mt-1"
-                        >
-                          {{ history.requester }}
-                        </div>
-
-                      </div>
-
-
-                      <div class="text-right">
-
-                        <div class="text-body-2 font-weight-medium">
-                          {{ history.effectiveDate }}
-                        </div>
-
-                        <div class="text-caption text-medium-emphasis">
-                          {{ history.id }}
-                        </div>
-
-                      </div>
-
-                    </div>
-
-
-                    <v-divider class="my-4" />
-
-
-                    <div class="d-flex align-start">
-
-                      <v-avatar
-                        size="40"
-                        :color="getHistoryColor(history.action)"
+                    <td class="font-weight-medium">
+                      {{ item.requestNo }}
+                    </td>
+
+                    <td>
+                      {{ item.requester }}
+                    </td>
+
+                    <td>
+                      {{ item.department }}
+                    </td>
+
+                    <td>
+                      {{ item.system }}
+                    </td>
+
+                    <td>
+                      {{ item.module }}
+                    </td>
+
+                    <td>
+                      {{ item.accessType }}
+                    </td>
+
+                    <td>
+                      <VChip
+                        size="small"
                         variant="tonal"
-                        class="mr-3"
                       >
+                        {{ item.environment }}
+                      </VChip>
+                    </td>
 
-                        <v-icon>
-                          {{ getHistoryIcon(history.action) }}
-                        </v-icon>
+                    <td>
+                      {{ formatDate(item.requiredDate) }}
+                    </td>
 
-                      </v-avatar>
+                    <td>
+                      <VChip
+                        size="small"
+                        variant="tonal"
+                        :color="
+                          getPriorityColor(
+                            item.priority,
+                          )
+                        "
+                      >
+                        {{ item.priority }}
+                      </VChip>
+                    </td>
 
+                    <td>
+                      <AppStatusChip
+                        :status="item.status as any"
+                        :color="
+                          getStatusColor(
+                            item.status,
+                          )
+                        "
+                      />
+                    </td>
 
-                      <div>
+                    <td class="text-center">
+                      <VBtn
+                        icon="mdi-eye-outline"
+                        size="small"
+                        variant="text"
+                        @click="viewDetails(item)"
+                      />
+                    </td>
+                  </tr>
 
-                        <div class="text-body-1 font-weight-bold">
-                          {{ history.action }}
-                        </div>
+                  <tr
+                    v-if="
+                      paginatedRequisitions.length === 0
+                    "
+                  >
+                    <td
+                      colspan="11"
+                      class="text-center py-8 text-medium-emphasis"
+                    >
+                      No system requisitions found.
+                    </td>
+                  </tr>
+                </tbody>
+              </VTable>
+            </div>
 
-                        <div
-                          class="text-body-2 text-medium-emphasis mt-1"
-                        >
-                          {{ getHistoryDescription(history.action) }}
-                        </div>
+            <div class="pagination-wrapper">
+              <div class="text-body-2 text-medium-emphasis">
+                Showing
+                {{
+                  filteredRequisitions.length === 0
+                    ? 0
+                    : (page - 1) *
+                        itemsPerPage +
+                      1
+                }}
+                -
+                {{
+                  Math.min(
+                    page * itemsPerPage,
+                    filteredRequisitions.length,
+                  )
+                }}
+                of
+                {{ filteredRequisitions.length }}
+              </div>
 
+              <div class="d-flex align-center ga-4">
+                <VSelect
+                  v-model="itemsPerPage"
+                  :items="[5, 10, 20, 50]"
+                  density="compact"
+                  variant="outlined"
+                  hide-details
+                  style="width: 90px"
+                />
+
+                <VPagination
+                  v-model="page"
+                  :length="
+                    Math.max(
+                      1,
+                      Math.ceil(
+                        filteredRequisitions.length /
+                          itemsPerPage,
+                      ),
+                    )
+                  "
+                  density="comfortable"
+                  :total-visible="5"
+                />
+              </div>
+            </div>
+          </div>
+        </VWindowItem>
+
+        <!-- ==================================================
+             NEW
+             ================================================== -->
+
+        <VWindowItem value="new">
+          <div class="pa-5">
+            <div class="mb-5">
+              <h2 class="text-h6 font-weight-semibold">
+                New Requisition
+              </h2>
+
+              <p class="text-body-2 text-medium-emphasis">
+                Create a new system requisition request
+              </p>
+            </div>
+
+            <VRow>
+              <VCol
+                cols="12"
+                md="8"
+              >
+                <VCard
+                  variant="outlined"
+                  class="pa-5"
+                >
+                  <VRow>
+                    <VCol
+                      cols="12"
+                      md="6"
+                    >
+                      <VTextField
+                        v-model="form.requester"
+                        label="Requester"
+                        variant="outlined"
+                        density="comfortable"
+                        prepend-inner-icon="mdi-account-outline"
+                      />
+                    </VCol>
+
+                    <VCol
+                      cols="12"
+                      md="6"
+                    >
+                      <VSelect
+                        v-model="form.department"
+                        :items="departments"
+                        label="Department"
+                        variant="outlined"
+                        density="comfortable"
+                        prepend-inner-icon="mdi-domain"
+                      />
+                    </VCol>
+
+                    <VCol
+                      cols="12"
+                      md="6"
+                    >
+                      <VSelect
+                        v-model="form.system"
+                        :items="systems"
+                        label="System"
+                        variant="outlined"
+                        density="comfortable"
+                        prepend-inner-icon="mdi-application-outline"
+                      />
+                    </VCol>
+
+                    <VCol
+                      cols="12"
+                      md="6"
+                    >
+                      <VSelect
+                        v-model="form.module"
+                        :items="modules"
+                        label="Module"
+                        variant="outlined"
+                        density="comfortable"
+                        prepend-inner-icon="mdi-view-module-outline"
+                      />
+                    </VCol>
+
+                    <VCol
+                      cols="12"
+                      md="6"
+                    >
+                      <VSelect
+                        v-model="form.accessType"
+                        :items="accessTypes"
+                        label="Access Type"
+                        variant="outlined"
+                        density="comfortable"
+                        prepend-inner-icon="mdi-account-key-outline"
+                      />
+                    </VCol>
+
+                    <VCol
+                      cols="12"
+                      md="6"
+                    >
+                      <VSelect
+                        v-model="form.environment"
+                        :items="environments"
+                        label="Environment"
+                        variant="outlined"
+                        density="comfortable"
+                        prepend-inner-icon="mdi-server-outline"
+                      />
+                    </VCol>
+
+                    <VCol
+                      cols="12"
+                      md="6"
+                    >
+                      <VSelect
+                        v-model="form.priority"
+                        :items="priorities"
+                        label="Priority"
+                        variant="outlined"
+                        density="comfortable"
+                        prepend-inner-icon="mdi-flag-outline"
+                      />
+                    </VCol>
+
+                    <VCol
+                      cols="12"
+                      md="6"
+                    >
+                      <VTextField
+                        v-model="form.requiredDate"
+                        label="Required Date"
+                        type="date"
+                        variant="outlined"
+                        density="comfortable"
+                      />
+                    </VCol>
+
+                    <VCol cols="12">
+                      <VTextField
+                        v-model="form.title"
+                        label="Request Title"
+                        variant="outlined"
+                        density="comfortable"
+                        prepend-inner-icon="mdi-text-box-outline"
+                      />
+                    </VCol>
+
+                    <VCol cols="12">
+                      <VTextarea
+                        v-model="form.description"
+                        label="Description"
+                        variant="outlined"
+                        rows="4"
+                        auto-grow
+                      />
+                    </VCol>
+
+                    <VCol cols="12">
+                      <VTextarea
+                        v-model="
+                          form.businessJustification
+                        "
+                        label="Business Justification"
+                        placeholder="Explain why this system access or change is required..."
+                        variant="outlined"
+                        rows="4"
+                        auto-grow
+                      />
+                    </VCol>
+
+                    <VCol cols="12">
+                      <VTextField
+                        v-model="form.requestDate"
+                        label="Request Date"
+                        type="date"
+                        variant="outlined"
+                        density="comfortable"
+                      />
+                    </VCol>
+                  </VRow>
+
+                  <VDivider class="my-4" />
+
+                  <div class="d-flex justify-end ga-3">
+                    <VBtn
+                      variant="outlined"
+                      @click="resetForm"
+                    >
+                      Clear
+                    </VBtn>
+
+                    <VBtn
+                      color="primary"
+                      prepend-icon="mdi-send-outline"
+                      @click="submitRequisition"
+                    >
+                      Submit Requisition
+                    </VBtn>
+                  </div>
+                </VCard>
+              </VCol>
+
+              <VCol
+                cols="12"
+                md="4"
+              >
+                <VCard
+                  variant="tonal"
+                  color="primary"
+                  class="pa-5"
+                >
+                  <div class="d-flex align-center mb-4">
+                    <VIcon
+                      icon="mdi-information-outline"
+                      class="mr-2"
+                    />
+
+                    <span class="text-subtitle-1 font-weight-semibold">
+                      Submission Process
+                    </span>
+                  </div>
+
+                  <div class="process-item">
+                    <VAvatar
+                      size="32"
+                      color="primary"
+                    >
+                      1
+                    </VAvatar>
+
+                    <div>
+                      <div class="font-weight-medium">
+                        Submit Request
                       </div>
 
+                      <div class="text-body-2 text-medium-emphasis">
+                        System request is submitted for approval.
+                      </div>
                     </div>
+                  </div>
 
+                  <div class="process-line" />
 
-                    <v-divider class="my-4" />
-
-
-                    <div
-                      class="d-flex flex-wrap align-center justify-space-between ga-3"
+                  <div class="process-item">
+                    <VAvatar
+                      size="32"
+                      color="primary"
                     >
+                      2
+                    </VAvatar>
 
-                      <div class="d-flex align-center">
+                    <div>
+                      <div class="font-weight-medium">
+                        Approval
+                      </div>
 
-                        <v-avatar
-                          size="32"
-                          color="grey"
-                          variant="tonal"
-                          class="mr-2"
-                        >
+                      <div class="text-body-2 text-medium-emphasis">
+                        Approver reviews the system request.
+                      </div>
+                    </div>
+                  </div>
 
-                          <v-icon size="18">
-                            mdi-account-outline
-                          </v-icon>
+                  <div class="process-line" />
 
-                        </v-avatar>
+                  <div class="process-item">
+                    <VAvatar
+                      size="32"
+                      color="primary"
+                    >
+                      3
+                    </VAvatar>
 
+                    <div>
+                      <div class="font-weight-medium">
+                        Completion
+                      </div>
+
+                      <div class="text-body-2 text-medium-emphasis">
+                        Approved request is implemented and completed.
+                      </div>
+                    </div>
+                  </div>
+                </VCard>
+              </VCol>
+            </VRow>
+          </div>
+        </VWindowItem>
+
+        <!-- ==================================================
+             APPROVAL
+             ================================================== -->
+
+        <VWindowItem value="approval">
+          <div class="pa-5">
+            <div
+              class="d-flex align-center justify-space-between flex-wrap ga-3 mb-5"
+            >
+              <div>
+                <h2 class="text-h6 font-weight-semibold">
+                  Approval
+                </h2>
+
+                <p class="text-body-2 text-medium-emphasis mb-0">
+                  Review and process system requisition requests
+                </p>
+              </div>
+
+              <div class="d-flex align-center ga-3">
+                <VTextField
+                  v-model="search"
+                  density="compact"
+                  variant="outlined"
+                  placeholder="Search requisition..."
+                  prepend-inner-icon="mdi-magnify"
+                  hide-details
+                  clearable
+                  style="min-width: 280px"
+                />
+
+                <VMenu>
+                  <template #activator="{ props }">
+                    <VBtn
+                      v-bind="props"
+                      variant="outlined"
+                      prepend-icon="mdi-filter-variant"
+                    >
+                      Filter
+                    </VBtn>
+                  </template>
+
+                  <VCard width="340">
+                    <VCardTitle class="text-subtitle-1">
+                      Filter Approval
+                    </VCardTitle>
+
+                    <VCardText>
+                      <VSelect
+                        v-model="filterDepartment"
+                        :items="departments"
+                        label="Department"
+                        density="compact"
+                        variant="outlined"
+                        clearable
+                        class="mb-3"
+                      />
+
+                      <VSelect
+                        v-model="filterSystem"
+                        :items="systems"
+                        label="System"
+                        density="compact"
+                        variant="outlined"
+                        clearable
+                        class="mb-3"
+                      />
+
+                      <VSelect
+                        v-model="filterModule"
+                        :items="modules"
+                        label="Module"
+                        density="compact"
+                        variant="outlined"
+                        clearable
+                        class="mb-3"
+                      />
+
+                      <VSelect
+                        v-model="filterPriority"
+                        :items="priorities"
+                        label="Priority"
+                        density="compact"
+                        variant="outlined"
+                        clearable
+                      />
+                    </VCardText>
+
+                    <VDivider />
+
+                    <VCardActions class="pa-3">
+                      <VSpacer />
+
+                      <VBtn
+                        variant="text"
+                        @click="clearFilters"
+                      >
+                        Clear
+                      </VBtn>
+                    </VCardActions>
+                  </VCard>
+                </VMenu>
+              </div>
+            </div>
+
+            <!-- APPROVAL CARDS -->
+
+            <VRow>
+              <VCol
+                v-for="item in approvalRequisitions"
+                :key="item.id"
+                cols="12"
+                md="6"
+                lg="4"
+              >
+                <VCard
+                  variant="outlined"
+                  class="approval-card h-100"
+                >
+                  <VCardItem>
+                    <template #prepend>
+                      <VAvatar
+                        color="primary"
+                        variant="tonal"
+                        size="42"
+                      >
+                        <VIcon
+                          icon="mdi-application-cog-outline"
+                        />
+                      </VAvatar>
+                    </template>
+
+                    <VCardTitle
+                      class="text-subtitle-1 font-weight-bold"
+                    >
+                      {{ item.requestNo }}
+                    </VCardTitle>
+
+                    <VCardSubtitle>
+                      {{ item.title }}
+                    </VCardSubtitle>
+
+                    <template #append>
+                      <AppStatusChip
+                        :status="item.status as any"
+                        :color="
+                          getStatusColor(
+                            item.status,
+                          )
+                        "
+                      />
+                    </template>
+                  </VCardItem>
+
+                  <VCardText>
+                    <VDivider class="mb-4" />
+
+                    <div class="request-info">
+                      <div class="info-row">
+                        <VIcon
+                          icon="mdi-account-outline"
+                          size="18"
+                        />
 
                         <div>
-
-                          <div class="text-caption text-medium-emphasis">
-                            Changed By
+                          <div class="info-label">
+                            Requester
                           </div>
 
-                          <div class="text-body-2 font-weight-medium">
-                            {{ history.changedBy }}
+                          <div class="info-value">
+                            {{ item.requester }}
                           </div>
-
                         </div>
-
                       </div>
 
+                      <div class="info-row">
+                        <VIcon
+                          icon="mdi-domain"
+                          size="18"
+                        />
 
-                      <v-btn
-                        variant="text"
-                        color="primary"
-                        rounded="lg"
-                        prepend-icon="mdi-eye-outline"
-                        @click="viewHistory(history)"
-                      >
-                        View Details
-                      </v-btn>
+                        <div>
+                          <div class="info-label">
+                            Department
+                          </div>
 
+                          <div class="info-value">
+                            {{ item.department }}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div class="info-row">
+                        <VIcon
+                          icon="mdi-application-outline"
+                          size="18"
+                        />
+
+                        <div>
+                          <div class="info-label">
+                            System
+                          </div>
+
+                          <div class="info-value">
+                            {{ item.system }}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div class="info-row">
+                        <VIcon
+                          icon="mdi-view-module-outline"
+                          size="18"
+                        />
+
+                        <div>
+                          <div class="info-label">
+                            Module
+                          </div>
+
+                          <div class="info-value">
+                            {{ item.module }}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div class="info-row">
+                        <VIcon
+                          icon="mdi-account-key-outline"
+                          size="18"
+                        />
+
+                        <div>
+                          <div class="info-label">
+                            Access Type
+                          </div>
+
+                          <div class="info-value">
+                            {{ item.accessType }}
+                          </div>
+                        </div>
+                      </div>
                     </div>
 
-                  </div>
-
-                </v-card>
-
-              </v-timeline-item>
-
-
-              <!-- EMPTY -->
-
-              <v-timeline-item
-                v-if="paginatedHistory.length === 0"
-                dot-color="grey"
-                size="small"
-              >
-
-                <v-card
-                  rounded="xl"
-                  elevation="0"
-                  class="history-card"
-                >
-
-                  <div class="text-center py-8">
-
-                    <v-icon
-                      size="48"
-                      color="grey"
-                      class="mb-3"
+                    <VSheet
+                      rounded="lg"
+                      class="request-summary-box pa-4 mt-4"
                     >
-                      mdi-history
-                    </v-icon>
+                      <div
+                        class="d-flex align-center justify-space-between mb-3"
+                      >
+                        <div>
+                          <div class="text-caption text-medium-emphasis">
+                            Environment
+                          </div>
 
-                    <div class="text-body-1 font-weight-medium">
-                      No history found
-                    </div>
+                          <div class="font-weight-semibold">
+                            {{ item.environment }}
+                          </div>
+                        </div>
 
-                    <div class="text-body-2 text-medium-emphasis mt-1">
-                      System requisition activities will appear here.
-                    </div>
+                        <VChip
+                          size="small"
+                          variant="tonal"
+                          :color="
+                            getPriorityColor(
+                              item.priority,
+                            )
+                          "
+                        >
+                          {{ item.priority }}
+                        </VChip>
+                      </div>
 
-                  </div>
+                      <div>
+                        <div class="text-caption text-medium-emphasis">
+                          Required Date
+                        </div>
 
-                </v-card>
+                        <div class="font-weight-medium">
+                          {{ formatDate(item.requiredDate) }}
+                        </div>
+                      </div>
+                    </VSheet>
+                  </VCardText>
 
-              </v-timeline-item>
+                  <VDivider />
 
-            </v-timeline>
+                  <VCardActions class="pa-4">
+                    <VBtn
+                      variant="text"
+                      prepend-icon="mdi-eye-outline"
+                      @click="viewDetails(item)"
+                    >
+                      View
+                    </VBtn>
 
-          </div>
+                    <VSpacer />
 
+                    <template
+                      v-if="
+                        item.status ===
+                        'Pending Approval'
+                      "
+                    >
+                      <VBtn
+                        color="error"
+                        variant="tonal"
+                        prepend-icon="mdi-close"
+                        @click="
+                          openApprovalDialog(
+                            item,
+                            'reject',
+                          )
+                        "
+                      >
+                        Reject
+                      </VBtn>
 
-          <v-divider />
+                      <VBtn
+                        color="primary"
+                        prepend-icon="mdi-check"
+                        @click="
+                          openApprovalDialog(
+                            item,
+                            'approve',
+                          )
+                        "
+                      >
+                        Approve
+                      </VBtn>
+                    </template>
 
+                    <template v-else>
+                      <VBtn
+                        color="success"
+                        prepend-icon="mdi-check-circle-outline"
+                        @click="
+                          openApprovalDialog(
+                            item,
+                            'complete',
+                          )
+                        "
+                      >
+                        Mark Completed
+                      </VBtn>
+                    </template>
+                  </VCardActions>
+                </VCard>
+              </VCol>
+            </VRow>
 
-          <div class="pagination-wrapper">
-
-            <div class="d-flex align-center ga-2">
-
-              <span class="text-body-2 text-medium-emphasis">
-                Rows per page
-              </span>
-
-              <v-select
-                v-model="historyItemsPerPage"
-                :items="itemsPerPageOptions"
-                variant="outlined"
-                density="compact"
-                hide-details
-                rounded="lg"
-                style="width: 90px"
+            <VCard
+              v-if="
+                approvalRequisitions.length === 0
+              "
+              variant="outlined"
+              class="pa-10 text-center"
+            >
+              <VIcon
+                icon="mdi-check-all"
+                size="52"
+                class="mb-3 text-medium-emphasis"
               />
 
-            </div>
-
-
-            <div class="text-body-2 text-medium-emphasis">
-
-              Showing
-
-              <span class="font-weight-medium">
-                {{ historyDisplayedStart }}
-              </span>
-
-              –
-
-              <span class="font-weight-medium">
-                {{ historyDisplayedEnd }}
-              </span>
-
-              of
-
-              <span class="font-weight-medium">
-                {{ filteredHistory.length }}
-              </span>
-
-            </div>
-
-
-            <v-pagination
-              v-model="historyPage"
-              :length="historyTotalPages"
-              :total-visible="5"
-              density="comfortable"
-              rounded="circle"
-            />
-
-          </div>
-
-        </v-card>
-
-      </v-window-item>
-
-    </v-window>
-
-
-    <!-- ============================================================
-         REQUISITION DETAILS
-         ============================================================ -->
-
-    <v-dialog
-      v-model="requisitionDetailsDialog"
-      max-width="700"
-    >
-
-      <v-card
-        v-if="selectedRequisition"
-        rounded="xl"
-      >
-
-        <v-card-title class="d-flex align-center pa-5">
-
-          <div>
-
-            <div class="text-h6 font-weight-bold">
-              Requisition Details
-            </div>
-
-            <div class="text-body-2 text-medium-emphasis mt-1">
-              System access requisition information
-            </div>
-
-          </div>
-
-          <v-spacer />
-
-          <v-btn
-            icon="mdi-close"
-            variant="text"
-            @click="closeRequisitionDetails"
-          />
-
-        </v-card-title>
-
-
-        <v-divider />
-
-
-        <v-card-text class="pa-5">
-
-          <div class="d-flex align-center mb-5">
-
-            <v-avatar
-              size="56"
-              color="primary"
-              variant="tonal"
-              class="mr-4"
-            >
-
-              <v-icon size="28">
-                mdi-clipboard-text-outline
-              </v-icon>
-
-            </v-avatar>
-
-
-            <div>
-
-              <div class="text-h6 font-weight-bold">
-                {{ selectedRequisition.requestNo }}
+              <div class="text-h6 font-weight-medium mb-1">
+                No Approval Requests
               </div>
 
               <div class="text-body-2 text-medium-emphasis">
-                {{ selectedRequisition.requester }}
+                There are no system requisitions waiting for approval.
+              </div>
+            </VCard>
+          </div>
+        </VWindowItem>
+
+        <!-- ==================================================
+             REJECT
+             ================================================== -->
+
+        <VWindowItem value="reject">
+          <div class="pa-5">
+            <div
+              class="d-flex align-center justify-space-between flex-wrap ga-3 mb-5"
+            >
+              <div>
+                <h2 class="text-h6 font-weight-semibold">
+                  Reject
+                </h2>
+
+                <p class="text-body-2 text-medium-emphasis mb-0">
+                  View rejected system requisitions and reasons
+                </p>
               </div>
 
+              <VTextField
+                v-model="search"
+                density="compact"
+                variant="outlined"
+                placeholder="Search requisition..."
+                prepend-inner-icon="mdi-magnify"
+                hide-details
+                clearable
+                style="max-width: 280px"
+              />
             </div>
 
+            <div class="table-wrapper">
+              <VTable hover>
+                <thead>
+                  <tr>
+                    <th>Request No.</th>
+                    <th>Requester</th>
+                    <th>Department</th>
+                    <th>System</th>
+                    <th>Module</th>
+                    <th>Access Type</th>
+                    <th>Reason</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
 
-            <v-spacer />
+                <tbody>
+                  <tr
+                    v-for="item in rejectedRequisitions"
+                    :key="item.id"
+                  >
+                    <td class="font-weight-medium">
+                      {{ item.requestNo }}
+                    </td>
 
+                    <td>
+                      {{ item.requester }}
+                    </td>
 
-            <AppStatusChip
-              :status="selectedRequisition.status"
-              :color="getStatusColor(selectedRequisition.status)"
-            />
+                    <td>
+                      {{ item.department }}
+                    </td>
 
+                    <td>
+                      {{ item.system }}
+                    </td>
+
+                    <td>
+                      {{ item.module }}
+                    </td>
+
+                    <td>
+                      {{ item.accessType }}
+                    </td>
+
+                    <td class="reason-cell">
+                      {{ item.rejectionReason || "-" }}
+                    </td>
+
+                    <td>
+                      <VBtn
+                        icon="mdi-eye-outline"
+                        size="small"
+                        variant="text"
+                        @click="viewDetails(item)"
+                      />
+                    </td>
+                  </tr>
+
+                  <tr
+                    v-if="
+                      rejectedRequisitions.length === 0
+                    "
+                  >
+                    <td
+                      colspan="8"
+                      class="text-center py-8 text-medium-emphasis"
+                    >
+                      No rejected system requisitions found.
+                    </td>
+                  </tr>
+                </tbody>
+              </VTable>
+            </div>
+          </div>
+        </VWindowItem>
+
+        <!-- ==================================================
+             COMPLETED
+             ================================================== -->
+
+        <VWindowItem value="completed">
+          <div class="pa-5">
+            <div
+              class="d-flex align-center justify-space-between flex-wrap ga-3 mb-5"
+            >
+              <div>
+                <h2 class="text-h6 font-weight-semibold">
+                  Completed
+                </h2>
+
+                <p class="text-body-2 text-medium-emphasis mb-0">
+                  View completed system requisition requests
+                </p>
+              </div>
+
+              <VTextField
+                v-model="search"
+                density="compact"
+                variant="outlined"
+                placeholder="Search requisition..."
+                prepend-inner-icon="mdi-magnify"
+                hide-details
+                clearable
+                style="max-width: 280px"
+              />
+            </div>
+
+            <VRow>
+              <VCol
+                v-for="item in completedRequisitions"
+                :key="item.id"
+                cols="12"
+                md="6"
+                lg="4"
+              >
+                <VCard
+                  variant="outlined"
+                  class="h-100"
+                >
+                  <VCardItem>
+                    <template #prepend>
+                      <VAvatar
+                        color="success"
+                        variant="tonal"
+                      >
+                        <VIcon
+                          icon="mdi-check-circle-outline"
+                        />
+                      </VAvatar>
+                    </template>
+
+                    <VCardTitle
+                      class="text-subtitle-1"
+                    >
+                      {{ item.requestNo }}
+                    </VCardTitle>
+
+                    <VCardSubtitle>
+                      {{ item.title }}
+                    </VCardSubtitle>
+
+                    <template #append>
+                      <AppStatusChip
+                        :status="item.status as any"
+                        :color="
+                          getStatusColor(
+                            item.status,
+                          )
+                        "
+                      />
+                    </template>
+                  </VCardItem>
+
+                  <VCardText>
+                    <div class="text-body-2 mb-4">
+                      {{
+                        item.description ||
+                          "No description provided."
+                      }}
+                    </div>
+
+                    <VRow dense>
+                      <VCol cols="6">
+                        <div class="text-caption text-medium-emphasis">
+                          System
+                        </div>
+
+                        <div class="text-body-2 font-weight-medium">
+                          {{ item.system }}
+                        </div>
+                      </VCol>
+
+                      <VCol cols="6">
+                        <div class="text-caption text-medium-emphasis">
+                          Module
+                        </div>
+
+                        <div class="text-body-2 font-weight-medium">
+                          {{ item.module }}
+                        </div>
+                      </VCol>
+
+                      <VCol cols="6">
+                        <div class="text-caption text-medium-emphasis">
+                          Access
+                        </div>
+
+                        <div class="text-body-2 font-weight-medium">
+                          {{ item.accessType }}
+                        </div>
+                      </VCol>
+
+                      <VCol cols="6">
+                        <div class="text-caption text-medium-emphasis">
+                          Completed
+                        </div>
+
+                        <div class="text-body-2 font-weight-medium">
+                          {{ formatDate(item.completedDate) }}
+                        </div>
+                      </VCol>
+                    </VRow>
+                  </VCardText>
+
+                  <VDivider />
+
+                  <VCardActions class="pa-3">
+                    <VBtn
+                      variant="text"
+                      prepend-icon="mdi-eye-outline"
+                      @click="viewDetails(item)"
+                    >
+                      View Details
+                    </VBtn>
+                  </VCardActions>
+                </VCard>
+              </VCol>
+            </VRow>
+
+            <VCard
+              v-if="
+                completedRequisitions.length === 0
+              "
+              variant="outlined"
+              class="pa-10 text-center"
+            >
+              <VIcon
+                icon="mdi-check-circle-outline"
+                size="52"
+                class="mb-3 text-medium-emphasis"
+              />
+
+              <div class="text-h6 font-weight-medium mb-1">
+                No Completed Requisitions
+              </div>
+
+              <div class="text-body-2 text-medium-emphasis">
+                Completed system requisitions will appear here.
+              </div>
+            </VCard>
+          </div>
+        </VWindowItem>
+      </VWindow>
+    </VCard>
+
+    <!-- ======================================================
+         DETAILS DIALOG
+         ====================================================== -->
+
+    <VDialog
+      v-model="detailsDialog"
+      max-width="780"
+    >
+      <VCard v-if="selectedRequisition">
+        <VCardTitle class="d-flex align-center">
+          <div>
+            <div class="text-h6">
+              {{ selectedRequisition.requestNo }}
+            </div>
+
+            <div class="text-body-2 text-medium-emphasis">
+              System Requisition Details
+            </div>
           </div>
 
+          <VSpacer />
 
-          <v-row>
+          <AppStatusChip
+            :status="
+              selectedRequisition.status as any
+            "
+            :color="
+              getStatusColor(
+                selectedRequisition.status,
+              )
+            "
+          />
+        </VCardTitle>
 
-            <v-col
+        <VDivider />
+
+        <VCardText class="pa-5">
+          <div class="text-subtitle-1 font-weight-semibold mb-4">
+            Request Information
+          </div>
+
+          <VRow>
+            <VCol
               cols="12"
               sm="6"
             >
-
-              <div class="text-caption text-medium-emphasis">
-                Request No
-              </div>
-
-              <div class="text-body-1 font-weight-medium mt-1">
-                {{ selectedRequisition.requestNo }}
-              </div>
-
-            </v-col>
-
-
-            <v-col
-              cols="12"
-              sm="6"
-            >
-
-              <div class="text-caption text-medium-emphasis">
+              <div class="detail-label">
                 Requester
               </div>
 
-              <div class="text-body-1 font-weight-medium mt-1">
+              <div class="detail-value">
                 {{ selectedRequisition.requester }}
               </div>
+            </VCol>
 
-            </v-col>
-
-
-            <v-col
+            <VCol
               cols="12"
               sm="6"
             >
-
-              <div class="text-caption text-medium-emphasis">
+              <div class="detail-label">
                 Department
               </div>
 
-              <div class="text-body-1 font-weight-medium mt-1">
+              <div class="detail-value">
                 {{ selectedRequisition.department }}
               </div>
+            </VCol>
 
-            </v-col>
-
-
-            <v-col
+            <VCol
               cols="12"
               sm="6"
             >
+              <div class="detail-label">
+                System
+              </div>
 
-              <div class="text-caption text-medium-emphasis">
+              <div class="detail-value">
+                {{ selectedRequisition.system }}
+              </div>
+            </VCol>
+
+            <VCol
+              cols="12"
+              sm="6"
+            >
+              <div class="detail-label">
                 Module
               </div>
 
-              <div class="text-body-1 font-weight-medium mt-1">
+              <div class="detail-value">
                 {{ selectedRequisition.module }}
               </div>
+            </VCol>
 
-            </v-col>
-
-
-            <v-col
+            <VCol
               cols="12"
               sm="6"
             >
-
-              <div class="text-caption text-medium-emphasis">
+              <div class="detail-label">
                 Access Type
               </div>
 
-              <div class="mt-1">
-
-                <AppStatusChip
-                  :status="selectedRequisition.accessType"
-                  :color="getAccessTypeColor(selectedRequisition.accessType)"
-                />
-
+              <div class="detail-value">
+                {{ selectedRequisition.accessType }}
               </div>
+            </VCol>
 
-            </v-col>
-
-
-            <v-col
+            <VCol
               cols="12"
               sm="6"
             >
+              <div class="detail-label">
+                Environment
+              </div>
 
-              <div class="text-caption text-medium-emphasis">
+              <div class="detail-value">
+                {{ selectedRequisition.environment }}
+              </div>
+            </VCol>
+
+            <VCol
+              cols="12"
+              sm="6"
+            >
+              <div class="detail-label">
                 Priority
               </div>
 
-              <div class="mt-1">
+              <VChip
+                size="small"
+                variant="tonal"
+                :color="
+                  getPriorityColor(
+                    selectedRequisition.priority,
+                  )
+                "
+              >
+                {{ selectedRequisition.priority }}
+              </VChip>
+            </VCol>
 
-                <AppStatusChip
-                  :status="selectedRequisition.priority"
-                  :color="getPriorityColor(selectedRequisition.priority)"
-                />
-
-              </div>
-
-            </v-col>
-
-
-            <v-col
+            <VCol
               cols="12"
               sm="6"
             >
-
-              <div class="text-caption text-medium-emphasis">
+              <div class="detail-label">
                 Required Date
               </div>
 
-              <div class="text-body-1 font-weight-medium mt-1">
-                {{ selectedRequisition.requiredDate }}
+              <div class="detail-value">
+                {{
+                  formatDate(
+                    selectedRequisition.requiredDate,
+                  )
+                }}
+              </div>
+            </VCol>
+
+            <VCol cols="12">
+              <div class="detail-label">
+                Request Title
               </div>
 
-            </v-col>
+              <div class="detail-value">
+                {{ selectedRequisition.title }}
+              </div>
+            </VCol>
 
+            <VCol cols="12">
+              <div class="detail-label">
+                Description
+              </div>
 
-            <v-col
+              <div class="detail-value">
+                {{
+                  selectedRequisition.description ||
+                    "No description provided."
+                }}
+              </div>
+            </VCol>
+
+            <VCol cols="12">
+              <div class="detail-label">
+                Business Justification
+              </div>
+
+              <div class="detail-value">
+                {{
+                  selectedRequisition.businessJustification ||
+                    "No business justification provided."
+                }}
+              </div>
+            </VCol>
+
+            <VCol
               cols="12"
               sm="6"
             >
-
-              <div class="text-caption text-medium-emphasis">
-                Created Date
+              <div class="detail-label">
+                Request Date
               </div>
 
-              <div class="text-body-1 font-weight-medium mt-1">
-                {{ selectedRequisition.createdDate }}
+              <div class="detail-value">
+                {{
+                  formatDate(
+                    selectedRequisition.requestDate,
+                  )
+                }}
               </div>
+            </VCol>
 
-            </v-col>
-
-
-            <v-col
-              v-if="selectedRequisition.rejectedDate"
+            <VCol
               cols="12"
               sm="6"
             >
-
-              <div class="text-caption text-medium-emphasis">
-                Rejected Date
+              <div class="detail-label">
+                Approver
               </div>
 
-              <div class="text-body-1 font-weight-medium mt-1">
-                {{ selectedRequisition.rejectedDate }}
+              <div class="detail-value">
+                {{
+                  selectedRequisition.approver ||
+                    "-"
+                }}
               </div>
+            </VCol>
 
-            </v-col>
-
-
-            <v-col
-              v-if="selectedRequisition.completedDate"
+            <VCol
+              v-if="
+                selectedRequisition.rejectionReason
+              "
               cols="12"
-              sm="6"
             >
+              <VAlert
+                type="error"
+                variant="tonal"
+                title="Rejection Reason"
+              >
+                {{
+                  selectedRequisition.rejectionReason
+                }}
+              </VAlert>
+            </VCol>
 
-              <div class="text-caption text-medium-emphasis">
-                Completed Date
-              </div>
+            <VCol
+              v-if="
+                selectedRequisition.completedDate
+              "
+              cols="12"
+            >
+              <VAlert
+                type="success"
+                variant="tonal"
+                title="Completed"
+              >
+                Completed on
+                {{
+                  formatDate(
+                    selectedRequisition.completedDate,
+                  )
+                }}
+              </VAlert>
+            </VCol>
+          </VRow>
+        </VCardText>
 
-              <div class="text-body-1 font-weight-medium mt-1">
-                {{ selectedRequisition.completedDate }}
-              </div>
+        <VDivider />
 
-            </v-col>
+        <VCardActions class="pa-4">
+          <VSpacer />
 
-
-            <v-col cols="12">
-
-              <div class="text-caption text-medium-emphasis">
-                Description / Justification
-              </div>
-
-              <div class="text-body-1 font-weight-medium mt-1">
-                {{ selectedRequisition.description || "-" }}
-              </div>
-
-            </v-col>
-
-          </v-row>
-
-        </v-card-text>
-
-
-        <v-divider />
-
-
-        <v-card-actions class="pa-4">
-
-          <v-btn
-            v-if="selectedRequisition.status === 'Approval'"
-            color="success"
+          <VBtn
             variant="outlined"
-            rounded="lg"
-            prepend-icon="mdi-check-circle-outline"
-            @click="approveRequisition(selectedRequisition)"
-          >
-            Approve
-          </v-btn>
-
-
-          <v-btn
-            v-if="
-              selectedRequisition.status === 'New' ||
-              selectedRequisition.status === 'Approval'
-            "
-            color="error"
-            variant="outlined"
-            rounded="lg"
-            prepend-icon="mdi-close-circle-outline"
-            @click="rejectRequisition(selectedRequisition)"
-          >
-            Reject
-          </v-btn>
-
-
-          <v-btn
-            v-if="selectedRequisition.status === 'Rejected'"
-            color="primary"
-            variant="outlined"
-            rounded="lg"
-            prepend-icon="mdi-restore"
-            @click="returnToApproval(selectedRequisition)"
-          >
-            Return to Approval
-          </v-btn>
-
-
-          <v-spacer />
-
-
-          <v-btn
-            variant="outlined"
-            rounded="lg"
-            @click="closeRequisitionDetails"
+            @click="detailsDialog = false"
           >
             Close
-          </v-btn>
+          </VBtn>
+        </VCardActions>
+      </VCard>
+    </VDialog>
 
-        </v-card-actions>
+    <!-- ======================================================
+         APPROVAL ACTION DIALOG
+         ====================================================== -->
 
-      </v-card>
-
-    </v-dialog>
-
-
-    <!-- ============================================================
-         HISTORY DETAILS
-         ============================================================ -->
-
-    <v-dialog
-      v-model="historyDetailsDialog"
-      max-width="550"
+    <VDialog
+      v-model="approvalDialog"
+      max-width="520"
+      persistent
     >
-
-      <v-card
-        v-if="selectedHistory"
-        rounded="xl"
-      >
-
-        <v-card-title class="d-flex align-center pa-5">
+      <VCard v-if="approvalTarget">
+        <VCardTitle class="d-flex align-center">
+          <VAvatar
+            :color="
+              approvalAction === 'reject'
+                ? 'error'
+                : approvalAction === 'complete'
+                  ? 'success'
+                  : 'primary'
+            "
+            variant="tonal"
+            class="mr-3"
+          >
+            <VIcon
+              :icon="
+                approvalAction === 'reject'
+                  ? 'mdi-close'
+                  : approvalAction === 'complete'
+                    ? 'mdi-check-circle-outline'
+                    : 'mdi-check'
+              "
+            />
+          </VAvatar>
 
           <div>
-
-            <div class="text-h6 font-weight-bold">
-              History Details
+            <div class="text-h6">
+              {{
+                approvalAction === "approve"
+                  ? "Approve Requisition"
+                  : approvalAction === "reject"
+                    ? "Reject Requisition"
+                    : "Mark as Completed"
+              }}
             </div>
 
-            <div class="text-body-2 text-medium-emphasis mt-1">
-              System requisition activity details
+            <div class="text-body-2 text-medium-emphasis">
+              {{ approvalTarget.requestNo }}
             </div>
-
           </div>
-
-          <v-spacer />
-
-          <v-btn
-            icon="mdi-close"
-            variant="text"
-            @click="closeHistoryDetails"
-          />
-
-        </v-card-title>
-
-
-        <v-divider />
-
-
-        <v-card-text class="pa-5">
-
-          <div class="d-flex align-center mb-5">
-
-            <v-avatar
-              size="52"
-              :color="getHistoryColor(selectedHistory.action)"
-              variant="tonal"
-              class="mr-4"
-            >
-
-              <v-icon size="26">
-                {{ getHistoryIcon(selectedHistory.action) }}
-              </v-icon>
-
-            </v-avatar>
-
-
-            <div>
-
-              <div class="text-h6 font-weight-bold">
-                {{ selectedHistory.action }}
-              </div>
-
-              <div class="text-body-2 text-medium-emphasis">
-                {{ selectedHistory.requestNo }}
-              </div>
-
-            </div>
-
-          </div>
-
-
-          <v-row>
-
-            <v-col
-              cols="12"
-              sm="6"
-            >
-
-              <div class="text-caption text-medium-emphasis">
-                History ID
-              </div>
-
-              <div class="text-body-1 font-weight-medium mt-1">
-                {{ selectedHistory.id }}
-              </div>
-
-            </v-col>
-
-
-            <v-col
-              cols="12"
-              sm="6"
-            >
-
-              <div class="text-caption text-medium-emphasis">
-                Request No
-              </div>
-
-              <div class="text-body-1 font-weight-medium mt-1">
-                {{ selectedHistory.requestNo }}
-              </div>
-
-            </v-col>
-
-
-            <v-col
-              cols="12"
-              sm="6"
-            >
-
-              <div class="text-caption text-medium-emphasis">
-                Requester
-              </div>
-
-              <div class="text-body-1 font-weight-medium mt-1">
-                {{ selectedHistory.requester }}
-              </div>
-
-            </v-col>
-
-
-            <v-col
-              cols="12"
-              sm="6"
-            >
-
-              <div class="text-caption text-medium-emphasis">
-                Department
-              </div>
-
-              <div class="text-body-1 font-weight-medium mt-1">
-                {{ selectedHistory.department }}
-              </div>
-
-            </v-col>
-
-
-            <v-col
-              cols="12"
-              sm="6"
-            >
-
-              <div class="text-caption text-medium-emphasis">
-                Module
-              </div>
-
-              <div class="text-body-1 font-weight-medium mt-1">
-                {{ selectedHistory.module }}
-              </div>
-
-            </v-col>
-
-
-            <v-col
-              cols="12"
-              sm="6"
-            >
-
-              <div class="text-caption text-medium-emphasis">
-                Access Type
-              </div>
-
-              <div class="mt-1">
-
-                <AppStatusChip
-                  :status="selectedHistory.accessType"
-                  :color="getAccessTypeColor(selectedHistory.accessType)"
-                />
-
-              </div>
-
-            </v-col>
-
-
-            <v-col
-              cols="12"
-              sm="6"
-            >
-
-              <div class="text-caption text-medium-emphasis">
-                Action
-              </div>
-
-              <div class="text-body-1 font-weight-medium mt-1">
-                {{ selectedHistory.action }}
-              </div>
-
-            </v-col>
-
-
-            <v-col
-              cols="12"
-              sm="6"
-            >
-
-              <div class="text-caption text-medium-emphasis">
-                Effective Date
-              </div>
-
-              <div class="text-body-1 font-weight-medium mt-1">
-                {{ selectedHistory.effectiveDate }}
-              </div>
-
-            </v-col>
-
-
-            <v-col
-              cols="12"
-              sm="6"
-            >
-
-              <div class="text-caption text-medium-emphasis">
-                Changed By
-              </div>
-
-              <div class="text-body-1 font-weight-medium mt-1">
-                {{ selectedHistory.changedBy }}
-              </div>
-
-            </v-col>
-
-
-            <v-col
-              cols="12"
-              sm="6"
-            >
-
-              <div class="text-caption text-medium-emphasis">
-                Status
-              </div>
-
-              <div class="mt-1">
-
-                <AppStatusChip
-                  :status="selectedHistory.status"
-                  :color="getStatusColor(selectedHistory.status)"
-                />
-
-              </div>
-
-            </v-col>
-
-
-            <v-col cols="12">
-
-              <div class="text-caption text-medium-emphasis">
-                Remarks
-              </div>
-
-              <div class="text-body-1 font-weight-medium mt-1">
-                {{ selectedHistory.remarks || "-" }}
-              </div>
-
-            </v-col>
-
-          </v-row>
-
-        </v-card-text>
-
-
-        <v-divider />
-
-
-        <v-card-actions class="pa-4">
-
-          <v-spacer />
-
-          <v-btn
-            variant="outlined"
-            rounded="lg"
-            @click="closeHistoryDetails"
+        </VCardTitle>
+
+        <VDivider />
+
+        <VCardText class="pa-5">
+          <VAlert
+            v-if="approvalAction === 'approve'"
+            type="info"
+            variant="tonal"
+            class="mb-4"
           >
-            Close
-          </v-btn>
+            Are you sure you want to approve this system requisition?
+          </VAlert>
 
-        </v-card-actions>
+          <VAlert
+            v-if="approvalAction === 'complete'"
+            type="success"
+            variant="tonal"
+            class="mb-4"
+          >
+            This request has been approved. Mark it as completed
+            after the system access or change has been implemented.
+          </VAlert>
 
-      </v-card>
+          <VAlert
+            v-if="approvalAction === 'reject'"
+            type="error"
+            variant="tonal"
+            class="mb-4"
+          >
+            Please provide a reason for rejecting this request.
+          </VAlert>
 
-    </v-dialog>
+          <VCard
+            variant="outlined"
+            class="pa-4 mb-4"
+          >
+            <div
+              class="d-flex justify-space-between mb-2"
+            >
+              <span class="text-medium-emphasis">
+                Request
+              </span>
 
-  </v-container>
+              <span class="font-weight-medium text-right">
+                {{ approvalTarget.title }}
+              </span>
+            </div>
 
+            <div
+              class="d-flex justify-space-between mb-2"
+            >
+              <span class="text-medium-emphasis">
+                System
+              </span>
+
+              <span>
+                {{ approvalTarget.system }}
+              </span>
+            </div>
+
+            <div
+              class="d-flex justify-space-between mb-2"
+            >
+              <span class="text-medium-emphasis">
+                Module
+              </span>
+
+              <span>
+                {{ approvalTarget.module }}
+              </span>
+            </div>
+
+            <div
+              class="d-flex justify-space-between mb-2"
+            >
+              <span class="text-medium-emphasis">
+                Access
+              </span>
+
+              <span>
+                {{ approvalTarget.accessType }}
+              </span>
+            </div>
+
+            <div
+              class="d-flex justify-space-between"
+            >
+              <span class="text-medium-emphasis">
+                Environment
+              </span>
+
+              <span class="font-weight-medium">
+                {{ approvalTarget.environment }}
+              </span>
+            </div>
+          </VCard>
+
+          <VTextarea
+            v-if="approvalAction === 'reject'"
+            v-model="rejectionReason"
+            label="Rejection Reason"
+            placeholder="Enter reason for rejection..."
+            variant="outlined"
+            rows="4"
+          />
+        </VCardText>
+
+        <VDivider />
+
+        <VCardActions class="pa-4">
+          <VSpacer />
+
+          <VBtn
+            variant="text"
+            @click="closeApprovalDialog"
+          >
+            Cancel
+          </VBtn>
+
+          <VBtn
+            v-if="approvalAction === 'approve'"
+            color="primary"
+            prepend-icon="mdi-check"
+            @click="confirmApprovalAction"
+          >
+            Approve
+          </VBtn>
+
+          <VBtn
+            v-if="approvalAction === 'reject'"
+            color="error"
+            prepend-icon="mdi-close"
+            :disabled="
+              !rejectionReason.trim()
+            "
+            @click="confirmApprovalAction"
+          >
+            Reject
+          </VBtn>
+
+          <VBtn
+            v-if="approvalAction === 'complete'"
+            color="success"
+            prepend-icon="mdi-check-circle-outline"
+            @click="confirmApprovalAction"
+          >
+            Mark Completed
+          </VBtn>
+        </VCardActions>
+      </VCard>
+    </VDialog>
+  </div>
 </template>
 
-
-<script setup lang="ts">
-
-import {
-  computed,
-  ref,
-  watch,
-} from "vue"
-
-import AppSummaryCard from "@/components/common/AppSummaryCard.vue"
-
-import AppStatusChip from "@/components/common/AppStatusChip.vue"
-
-
-/* ================================================================
-   TYPES
-   ================================================================ */
-
-type RequisitionStatus =
-  | "New"
-  | "Approval"
-  | "Rejected"
-  | "Completed"
-
-
-type RequisitionPriority =
-  | "Low"
-  | "Medium"
-  | "High"
-  | "Urgent"
-
-
-type RequisitionAccessType =
-  | "View"
-  | "Create"
-  | "Edit"
-  | "Approve"
-  | "Admin"
-
-
-type RequisitionAction =
-  | "Created"
-  | "Submitted"
-  | "Approved"
-  | "Rejected"
-  | "Completed"
-  | "Updated"
-
-
-interface SystemRequisition {
-
-  id: string
-
-  requestNo: string
-
-  requester: string
-
-  department: string
-
-  module: string
-
-  accessType: RequisitionAccessType
-
-  priority: RequisitionPriority
-
-  requiredDate: string
-
-  status: RequisitionStatus
-
-  description?: string
-
-  createdDate: string
-
-  rejectedDate?: string
-
-  completedDate?: string
-
-}
-
-
-interface RequisitionHistory {
-
-  id: string
-
-  requestNo: string
-
-  requester: string
-
-  department: string
-
-  module: string
-
-  accessType: RequisitionAccessType
-
-  action: RequisitionAction
-
-  effectiveDate: string
-
-  changedBy: string
-
-  status: RequisitionStatus
-
-  remarks?: string
-
-}
-
-
-/* ================================================================
-   TAB
-   ================================================================ */
-
-const tab =
-  ref("list")
-
-
-/* ================================================================
-   SAMPLE DATA
-   ================================================================ */
-
-const requisitions =
-  ref<SystemRequisition[]>([
-
-    {
-      id: "SR-001",
-      requestNo: "SR-2026-001",
-      requester: "Aiman Asri",
-      department: "Information Technology",
-      module: "Employee Onboarding",
-      accessType: "Admin",
-      priority: "High",
-      requiredDate: "2026-10-05",
-      status: "New",
-      createdDate: "2026-09-20",
-      description:
-        "System administration access required for employee onboarding support.",
-    },
-
-    {
-      id: "SR-002",
-      requestNo: "SR-2026-002",
-      requester: "Nur Amirah",
-      department: "Corporate Affairs",
-      module: "Announcements",
-      accessType: "Create",
-      priority: "Medium",
-      requiredDate: "2026-10-10",
-      status: "Approval",
-      createdDate: "2026-09-21",
-      description:
-        "Access required to create and manage corporate announcements.",
-    },
-
-    {
-      id: "SR-003",
-      requestNo: "SR-2026-003",
-      requester: "Vivian",
-      department: "Human Resources",
-      module: "Employee Management",
-      accessType: "Edit",
-      priority: "Medium",
-      requiredDate: "2026-10-03",
-      status: "Approval",
-      createdDate: "2026-09-22",
-      description:
-        "Edit access required for employee information management.",
-    },
-
-    {
-      id: "SR-004",
-      requestNo: "SR-2026-004",
-      requester: "Teo",
-      department: "Finance",
-      module: "Finance Reports",
-      accessType: "View",
-      priority: "Low",
-      requiredDate: "2026-09-15",
-      status: "Completed",
-      createdDate: "2026-09-10",
-      completedDate: "2026-09-15",
-      description:
-        "Read-only access for finance reporting.",
-    },
-
-    {
-      id: "SR-005",
-      requestNo: "SR-2026-005",
-      requester: "Iqbal",
-      department: "Information Technology",
-      module: "IT Service Management",
-      accessType: "Approve",
-      priority: "Urgent",
-      requiredDate: "2026-10-01",
-      status: "Approval",
-      createdDate: "2026-09-24",
-      description:
-        "Approval access required for IT service management requests.",
-    },
-
-    {
-      id: "SR-006",
-      requestNo: "SR-2026-006",
-      requester: "Nisha",
-      department: "Corporate Affairs",
-      module: "Corporate Website",
-      accessType: "Edit",
-      priority: "Low",
-      requiredDate: "2026-09-20",
-      status: "Rejected",
-      createdDate: "2026-09-12",
-      rejectedDate: "2026-09-18",
-      description:
-        "Website editing access requested for corporate content updates.",
-    },
-
-    {
-      id: "SR-007",
-      requestNo: "SR-2026-007",
-      requester: "Admin",
-      department: "Administration",
-      module: "Visitor Management",
-      accessType: "Create",
-      priority: "Medium",
-      requiredDate: "2026-09-30",
-      status: "Rejected",
-      createdDate: "2026-08-30",
-      rejectedDate: "2026-09-05",
-      description:
-        "Create access required for visitor registration.",
-    },
-
-    {
-      id: "SR-008",
-      requestNo: "SR-2026-008",
-      requester: "Farah",
-      department: "Finance",
-      module: "Expense Management",
-      accessType: "View",
-      priority: "Low",
-      requiredDate: "2026-09-12",
-      status: "Completed",
-      createdDate: "2026-09-01",
-      completedDate: "2026-09-12",
-      description:
-        "View access required for expense monitoring.",
-    },
-
-  ])
-
-
-/* ================================================================
-   HISTORY DATA
-   ================================================================ */
-
-const requisitionHistory =
-  ref<RequisitionHistory[]>([
-
-    {
-      id: "RH-001",
-      requestNo: "SR-2026-001",
-      requester: "Aiman Asri",
-      department: "Information Technology",
-      module: "Employee Onboarding",
-      accessType: "Admin",
-      action: "Created",
-      effectiveDate: "2026-09-20",
-      changedBy: "Aiman Asri",
-      status: "New",
-      remarks: "New system requisition created.",
-    },
-
-    {
-      id: "RH-002",
-      requestNo: "SR-2026-002",
-      requester: "Nur Amirah",
-      department: "Corporate Affairs",
-      module: "Announcements",
-      accessType: "Create",
-      action: "Created",
-      effectiveDate: "2026-09-21",
-      changedBy: "Nur Amirah",
-      status: "New",
-      remarks: "New system requisition created.",
-    },
-
-    {
-      id: "RH-003",
-      requestNo: "SR-2026-002",
-      requester: "Nur Amirah",
-      department: "Corporate Affairs",
-      module: "Announcements",
-      accessType: "Create",
-      action: "Submitted",
-      effectiveDate: "2026-09-21",
-      changedBy: "Nur Amirah",
-      status: "Approval",
-      remarks: "System access requisition submitted for approval.",
-    },
-
-    {
-      id: "RH-004",
-      requestNo: "SR-2026-003",
-      requester: "Vivian",
-      department: "Human Resources",
-      module: "Employee Management",
-      accessType: "Edit",
-      action: "Submitted",
-      effectiveDate: "2026-09-22",
-      changedBy: "Vivian",
-      status: "Approval",
-      remarks: "System access requisition submitted for approval.",
-    },
-
-    {
-      id: "RH-005",
-      requestNo: "SR-2026-004",
-      requester: "Teo",
-      department: "Finance",
-      module: "Finance Reports",
-      accessType: "View",
-      action: "Completed",
-      effectiveDate: "2026-09-15",
-      changedBy: "Admin",
-      status: "Completed",
-      remarks: "System access requisition completed.",
-    },
-
-    {
-      id: "RH-006",
-      requestNo: "SR-2026-005",
-      requester: "Iqbal",
-      department: "Information Technology",
-      module: "IT Service Management",
-      accessType: "Approve",
-      action: "Submitted",
-      effectiveDate: "2026-09-24",
-      changedBy: "Iqbal",
-      status: "Approval",
-      remarks: "System access requisition submitted for approval.",
-    },
-
-    {
-      id: "RH-007",
-      requestNo: "SR-2026-006",
-      requester: "Nisha",
-      department: "Corporate Affairs",
-      module: "Corporate Website",
-      accessType: "Edit",
-      action: "Rejected",
-      effectiveDate: "2026-09-18",
-      changedBy: "Admin",
-      status: "Rejected",
-      remarks: "Requested access does not meet current access requirement.",
-    },
-
-    {
-      id: "RH-008",
-      requestNo: "SR-2026-007",
-      requester: "Admin",
-      department: "Administration",
-      module: "Visitor Management",
-      accessType: "Create",
-      action: "Rejected",
-      effectiveDate: "2026-09-05",
-      changedBy: "Admin",
-      status: "Rejected",
-      remarks: "Requested access is not currently required.",
-    },
-
-  ])
-
-
-/* ================================================================
-   OPTIONS
-   ================================================================ */
-
-const departmentOptions =
-  computed(() => {
-
-    return [
-      ...new Set(
-        requisitions.value.map(
-          requisition =>
-            requisition.department
-        )
-      ),
-    ]
-
-  })
-
-
-const moduleOptions =
-  computed(() => {
-
-    return [
-      ...new Set(
-        requisitions.value.map(
-          requisition =>
-            requisition.module
-        )
-      ),
-    ]
-
-  })
-
-
-const accessTypeOptions: RequisitionAccessType[] = [
-
-  "View",
-  "Create",
-  "Edit",
-  "Approve",
-  "Admin",
-
-]
-
-
-const priorityOptions: RequisitionPriority[] = [
-
-  "Low",
-  "Medium",
-  "High",
-  "Urgent",
-
-]
-
-
-const statusOptions: RequisitionStatus[] = [
-
-  "New",
-  "Approval",
-  "Rejected",
-  "Completed",
-
-]
-
-
-/* ================================================================
-   MAIN FILTER
-   ================================================================ */
-
-const filterMenu =
-  ref(false)
-
-const search =
-  ref("")
-
-const departmentFilter =
-  ref<string | null>(null)
-
-const moduleFilter =
-  ref<string | null>(null)
-
-const accessTypeFilter =
-  ref<RequisitionAccessType | null>(null)
-
-const priorityFilter =
-  ref<RequisitionPriority | null>(null)
-
-const statusFilter =
-  ref<RequisitionStatus | null>(null)
-
-
-const filteredRequisitions =
-  computed(() => {
-
-    const keyword =
-      search.value
-        .trim()
-        .toLowerCase()
-
-
-    return requisitions.value.filter(
-      requisition => {
-
-        const searchMatch =
-          !keyword ||
-          requisition.requestNo
-            .toLowerCase()
-            .includes(keyword) ||
-          requisition.requester
-            .toLowerCase()
-            .includes(keyword) ||
-          requisition.department
-            .toLowerCase()
-            .includes(keyword) ||
-          requisition.module
-            .toLowerCase()
-            .includes(keyword) ||
-          requisition.accessType
-            .toLowerCase()
-            .includes(keyword)
-
-
-        const departmentMatch =
-          !departmentFilter.value ||
-          requisition.department ===
-            departmentFilter.value
-
-
-        const moduleMatch =
-          !moduleFilter.value ||
-          requisition.module ===
-            moduleFilter.value
-
-
-        const accessTypeMatch =
-          !accessTypeFilter.value ||
-          requisition.accessType ===
-            accessTypeFilter.value
-
-
-        const priorityMatch =
-          !priorityFilter.value ||
-          requisition.priority ===
-            priorityFilter.value
-
-
-        const statusMatch =
-          !statusFilter.value ||
-          requisition.status ===
-            statusFilter.value
-
-
-        return (
-          searchMatch &&
-          departmentMatch &&
-          moduleMatch &&
-          accessTypeMatch &&
-          priorityMatch &&
-          statusMatch
-        )
-
-      }
-    )
-
-  })
-
-
-/* ================================================================
-   MAIN PAGINATION
-   ================================================================ */
-
-const page =
-  ref(1)
-
-const itemsPerPage =
-  ref(5)
-
-const itemsPerPageOptions = [
-
-  5,
-  10,
-  20,
-  50,
-
-]
-
-
-const totalPages =
-  computed(() => {
-
-    return Math.max(
-      1,
-      Math.ceil(
-        filteredRequisitions.value.length /
-          itemsPerPage.value
-      )
-    )
-
-  })
-
-
-const paginatedRequisitions =
-  computed(() => {
-
-    const start =
-      (page.value - 1) *
-      itemsPerPage.value
-
-    const end =
-      start +
-      itemsPerPage.value
-
-    return filteredRequisitions.value.slice(
-      start,
-      end
-    )
-
-  })
-
-
-const displayedStart =
-  computed(() => {
-
-    if (
-      filteredRequisitions.value.length === 0
-    ) {
-
-      return 0
-
-    }
-
-    return (
-      (page.value - 1) *
-      itemsPerPage.value
-    ) + 1
-
-  })
-
-
-const displayedEnd =
-  computed(() => {
-
-    return Math.min(
-      page.value *
-        itemsPerPage.value,
-      filteredRequisitions.value.length
-    )
-
-  })
-
-
-watch(
-  [
-    search,
-    departmentFilter,
-    moduleFilter,
-    accessTypeFilter,
-    priorityFilter,
-    statusFilter,
-    itemsPerPage,
-  ],
-  () => {
-
-    page.value = 1
-
-  }
-)
-
-
-watch(
-  totalPages,
-  total => {
-
-    if (
-      page.value > total
-    ) {
-
-      page.value = total
-
-    }
-
-  }
-)
-
-
-function clearFilters() {
-
-  search.value = ""
-
-  departmentFilter.value = null
-
-  moduleFilter.value = null
-
-  accessTypeFilter.value = null
-
-  priorityFilter.value = null
-
-  statusFilter.value = null
-
-  page.value = 1
-
-}
-
-
-/* ================================================================
-   SUMMARY
-   ================================================================ */
-
-const newRequisitionCount =
-  computed(() => {
-
-    return requisitions.value.filter(
-      requisition =>
-        requisition.status === "New"
-    ).length
-
-  })
-
-
-const approvalRequisitionCount =
-  computed(() => {
-
-    return requisitions.value.filter(
-      requisition =>
-        requisition.status === "Approval"
-    ).length
-
-  })
-
-
-const rejectedRequisitionCount =
-  computed(() => {
-
-    return requisitions.value.filter(
-      requisition =>
-        requisition.status === "Rejected"
-    ).length
-
-  })
-
-
-const completedRequisitionCount =
-  computed(() => {
-
-    return requisitions.value.filter(
-      requisition =>
-        requisition.status === "Completed"
-    ).length
-
-  })
-
-
-/* ================================================================
-   NEW REQUISITION FORM
-   ================================================================ */
-
-const requestNoInput =
-  ref("")
-
-const requesterInput =
-  ref("")
-
-const selectedDepartment =
-  ref<string | null>(null)
-
-const selectedModule =
-  ref<string | null>(null)
-
-const selectedAccessType =
-  ref<RequisitionAccessType>("View")
-
-const selectedPriority =
-  ref<RequisitionPriority>("Medium")
-
-const requiredDateInput =
-  ref("")
-
-const descriptionInput =
-  ref("")
-
-
-const canRegisterRequisition =
-  computed(() => {
-
-    return (
-      requestNoInput.value.trim() !== "" &&
-      requesterInput.value.trim() !== "" &&
-      selectedDepartment.value !== null &&
-      selectedModule.value !== null &&
-      selectedAccessType.value !== null &&
-      selectedPriority.value !== null &&
-      requiredDateInput.value.trim() !== ""
-    )
-
-  })
-
-
-function registerRequisition() {
-
-  if (
-    !canRegisterRequisition.value
-  ) {
-
-    return
-
-  }
-
-
-  const newRequisition: SystemRequisition = {
-
-    id:
-      requestNoInput.value.trim(),
-
-    requestNo:
-      requestNoInput.value.trim(),
-
-    requester:
-      requesterInput.value.trim(),
-
-    department:
-      selectedDepartment.value as string,
-
-    module:
-      selectedModule.value as string,
-
-    accessType:
-      selectedAccessType.value,
-
-    priority:
-      selectedPriority.value,
-
-    requiredDate:
-      requiredDateInput.value,
-
-    status:
-      "New",
-
-    createdDate:
-      getToday(),
-
-    description:
-      descriptionInput.value.trim(),
-
-  }
-
-
-  requisitions.value.unshift(
-    newRequisition
-  )
-
-
-  requisitionHistory.value.unshift({
-
-    id:
-      `RH-${String(
-        requisitionHistory.value.length + 1
-      ).padStart(3, "0")}`,
-
-    requestNo:
-      newRequisition.requestNo,
-
-    requester:
-      newRequisition.requester,
-
-    department:
-      newRequisition.department,
-
-    module:
-      newRequisition.module,
-
-    accessType:
-      newRequisition.accessType,
-
-    action:
-      "Created",
-
-    effectiveDate:
-      newRequisition.createdDate,
-
-    changedBy:
-      newRequisition.requester,
-
-    status:
-      "New",
-
-    remarks:
-      "New system requisition created.",
-
-  })
-
-
-  clearRegistrationForm()
-
-  tab.value = "list"
-
-}
-
-
-function clearRegistrationForm() {
-
-  requestNoInput.value = ""
-
-  requesterInput.value = ""
-
-  selectedDepartment.value = null
-
-  selectedModule.value = null
-
-  selectedAccessType.value = "View"
-
-  selectedPriority.value = "Medium"
-
-  requiredDateInput.value = ""
-
-  descriptionInput.value = ""
-
-}
-
-
-/* ================================================================
-   REQUISITION DETAILS
-   ================================================================ */
-
-const requisitionDetailsDialog =
-  ref(false)
-
-const selectedRequisition =
-  ref<SystemRequisition | null>(null)
-
-
-function viewRequisition(
-  requisition: SystemRequisition
-) {
-
-  selectedRequisition.value =
-    requisition
-
-  requisitionDetailsDialog.value =
-    true
-
-}
-
-
-function closeRequisitionDetails() {
-
-  requisitionDetailsDialog.value =
-    false
-
-  selectedRequisition.value =
-    null
-
-}
-
-
-/* ================================================================
-   APPROVE
-   ================================================================ */
-
-function approveRequisition(
-  requisition: SystemRequisition
-) {
-
-  const today =
-    getToday()
-
-
-  requisition.status =
-    "Completed"
-
-  requisition.completedDate =
-    today
-
-
-  requisitionHistory.value.unshift({
-
-    id:
-      `RH-${String(
-        requisitionHistory.value.length + 1
-      ).padStart(3, "0")}`,
-
-    requestNo:
-      requisition.requestNo,
-
-    requester:
-      requisition.requester,
-
-    department:
-      requisition.department,
-
-    module:
-      requisition.module,
-
-    accessType:
-      requisition.accessType,
-
-    action:
-      "Approved",
-
-    effectiveDate:
-      today,
-
-    changedBy:
-      "Admin",
-
-    status:
-      "Completed",
-
-    remarks:
-      "System requisition approved.",
-
-  })
-
-
-  requisitionHistory.value.unshift({
-
-    id:
-      `RH-${String(
-        requisitionHistory.value.length + 1
-      ).padStart(3, "0")}`,
-
-    requestNo:
-      requisition.requestNo,
-
-    requester:
-      requisition.requester,
-
-    department:
-      requisition.department,
-
-    module:
-      requisition.module,
-
-    accessType:
-      requisition.accessType,
-
-    action:
-      "Completed",
-
-    effectiveDate:
-      today,
-
-    changedBy:
-      "Admin",
-
-    status:
-      "Completed",
-
-    remarks:
-      "System access requisition completed.",
-
-  })
-
-
-  closeRequisitionDetails()
-
-}
-
-
-/* ================================================================
-   REJECT
-   ================================================================ */
-
-function rejectRequisition(
-  requisition: SystemRequisition
-) {
-
-  const today =
-    getToday()
-
-
-  requisition.status =
-    "Rejected"
-
-  requisition.rejectedDate =
-    today
-
-
-  requisitionHistory.value.unshift({
-
-    id:
-      `RH-${String(
-        requisitionHistory.value.length + 1
-      ).padStart(3, "0")}`,
-
-    requestNo:
-      requisition.requestNo,
-
-    requester:
-      requisition.requester,
-
-    department:
-      requisition.department,
-
-    module:
-      requisition.module,
-
-    accessType:
-      requisition.accessType,
-
-    action:
-      "Rejected",
-
-    effectiveDate:
-      today,
-
-    changedBy:
-      "Admin",
-
-    status:
-      "Rejected",
-
-    remarks:
-      "System access requisition was rejected.",
-
-  })
-
-
-  closeRequisitionDetails()
-
-}
-
-
-/* ================================================================
-   RETURN TO APPROVAL
-   ================================================================ */
-
-function returnToApproval(
-  requisition: SystemRequisition
-) {
-
-  const today =
-    getToday()
-
-
-  requisition.status =
-    "Approval"
-
-  requisition.rejectedDate =
-    undefined
-
-
-  requisitionHistory.value.unshift({
-
-    id:
-      `RH-${String(
-        requisitionHistory.value.length + 1
-      ).padStart(3, "0")}`,
-
-    requestNo:
-      requisition.requestNo,
-
-    requester:
-      requisition.requester,
-
-    department:
-      requisition.department,
-
-    module:
-      requisition.module,
-
-    accessType:
-      requisition.accessType,
-
-    action:
-      "Updated",
-
-    effectiveDate:
-      today,
-
-    changedBy:
-      "Admin",
-
-    status:
-      "Approval",
-
-    remarks:
-      "System requisition returned to approval process.",
-
-  })
-
-
-  closeRequisitionDetails()
-
-}
-
-
-/* ================================================================
-   APPROVAL FILTER
-   ================================================================ */
-
-const approvalFilterMenu =
-  ref(false)
-
-const approvalSearch =
-  ref("")
-
-const approvalDepartmentFilter =
-  ref<string | null>(null)
-
-const approvalModuleFilter =
-  ref<string | null>(null)
-
-const approvalAccessTypeFilter =
-  ref<RequisitionAccessType | null>(null)
-
-
-const filteredApprovalRequisitions =
-  computed(() => {
-
-    const keyword =
-      approvalSearch.value
-        .trim()
-        .toLowerCase()
-
-
-    return requisitions.value.filter(
-      requisition => {
-
-        if (
-          requisition.status !== "Approval"
-        ) {
-
-          return false
-
-        }
-
-
-        const searchMatch =
-          !keyword ||
-          requisition.requestNo
-            .toLowerCase()
-            .includes(keyword) ||
-          requisition.requester
-            .toLowerCase()
-            .includes(keyword) ||
-          requisition.department
-            .toLowerCase()
-            .includes(keyword) ||
-          requisition.module
-            .toLowerCase()
-            .includes(keyword) ||
-          requisition.accessType
-            .toLowerCase()
-            .includes(keyword)
-
-
-        const departmentMatch =
-          !approvalDepartmentFilter.value ||
-          requisition.department ===
-            approvalDepartmentFilter.value
-
-
-        const moduleMatch =
-          !approvalModuleFilter.value ||
-          requisition.module ===
-            approvalModuleFilter.value
-
-
-        const accessTypeMatch =
-          !approvalAccessTypeFilter.value ||
-          requisition.accessType ===
-            approvalAccessTypeFilter.value
-
-
-        return (
-          searchMatch &&
-          departmentMatch &&
-          moduleMatch &&
-          accessTypeMatch
-        )
-
-      }
-    )
-
-  })
-
-
-const approvalPage =
-  ref(1)
-
-const approvalItemsPerPage =
-  ref(5)
-
-
-const approvalTotalPages =
-  computed(() => {
-
-    return Math.max(
-      1,
-      Math.ceil(
-        filteredApprovalRequisitions.value.length /
-          approvalItemsPerPage.value
-      )
-    )
-
-  })
-
-
-const paginatedApprovalRequisitions =
-  computed(() => {
-
-    const start =
-      (approvalPage.value - 1) *
-      approvalItemsPerPage.value
-
-    const end =
-      start +
-      approvalItemsPerPage.value
-
-    return filteredApprovalRequisitions.value.slice(
-      start,
-      end
-    )
-
-  })
-
-
-const approvalDisplayedStart =
-  computed(() => {
-
-    if (
-      filteredApprovalRequisitions.value.length === 0
-    ) {
-
-      return 0
-
-    }
-
-    return (
-      (approvalPage.value - 1) *
-      approvalItemsPerPage.value
-    ) + 1
-
-  })
-
-
-const approvalDisplayedEnd =
-  computed(() => {
-
-    return Math.min(
-      approvalPage.value *
-        approvalItemsPerPage.value,
-      filteredApprovalRequisitions.value.length
-    )
-
-  })
-
-
-watch(
-  [
-    approvalSearch,
-    approvalDepartmentFilter,
-    approvalModuleFilter,
-    approvalAccessTypeFilter,
-    approvalItemsPerPage,
-  ],
-  () => {
-
-    approvalPage.value = 1
-
-  }
-)
-
-
-watch(
-  approvalTotalPages,
-  total => {
-
-    if (
-      approvalPage.value > total
-    ) {
-
-      approvalPage.value = total
-
-    }
-
-  }
-)
-
-
-function clearApprovalFilters() {
-
-  approvalSearch.value = ""
-
-  approvalDepartmentFilter.value = null
-
-  approvalModuleFilter.value = null
-
-  approvalAccessTypeFilter.value = null
-
-  approvalPage.value = 1
-
-}
-
-
-/* ================================================================
-   REJECTED
-   ================================================================ */
-
-const rejectedFilterMenu =
-  ref(false)
-
-const rejectedSearch =
-  ref("")
-
-const rejectedDepartmentFilter =
-  ref<string | null>(null)
-
-const rejectedModuleFilter =
-  ref<string | null>(null)
-
-
-const filteredRejectedRequisitions =
-  computed(() => {
-
-    const keyword =
-      rejectedSearch.value
-        .trim()
-        .toLowerCase()
-
-
-    return requisitions.value.filter(
-      requisition => {
-
-        if (
-          requisition.status !== "Rejected"
-        ) {
-
-          return false
-
-        }
-
-
-        const searchMatch =
-          !keyword ||
-          requisition.requestNo
-            .toLowerCase()
-            .includes(keyword) ||
-          requisition.requester
-            .toLowerCase()
-            .includes(keyword) ||
-          requisition.department
-            .toLowerCase()
-            .includes(keyword) ||
-          requisition.module
-            .toLowerCase()
-            .includes(keyword) ||
-          requisition.accessType
-            .toLowerCase()
-            .includes(keyword)
-
-
-        const departmentMatch =
-          !rejectedDepartmentFilter.value ||
-          requisition.department ===
-            rejectedDepartmentFilter.value
-
-
-        const moduleMatch =
-          !rejectedModuleFilter.value ||
-          requisition.module ===
-            rejectedModuleFilter.value
-
-
-        return (
-          searchMatch &&
-          departmentMatch &&
-          moduleMatch
-        )
-
-      }
-    )
-
-  })
-
-
-const rejectedPage =
-  ref(1)
-
-const rejectedItemsPerPage =
-  ref(5)
-
-
-const rejectedTotalPages =
-  computed(() => {
-
-    return Math.max(
-      1,
-      Math.ceil(
-        filteredRejectedRequisitions.value.length /
-          rejectedItemsPerPage.value
-      )
-    )
-
-  })
-
-
-const paginatedRejectedRequisitions =
-  computed(() => {
-
-    const start =
-      (rejectedPage.value - 1) *
-      rejectedItemsPerPage.value
-
-    const end =
-      start +
-      rejectedItemsPerPage.value
-
-    return filteredRejectedRequisitions.value.slice(
-      start,
-      end
-    )
-
-  })
-
-
-const rejectedDisplayedStart =
-  computed(() => {
-
-    if (
-      filteredRejectedRequisitions.value.length === 0
-    ) {
-
-      return 0
-
-    }
-
-    return (
-      (rejectedPage.value - 1) *
-      rejectedItemsPerPage.value
-    ) + 1
-
-  })
-
-
-const rejectedDisplayedEnd =
-  computed(() => {
-
-    return Math.min(
-      rejectedPage.value *
-        rejectedItemsPerPage.value,
-      filteredRejectedRequisitions.value.length
-    )
-
-  })
-
-
-watch(
-  [
-    rejectedSearch,
-    rejectedDepartmentFilter,
-    rejectedModuleFilter,
-    rejectedItemsPerPage,
-  ],
-  () => {
-
-    rejectedPage.value = 1
-
-  }
-)
-
-
-watch(
-  rejectedTotalPages,
-  total => {
-
-    if (
-      rejectedPage.value > total
-    ) {
-
-      rejectedPage.value = total
-
-    }
-
-  }
-)
-
-
-function clearRejectedFilters() {
-
-  rejectedSearch.value = ""
-
-  rejectedDepartmentFilter.value = null
-
-  rejectedModuleFilter.value = null
-
-  rejectedPage.value = 1
-
-}
-
-
-/* ================================================================
-   COMPLETED
-   ================================================================ */
-
-const completedFilterMenu =
-  ref(false)
-
-const completedSearch =
-  ref("")
-
-const completedDepartmentFilter =
-  ref<string | null>(null)
-
-const completedModuleFilter =
-  ref<string | null>(null)
-
-
-const filteredCompletedRequisitions =
-  computed(() => {
-
-    const keyword =
-      completedSearch.value
-        .trim()
-        .toLowerCase()
-
-
-    return requisitions.value.filter(
-      requisition => {
-
-        if (
-          requisition.status !== "Completed"
-        ) {
-
-          return false
-
-        }
-
-
-        const searchMatch =
-          !keyword ||
-          requisition.requestNo
-            .toLowerCase()
-            .includes(keyword) ||
-          requisition.requester
-            .toLowerCase()
-            .includes(keyword) ||
-          requisition.department
-            .toLowerCase()
-            .includes(keyword) ||
-          requisition.module
-            .toLowerCase()
-            .includes(keyword) ||
-          requisition.accessType
-            .toLowerCase()
-            .includes(keyword)
-
-
-        const departmentMatch =
-          !completedDepartmentFilter.value ||
-          requisition.department ===
-            completedDepartmentFilter.value
-
-
-        const moduleMatch =
-          !completedModuleFilter.value ||
-          requisition.module ===
-            completedModuleFilter.value
-
-
-        return (
-          searchMatch &&
-          departmentMatch &&
-          moduleMatch
-        )
-
-      }
-    )
-
-  })
-
-
-const completedPage =
-  ref(1)
-
-const completedItemsPerPage =
-  ref(5)
-
-
-const completedTotalPages =
-  computed(() => {
-
-    return Math.max(
-      1,
-      Math.ceil(
-        filteredCompletedRequisitions.value.length /
-          completedItemsPerPage.value
-      )
-    )
-
-  })
-
-
-const paginatedCompletedRequisitions =
-  computed(() => {
-
-    const start =
-      (completedPage.value - 1) *
-      completedItemsPerPage.value
-
-    const end =
-      start +
-      completedItemsPerPage.value
-
-    return filteredCompletedRequisitions.value.slice(
-      start,
-      end
-    )
-
-  })
-
-
-const completedDisplayedStart =
-  computed(() => {
-
-    if (
-      filteredCompletedRequisitions.value.length === 0
-    ) {
-
-      return 0
-
-    }
-
-    return (
-      (completedPage.value - 1) *
-      completedItemsPerPage.value
-    ) + 1
-
-  })
-
-
-const completedDisplayedEnd =
-  computed(() => {
-
-    return Math.min(
-      completedPage.value *
-        completedItemsPerPage.value,
-      filteredCompletedRequisitions.value.length
-    )
-
-  })
-
-
-watch(
-  [
-    completedSearch,
-    completedDepartmentFilter,
-    completedModuleFilter,
-    completedItemsPerPage,
-  ],
-  () => {
-
-    completedPage.value = 1
-
-  }
-)
-
-
-watch(
-  completedTotalPages,
-  total => {
-
-    if (
-      completedPage.value > total
-    ) {
-
-      completedPage.value = total
-
-    }
-
-  }
-)
-
-
-function clearCompletedFilters() {
-
-  completedSearch.value = ""
-
-  completedDepartmentFilter.value = null
-
-  completedModuleFilter.value = null
-
-  completedPage.value = 1
-
-}
-
-
-/* ================================================================
-   HISTORY FILTER
-   ================================================================ */
-
-const historyFilterMenu =
-  ref(false)
-
-const historySearch =
-  ref("")
-
-const historyActionFilter =
-  ref<RequisitionAction | null>(null)
-
-
-const historyActionOptions: RequisitionAction[] = [
-
-  "Created",
-  "Submitted",
-  "Approved",
-  "Rejected",
-  "Completed",
-  "Updated",
-
-]
-
-
-const filteredHistory =
-  computed(() => {
-
-    const keyword =
-      historySearch.value
-        .trim()
-        .toLowerCase()
-
-
-    return requisitionHistory.value.filter(
-      history => {
-
-        const searchMatch =
-          !keyword ||
-          history.id
-            .toLowerCase()
-            .includes(keyword) ||
-          history.requestNo
-            .toLowerCase()
-            .includes(keyword) ||
-          history.requester
-            .toLowerCase()
-            .includes(keyword) ||
-          history.department
-            .toLowerCase()
-            .includes(keyword) ||
-          history.module
-            .toLowerCase()
-            .includes(keyword) ||
-          history.accessType
-            .toLowerCase()
-            .includes(keyword) ||
-          history.action
-            .toLowerCase()
-            .includes(keyword)
-
-
-        const actionMatch =
-          !historyActionFilter.value ||
-          history.action ===
-            historyActionFilter.value
-
-
-        return (
-          searchMatch &&
-          actionMatch
-        )
-
-      }
-    )
-
-  })
-
-
-/* ================================================================
-   HISTORY PAGINATION
-   ================================================================ */
-
-const historyPage =
-  ref(1)
-
-const historyItemsPerPage =
-  ref(5)
-
-
-const historyTotalPages =
-  computed(() => {
-
-    return Math.max(
-      1,
-      Math.ceil(
-        filteredHistory.value.length /
-          historyItemsPerPage.value
-      )
-    )
-
-  })
-
-
-const paginatedHistory =
-  computed(() => {
-
-    const start =
-      (historyPage.value - 1) *
-      historyItemsPerPage.value
-
-    const end =
-      start +
-      historyItemsPerPage.value
-
-    return filteredHistory.value.slice(
-      start,
-      end
-    )
-
-  })
-
-
-const historyDisplayedStart =
-  computed(() => {
-
-    if (
-      filteredHistory.value.length === 0
-    ) {
-
-      return 0
-
-    }
-
-    return (
-      (historyPage.value - 1) *
-      historyItemsPerPage.value
-    ) + 1
-
-  })
-
-
-const historyDisplayedEnd =
-  computed(() => {
-
-    return Math.min(
-      historyPage.value *
-        historyItemsPerPage.value,
-      filteredHistory.value.length
-    )
-
-  })
-
-
-watch(
-  [
-    historySearch,
-    historyActionFilter,
-    historyItemsPerPage,
-  ],
-  () => {
-
-    historyPage.value = 1
-
-  }
-)
-
-
-watch(
-  historyTotalPages,
-  total => {
-
-    if (
-      historyPage.value > total
-    ) {
-
-      historyPage.value = total
-
-    }
-
-  }
-)
-
-
-function clearHistoryFilters() {
-
-  historySearch.value = ""
-
-  historyActionFilter.value =
-    null
-
-  historyPage.value = 1
-
-}
-
-
-/* ================================================================
-   HISTORY DETAILS
-   ================================================================ */
-
-const historyDetailsDialog =
-  ref(false)
-
-const selectedHistory =
-  ref<RequisitionHistory | null>(null)
-
-
-function viewHistory(
-  history: RequisitionHistory
-) {
-
-  selectedHistory.value =
-    history
-
-  historyDetailsDialog.value =
-    true
-
-}
-
-
-function closeHistoryDetails() {
-
-  historyDetailsDialog.value =
-    false
-
-  selectedHistory.value =
-    null
-
-}
-
-
-/* ================================================================
-   HISTORY HELPERS
-   ================================================================ */
-
-function getHistoryIcon(
-  action: RequisitionAction
-) {
-
-  switch (action) {
-
-    case "Created":
-
-      return "mdi-plus-circle-outline"
-
-    case "Submitted":
-
-      return "mdi-send-outline"
-
-    case "Approved":
-
-      return "mdi-check-circle-outline"
-
-    case "Rejected":
-
-      return "mdi-close-circle-outline"
-
-    case "Completed":
-
-      return "mdi-check-all"
-
-    case "Updated":
-
-      return "mdi-pencil-outline"
-
-    default:
-
-      return "mdi-history"
-
-  }
-
-}
-
-
-function getHistoryColor(
-  action: RequisitionAction
-) {
-
-  switch (action) {
-
-    case "Created":
-
-      return "primary"
-
-    case "Submitted":
-
-      return "info"
-
-    case "Approved":
-
-      return "success"
-
-    case "Rejected":
-
-      return "error"
-
-    case "Completed":
-
-      return "success"
-
-    case "Updated":
-
-      return "warning"
-
-    default:
-
-      return "grey"
-
-  }
-
-}
-
-
-function getHistoryDescription(
-  action: RequisitionAction
-) {
-
-  switch (action) {
-
-    case "Created":
-
-      return "System requisition was created."
-
-    case "Submitted":
-
-      return "System requisition was submitted for approval."
-
-    case "Approved":
-
-      return "System requisition was approved."
-
-    case "Rejected":
-
-      return "System requisition was rejected."
-
-    case "Completed":
-
-      return "System requisition was completed."
-
-    case "Updated":
-
-      return "System requisition information was updated."
-
-    default:
-
-      return "System requisition history activity."
-
-  }
-
-}
-
-
-/* ================================================================
-   STATUS / PRIORITY / ACCESS TYPE
-   ================================================================ */
-
-function getStatusColor(
-  status: string
-) {
-
-  switch (status) {
-
-    case "New":
-
-      return "primary"
-
-    case "Approval":
-
-      return "warning"
-
-    case "Rejected":
-
-      return "error"
-
-    case "Completed":
-
-      return "success"
-
-    default:
-
-      return "grey"
-
-  }
-
-}
-
-
-function getPriorityColor(
-  priority: string
-) {
-
-  switch (priority) {
-
-    case "Low":
-
-      return "grey"
-
-    case "Medium":
-
-      return "info"
-
-    case "High":
-
-      return "warning"
-
-    case "Urgent":
-
-      return "error"
-
-    default:
-
-      return "grey"
-
-  }
-
-}
-
-
-function getAccessTypeColor(
-  accessType: string
-) {
-
-  switch (accessType) {
-
-    case "View":
-
-      return "info"
-
-    case "Create":
-
-      return "primary"
-
-    case "Edit":
-
-      return "warning"
-
-    case "Approve":
-
-      return "success"
-
-    case "Admin":
-
-      return "error"
-
-    default:
-
-      return "grey"
-
-  }
-
-}
-
-
-/* ================================================================
-   DATE
-   ================================================================ */
-
-function getToday() {
-
-  const date =
-    new Date()
-
-  const year =
-    date.getFullYear()
-
-  const month =
-    String(
-      date.getMonth() + 1
-    ).padStart(2, "0")
-
-  const day =
-    String(
-      date.getDate()
-    ).padStart(2, "0")
-
-  return `${year}-${month}-${day}`
-
-}
-
-</script>
-
-
 <style scoped>
-
 .table-wrapper {
-
   width: 100%;
-
   overflow-x: auto;
-
 }
-
 
 .table-wrapper :deep(table) {
-
-  min-width: 1250px;
-
+  min-width: 1450px;
 }
-
 
 .table-wrapper :deep(th) {
-
   white-space: nowrap;
-
   font-weight: 600;
-
   font-size: 13px;
-
 }
-
 
 .table-wrapper :deep(td) {
-
   white-space: nowrap;
-
   font-size: 14px;
-
 }
 
+.reason-cell {
+  max-width: 300px;
+  white-space: normal !important;
+  line-height: 1.5;
+}
 
-/* ================================================================
-   PAGINATION
-   ================================================================ */
+.approval-card {
+  transition:
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+
+.approval-card:hover {
+  transform: translateY(-2px);
+}
+
+.request-info {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.info-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.info-row > .v-icon {
+  margin-top: 2px;
+  color: rgb(var(--v-theme-primary));
+}
+
+.info-label {
+  font-size: 12px;
+  color: rgba(
+    var(--v-theme-on-surface),
+    0.6
+  );
+  margin-bottom: 2px;
+}
+
+.info-value {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.request-summary-box {
+  background: rgba(
+    var(--v-theme-primary),
+    0.06
+  );
+}
+
+.process-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.process-line {
+  height: 22px;
+  width: 1px;
+  margin-left: 16px;
+  background: rgba(
+    var(--v-theme-on-surface),
+    0.12
+  );
+}
+
+.detail-label {
+  font-size: 12px;
+  color: rgba(
+    var(--v-theme-on-surface),
+    0.6
+  );
+  margin-bottom: 4px;
+}
+
+.detail-value {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.5;
+}
 
 .pagination-wrapper {
-
   display: flex;
-
   align-items: center;
-
   justify-content: space-between;
-
   gap: 16px;
-
   padding: 16px 20px;
-
   flex-wrap: wrap;
-
 }
-
 
 @media (max-width: 960px) {
-
   .pagination-wrapper {
-
     justify-content: center;
-
   }
-
 }
-
 
 @media (max-width: 700px) {
-
-  .pagination-wrapper {
-
-    flex-direction: column;
-
-    align-items: center;
-
-  }
-
-}
-
-
-/* ================================================================
-   REQUISITION CARD
-   ================================================================ */
-
-.requisition-card {
-
-  border: 1px solid #d9d9d9 !important;
-
-  border-radius: 16px !important;
-
-  overflow: hidden;
-
-  transition:
-    transform 0.2s ease,
-    box-shadow 0.2s ease,
-    border-color 0.2s ease;
-
-}
-
-
-.requisition-card:hover {
-
-  transform: translateY(-2px);
-
-  border-color: #bdbdbd !important;
-
-  box-shadow:
-    0 4px 12px
-    rgba(0, 0, 0, 0.08) !important;
-
-}
-
-
-/* ================================================================
-   HISTORY CARD
-   ================================================================ */
-
-.history-card {
-
-  border: 1px solid #d9d9d9 !important;
-
-  border-radius: 16px !important;
-
-  overflow: hidden;
-
-  transition:
-    transform 0.2s ease,
-    box-shadow 0.2s ease,
-    border-color 0.2s ease;
-
-}
-
-
-.history-card:hover {
-
-  transform: translateY(-2px);
-
-  border-color: #bdbdbd !important;
-
-  box-shadow:
-    0 4px 12px
-    rgba(0, 0, 0, 0.08) !important;
-
-}
-
-
-@media (max-width: 700px) {
-
-  .history-card {
-
+  .d-flex.align-center.ga-3 {
     width: 100%;
-
+    flex-wrap: wrap;
   }
-
 }
-
 </style>
