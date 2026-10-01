@@ -1,477 +1,1111 @@
-<!-- src/components/Settings.vue -->
 <template>
   <v-dialog
     v-model="dialog"
-    max-width="640"
+    max-width="760"
     persistent
+    scrollable
     transition="dialog-bottom-transition"
     @click:outside="close"
   >
-    <v-card rounded="xl" class="settings-card">
-      <!-- Header -->
-      <v-card-title class="d-flex align-center justify-space-between px-5 py-4">
-        <span class="text-h6 font-weight-bold">
-          <v-icon color="primary" class="mr-2">mdi-cog</v-icon>
-          Settings
-        </span>
-        <v-btn icon variant="text" size="small" @click="close">
-          <v-icon>mdi-close</v-icon>
-        </v-btn>
-      </v-card-title>
+    <v-card
+      rounded="xl"
+      class="settings-card"
+      elevation="0"
+    >
+      <!-- =========================================================
+           HEADER
+           ========================================================= -->
+      <div class="settings-header">
+        <div class="d-flex align-center ga-3">
+          <div class="settings-header-icon">
+            <v-icon size="22">
+              mdi-cog-outline
+            </v-icon>
+          </div>
 
-      <v-divider />
+          <div>
+            <div class="text-h6 font-weight-bold">
+              Settings
+            </div>
 
-      <!-- Tabs (mobile) -->
-      <div class="d-flex d-md-none settings-tabs-mobile" style="overflow-x: auto;">
+            <div class="text-caption text-medium-emphasis">
+              Manage your preferences
+            </div>
+          </div>
+        </div>
+
         <v-btn
-          v-for="tab in tabs"
-          :key="tab.id"
+          icon
           variant="text"
-          size="small"
-          class="text-caption font-weight-semibold settings-tab-mobile-btn"
-          :class="activeTab === tab.id ? 'text-primary' : 'text-medium-emphasis'"
-          @click="activeTab = tab.id"
+          size="38"
+          @click="close"
         >
-          <v-icon size="18" class="mr-1">{{ tab.icon }}</v-icon>
-          {{ tab.label }}
+          <v-icon>
+            mdi-close
+          </v-icon>
         </v-btn>
       </div>
 
-      <v-row no-gutters class="flex-grow-1" style="min-height: 380px;">
-        <!-- Sidebar (desktop) -->
-        <v-col cols="3" class="d-none d-md-block settings-sidebar">
-          <v-list density="compact" class="py-2 settings-sidebar-list">
-            <v-list-item
-              v-for="tab in tabs"
-              :key="tab.id"
-              :active="activeTab === tab.id"
-              :class="{ 'active-tab': activeTab === tab.id }"
-              @click="activeTab = tab.id"
-              class="settings-sidebar-item"
-            >
-              <v-list-item-title class="text-body-2 font-weight-medium d-flex align-center">
-                <v-icon size="16" class="settings-sidebar-icon">{{ tab.icon }}</v-icon>
-                {{ tab.label }}
-              </v-list-item-title>
-            </v-list-item>
-          </v-list>
-        </v-col>
+      <v-divider />
 
-        <!-- Content -->
-        <v-col cols="12" md="9" class="pa-4 pa-md-5" style="max-height: 60vh; overflow-y: auto; background: rgb(var(--v-theme-surface));">
-          <!-- General Settings -->
-          <div v-show="activeTab === 'general'">
-            <h3 class="text-h6 font-weight-bold text-high-emphasis mb-1">General Settings</h3>
-            <p class="text-caption text-medium-emphasis mb-4">Manage your default preferences.</p>
+      <!-- =========================================================
+           TOP NAVIGATION
+           ========================================================= -->
+      <div class="settings-navigation">
+        <button
+          v-for="tab in tabs"
+          :key="tab.id"
+          type="button"
+          class="settings-nav-item"
+          :class="{ 'settings-nav-item--active': activeTab === tab.id }"
+          @click="activeTab = tab.id"
+        >
+          <v-icon size="19">
+            {{ tab.icon }}
+          </v-icon>
+
+          <span>
+            {{ tab.label }}
+          </span>
+        </button>
+      </div>
+
+      <v-divider />
+
+      <!-- =========================================================
+           CONTENT
+           ========================================================= -->
+      <v-card-text class="settings-content">
+
+        <!-- =======================================================
+             GENERAL
+             ======================================================= -->
+        <div v-if="activeTab === 'general'">
+
+          <div class="section-intro">
+            <div>
+              <div class="section-title">
+                General
+              </div>
+
+              <div class="section-description">
+                Configure your basic application preferences.
+              </div>
+            </div>
+          </div>
+
+          <div class="settings-list">
 
             <!-- Language -->
-            <div class="d-flex align-center justify-space-between py-3" style="border-bottom: 1px solid rgb(var(--v-theme-outline-variant));">
-              <div>
-                <div class="text-body-2 font-weight-semibold text-high-emphasis">Language</div>
-                <div class="text-caption text-medium-emphasis">Preferred language</div>
+            <div class="setting-item">
+              <div class="setting-item-left">
+
+                <div class="setting-icon">
+                  <v-icon size="20">
+                    mdi-translate
+                  </v-icon>
+                </div>
+
+                <div>
+                  <div class="setting-title">
+                    Language
+                  </div>
+
+                  <div class="setting-description">
+                    Select your preferred language.
+                  </div>
+                </div>
               </div>
+
               <v-select
                 v-model="language"
                 :items="languages"
                 density="compact"
                 variant="outlined"
                 hide-details
-                class="settings-select"
-                style="max-width: 140px;"
+                class="language-select"
                 @update:model-value="autoSave"
               />
             </div>
 
-            <!-- Important Notice Toggle (button removed, switch only) -->
-            <div class="d-flex align-center justify-space-between py-3" style="border-bottom: 1px solid rgb(var(--v-theme-outline-variant));">
-              <div>
-                <div class="text-body-2 font-weight-semibold text-high-emphasis">Important Notice</div>
-                <div class="text-caption text-medium-emphasis">Show or hide the Important Notice banner</div>
+            <!-- Important Notice -->
+            <div class="setting-item">
+              <div class="setting-item-left">
+
+                <div class="setting-icon">
+                  <v-icon size="20">
+                    mdi-bell-alert-outline
+                  </v-icon>
+                </div>
+
+                <div>
+                  <div class="setting-title">
+                    Important Notice
+                  </div>
+
+                  <div class="setting-description">
+                    Show important announcements and notices.
+                  </div>
+                </div>
               </div>
+
               <v-switch
                 v-model="showImportantNotice"
                 color="primary"
                 hide-details
-                density="compact"
                 inset
+                density="compact"
                 @update:model-value="autoSave"
               />
             </div>
+
           </div>
 
-          <!-- Appearance Settings -->
-          <div v-show="activeTab === 'appearance'">
-            <h3 class="text-h6 font-weight-bold text-high-emphasis mb-1">Appearance</h3>
-            <p class="text-caption text-medium-emphasis mb-4">Customize how Kotra Hub looks.</p>
+          <!-- Information -->
+          <v-card
+            variant="tonal"
+            color="primary"
+            rounded="lg"
+            class="info-card mt-5"
+          >
+            <div class="d-flex align-start ga-3">
+              <v-icon size="20">
+                mdi-information-outline
+              </v-icon>
 
-            <!-- Appearance Mode Cards -->
-            <div class="appearance-cards">
-              <v-card
-                v-for="option in appearanceOptions"
-                :key="option.value"
-                class="appearance-card"
-                :class="{ 'appearance-active': appearanceMode === option.value }"
-                variant="outlined"
-                @click="selectAppearance(option.value)"
-              >
-                <v-icon size="32" class="mb-2">{{ option.icon }}</v-icon>
-                <div class="text-body-2 font-weight-semibold">{{ option.label }}</div>
-                <div v-if="appearanceMode === option.value" class="selected-badge">
-                  ✓ Selected
+              <div>
+                <div class="text-body-2 font-weight-semibold">
+                  Preferences are saved automatically
                 </div>
-              </v-card>
+
+                <div class="text-caption mt-1">
+                  Your changes will take effect immediately.
+                </div>
+              </div>
+            </div>
+          </v-card>
+        </div>
+
+        <!-- =======================================================
+             APPEARANCE
+             ======================================================= -->
+        <div v-else-if="activeTab === 'appearance'">
+
+          <div class="section-intro">
+            <div>
+              <div class="section-title">
+                Appearance
+              </div>
+
+              <div class="section-description">
+                Customize the way Kotra Hub looks on your device.
+              </div>
+            </div>
+          </div>
+
+          <!-- Appearance Mode -->
+          <div class="appearance-section">
+
+            <div class="setting-group-title">
+              Theme Mode
             </div>
 
-            <!-- Theme Color -->
-            <!--<div class="py-4">
-              <div class="mb-3">
-                <div class="text-body-2 font-weight-semibold text-high-emphasis">Theme Color</div>
-                <div class="text-caption text-medium-emphasis">Choose your preferred accent color</div>
-              </div>
+            <div class="setting-group-description">
+              Choose how the application theme should appear.
+            </div>
 
-              <div class="d-flex flex-wrap align-center ga-2">
-                <v-btn
-                  v-for="theme in themeOptions"
-                  :key="theme.name"
-                  size="40"
-                  rounded="xl"
-                  class="theme-color-btn"
-                  :class="{ 'theme-color-btn--active': themeColor === theme.color }"
-                  :style="{
-                    backgroundColor: theme.color,
-                    border: themeColor === theme.color ? '3px solid rgb(var(--v-theme-on-surface))' : '2px solid transparent',
-                  }"
-                  @click="setThemeColor(theme.color)"
+            <div class="appearance-options">
+
+              <button
+                v-for="option in appearanceOptions"
+                :key="option.value"
+                type="button"
+                class="appearance-option"
+                :class="{
+                  'appearance-option--active':
+                    appearanceMode === option.value
+                }"
+                @click="selectAppearance(option.value)"
+              >
+                <!-- Preview -->
+                <div
+                  class="appearance-preview"
+                  :class="`appearance-preview--${option.value}`"
                 >
-                  <v-icon v-if="themeColor === theme.color" color="white" size="16">mdi-check</v-icon>
-                </v-btn>
+                  <div class="preview-window">
+                    <div class="preview-sidebar" />
 
-                <v-btn
-                  size="40"
-                  rounded="xl"
-                  variant="outlined"
-                  class="theme-color-btn custom-color-btn"
-                  @click="customColorPicker = !customColorPicker"
-                >
-                  <v-icon size="18" color="medium-emphasis">mdi-plus</v-icon>
-                </v-btn>
+                    <div class="preview-content">
+                      <div class="preview-line preview-line--long" />
+                      <div class="preview-line" />
+                      <div class="preview-box-row">
+                        <div />
+                        <div />
+                      </div>
+                    </div>
+                  </div>
+                </div>
 
-                <input
-                  v-if="customColorPicker"
-                  ref="customColorInput"
-                  type="color"
-                  :value="themeColor"
-                  class="custom-color-input"
-                  @input="setThemeColor(($event.target as HTMLInputElement).value)"
-                />
-              </div>
+                <!-- Label -->
+                <div class="appearance-option-footer">
 
-              <div class="mt-3 text-caption text-medium-emphasis">
-                Current: <span class="font-weight-semibold text-body-2" :style="{ color: themeColor }">{{ themeColor }}</span>
-              </div>
-            </div>-->
+                  <div class="d-flex align-center ga-2">
+
+                    <v-icon size="18">
+                      {{ option.icon }}
+                    </v-icon>
+
+                    <span class="appearance-label">
+                      {{ option.label }}
+                    </span>
+
+                  </div>
+
+                  <v-icon
+                    v-if="appearanceMode === option.value"
+                    size="19"
+                    color="primary"
+                  >
+                    mdi-check-circle
+                  </v-icon>
+
+                </div>
+              </button>
+
+            </div>
           </div>
-        </v-col>
-      </v-row>
+
+          <!-- Current Theme -->
+          <v-card
+            variant="outlined"
+            rounded="lg"
+            class="current-theme-card mt-5"
+          >
+            <div class="d-flex align-center justify-space-between">
+
+              <div class="d-flex align-center ga-3">
+
+                <div class="theme-status-icon">
+                  <v-icon size="20">
+                    {{
+                      appearanceMode === 'dark'
+                        ? 'mdi-weather-night'
+                        : 'mdi-white-balance-sunny'
+                    }}
+                  </v-icon>
+                </div>
+
+                <div>
+                  <div class="text-body-2 font-weight-semibold">
+                    Current Theme
+                  </div>
+
+                  <div class="text-caption text-medium-emphasis">
+                    {{
+                      appearanceMode === 'dark'
+                        ? 'Dark mode is enabled'
+                        : 'Light mode is enabled'
+                    }}
+                  </div>
+                </div>
+
+              </div>
+
+              <v-chip
+                color="primary"
+                variant="tonal"
+                size="small"
+                class="text-capitalize"
+              >
+                {{ appearanceMode }}
+              </v-chip>
+
+            </div>
+          </v-card>
+
+        </div>
+
+      </v-card-text>
+
+      <!-- =========================================================
+           FOOTER
+           ========================================================= -->
+      <v-divider />
+
+      <div class="settings-footer">
+
+        <div class="footer-status">
+          <v-icon
+            size="17"
+            color="success"
+          >
+            mdi-check-circle-outline
+          </v-icon>
+
+          <span>
+            Settings saved automatically
+          </span>
+        </div>
+
+        <v-btn
+          variant="tonal"
+          color="primary"
+          class="text-none"
+          @click="close"
+        >
+          Done
+        </v-btn>
+
+      </div>
+
     </v-card>
   </v-dialog>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 
-// Props
+/* ================================================================
+   PROPS
+   ================================================================ */
+
 const props = defineProps<{
   modelValue: boolean
   isDark?: boolean
   showImportantNotice?: boolean
 }>()
 
-// Emits
+/* ================================================================
+   EMITS
+   ================================================================ */
+
 const emit = defineEmits<{
   (e: 'update:modelValue', value: boolean): void
   (e: 'toggle-theme'): void
   (e: 'change-theme-mode', mode: string): void
   (e: 'update:show-important-notice', value: boolean): void
-  (e: 'settings-saved', settings: any): void
+  (e: 'settings-saved', settings: {
+    language: string
+    showImportantNotice: boolean
+  }): void
 }>()
 
-// Dialog state
+/* ================================================================
+   DIALOG
+   ================================================================ */
+
 const dialog = computed({
   get: () => props.modelValue,
-  set: (val) => emit('update:modelValue', val)
+
+  set: (value: boolean) => {
+    emit('update:modelValue', value)
+  },
 })
 
-// Tabs
+/* ================================================================
+   TABS
+   ================================================================ */
+
 const tabs = [
-  { id: 'general', label: 'General', icon: 'mdi-tune-variant' },
-  { id: 'appearance', label: 'Appearance', icon: 'mdi-palette-outline' },
+  {
+    id: 'general',
+    label: 'General',
+    icon: 'mdi-tune-variant',
+  },
+  {
+    id: 'appearance',
+    label: 'Appearance',
+    icon: 'mdi-palette-outline',
+  },
 ]
 
 const activeTab = ref('general')
 
-// General settings
-const language = ref('English')
-const languages = ['English', 'Bahasa Malaysia', 'Chinese']
+/* ================================================================
+   GENERAL SETTINGS
+   ================================================================ */
 
-// Appearance settings
-const isDark = ref(props.isDark ?? false)
-const appearanceMode = ref(localStorage.getItem('kotra-appearance-mode') || 'system')
+const language = ref('English')
+
+const languages = [
+  'English',
+  'Bahasa Malaysia',
+  'Chinese',
+]
+
+/* ================================================================
+   APPEARANCE
+   ================================================================ */
+
+const appearanceMode = ref('light')
 
 const appearanceOptions = [
-  { value: 'light', label: 'Light', icon: 'mdi-white-balance-sunny' },
-  { value: 'dark', label: 'Dark', icon: 'mdi-weather-night' },
+  {
+    value: 'light',
+    label: 'Light',
+    icon: 'mdi-white-balance-sunny',
+  },
+  {
+    value: 'dark',
+    label: 'Dark',
+    icon: 'mdi-weather-night',
+  },
 ]
+
+/* ================================================================
+   IMPORTANT NOTICE
+   ================================================================ */
+
+const showImportantNotice = computed({
+  get: () => props.showImportantNotice ?? true,
+
+  set: (value: boolean) => {
+    emit('update:show-important-notice', value)
+  },
+})
+
+/* ================================================================
+   APPEARANCE SELECTION
+   ================================================================ */
 
 function selectAppearance(mode: string) {
   appearanceMode.value = mode
-  localStorage.setItem('kotra-appearance-mode', mode)
-  emit('change-theme-mode', mode)
+
+  localStorage.setItem(
+    'kotra-appearance-mode',
+    mode,
+  )
+
+  emit(
+    'change-theme-mode',
+    mode,
+  )
 }
-const themeColor = ref('#0f9d9a')
-const customColorPicker = ref(false)
 
-// Show important notice
-const showImportantNotice = computed({
-  get: () => props.showImportantNotice ?? true,
-  set: (val) => emit('update:show-important-notice', val)
-})
+/* ================================================================
+   AUTO SAVE
+   ================================================================ */
 
-// Auto-save settings
 function autoSave() {
-  const settings = {
+  emit('settings-saved', {
     language: language.value,
-    themeColor: themeColor.value,
-    showImportantNotice: showImportantNotice.value,
-  }
-  emit('settings-saved', settings)
+    showImportantNotice:
+      showImportantNotice.value,
+  })
 }
 
-// Methods
+/* ================================================================
+   CLOSE
+   ================================================================ */
+
 function close() {
   dialog.value = false
 }
+
+/* ================================================================
+   THEME TOGGLE
+   ================================================================ */
 
 function toggleTheme() {
   emit('toggle-theme')
   autoSave()
 }
 
-watch(() => props.isDark, (val) => {
-  isDark.value = val ?? false
-})
+/* ================================================================
+   LOAD SETTINGS
+   ================================================================ */
 
 onMounted(() => {
-  const savedTheme = localStorage.getItem('kotra-user-theme')
-  if (savedTheme && /^#[0-9a-fA-F]{6}$/.test(savedTheme)) {
-    themeColor.value = savedTheme
-    document.documentElement.style.setProperty('--user-accent', savedTheme)
-  }
-})
+  const savedLanguage =
+    localStorage.getItem('kotra-language')
 
-watch(customColorPicker, (val) => {
-  if (val) {
-    setTimeout(() => {
-      const input = document.querySelector('.custom-color-input') as HTMLInputElement
-      if (input) input.click()
-    }, 100)
+  if (savedLanguage) {
+    language.value = savedLanguage
+  }
+
+  const savedAppearance =
+    localStorage.getItem(
+      'kotra-appearance-mode',
+    )
+
+  if (
+    savedAppearance === 'light' ||
+    savedAppearance === 'dark'
+  ) {
+    appearanceMode.value = savedAppearance
   }
 })
 </script>
 
 <style scoped>
+/* ================================================================
+   MAIN CARD
+   ================================================================ */
+
 .settings-card {
-  max-height: 90vh;
-  display: flex;
-  flex-direction: column;
+  overflow: hidden;
   background: rgb(var(--v-theme-surface));
-  animation: settingsPop 0.25s ease-out;
+  border: 1px solid
+    rgba(var(--v-theme-on-surface), 0.08);
 }
 
-.appearance-cards {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
-}
+/* ================================================================
+   HEADER
+   ================================================================ */
 
-.appearance-card {
-  height: 110px;
+.settings-header {
+  min-height: 78px;
+  padding: 18px 22px;
+
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.settings-header-icon {
+  width: 42px;
+  height: 42px;
+
+  display: flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
-  border-radius: 14px;
-  transition: .2s ease;
-}
 
-.appearance-card:hover {
-  border-color: rgb(var(--v-theme-primary));
-}
+  border-radius: 11px;
 
-.appearance-active {
-  border: 2px solid rgb(var(--v-theme-primary));
   color: rgb(var(--v-theme-primary));
+  background:
+    rgba(var(--v-theme-primary), 0.10);
 }
 
-@media (max-width: 600px) {
-  .appearance-cards {
-    grid-template-columns: 1fr;
-  }
-}
+/* ================================================================
+   NAVIGATION
+   ================================================================ */
 
-.settings-select {
-  min-width: 120px;
-}
+.settings-navigation {
+  display: flex;
+  align-items: center;
 
-:deep(.settings-select .v-field) {
-  border-radius: 10px;
-  background: rgb(var(--v-theme-surface));
-}
+  padding: 0 18px;
 
-:deep(.settings-select .v-field__input) {
-  font-size: 13px;
-  color: rgb(var(--v-theme-on-surface));
-}
+  background:
+    rgba(var(--v-theme-on-surface), 0.015);
 
-:deep(.settings-select .v-field--variant-outlined .v-field__outline) {
-  color: rgb(var(--v-theme-inputBorder));
-}
-
-:deep(.settings-select .v-field--variant-outlined .v-field__outline--active) {
-  color: rgb(var(--v-theme-primary));
-}
-
-.text-high-emphasis {
-  color: rgb(var(--v-theme-on-surface));
-}
-
-.text-medium-emphasis {
-  color: rgb(var(--v-theme-on-surface-variant));
-}
-
-.settings-sidebar {
-  background: rgb(var(--v-theme-settingBg));
-  border-right: 1px solid rgb(var(--v-theme-borderLight));
-  padding-top: 10px;
-  padding-bottom: 10px;
-}
-
-.settings-sidebar-list {
-  background: transparent !important;
-  padding: 0 !important;
-}
-
-.settings-sidebar-item {
-  border-radius: 0 !important;
-  padding-inline: 18px;
-  min-height: 42px;
-  transition: background-color 0.15s ease, color 0.15s ease;
-}
-
-.settings-sidebar-item .v-list-item-title {
-  font-size: 13px;
-  font-weight: 600;
-  color: rgb(var(--v-theme-settingText));
-}
-
-.settings-sidebar-icon {
-  color: rgb(var(--v-theme-settingText));
-  margin-inline-end: 10px;
-  transition: color 0.15s ease;
-}
-
-.settings-sidebar-item:hover {
-  background: rgb(var(--v-theme-settingItemHover));
-}
-
-.settings-sidebar-item:hover .v-list-item-title,
-.settings-sidebar-item:hover .settings-sidebar-icon {
-  color: rgb(var(--v-theme-on-surface));
-}
-
-.active-tab {
-  background: rgb(var(--v-theme-settingItemHover)) !important;
-}
-
-.active-tab .v-list-item-title,
-.active-tab .settings-sidebar-icon {
-  color: rgb(var(--v-theme-primary)) !important;
-}
-
-.settings-tabs-mobile {
-  background: rgb(var(--v-theme-bgLight));
-  border-bottom: 1px solid rgb(var(--v-theme-borderLight));
+  overflow-x: auto;
   scrollbar-width: none;
-  align-items: stretch;
 }
 
-.settings-tabs-mobile::-webkit-scrollbar {
+.settings-navigation::-webkit-scrollbar {
   display: none;
 }
 
-.settings-tabs-mobile .settings-tab-mobile-btn {
-  border-radius: 0 !important;
-  text-transform: none;
-  letter-spacing: normal;
-  height: auto !important;
-  min-height: 44px;
-  padding: 12px 18px !important;
+.settings-nav-item {
+  position: relative;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 8px;
+
+  min-width: 120px;
+  min-height: 50px;
+
+  padding: 0 16px;
+
+  border: 0;
+  background: transparent;
+
+  color:
+    rgb(var(--v-theme-on-surface-variant));
+
+  font-size: 13px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition:
+    color 0.2s ease,
+    background 0.2s ease;
+}
+
+.settings-nav-item:hover {
+  color: rgb(var(--v-theme-on-surface));
+
+  background:
+    rgba(var(--v-theme-on-surface), 0.04);
+}
+
+.settings-nav-item--active {
+  color: rgb(var(--v-theme-primary));
+}
+
+.settings-nav-item--active::after {
+  content: "";
+
+  position: absolute;
+
+  left: 18px;
+  right: 18px;
+  bottom: 0;
+
+  height: 2px;
+
+  border-radius: 2px;
+
+  background:
+    rgb(var(--v-theme-primary));
+}
+
+/* ================================================================
+   CONTENT
+   ================================================================ */
+
+.settings-content {
+  min-height: 400px;
+  max-height: 62vh;
+
+  padding: 26px 28px;
+
+  overflow-y: auto;
+}
+
+/* ================================================================
+   SECTION
+   ================================================================ */
+
+.section-intro {
+  margin-bottom: 22px;
+}
+
+.section-title {
+  color: rgb(var(--v-theme-on-surface));
+
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.section-description {
+  margin-top: 4px;
+
+  color:
+    rgb(var(--v-theme-on-surface-variant));
+
+  font-size: 13px;
+}
+
+/* ================================================================
+   SETTINGS LIST
+   ================================================================ */
+
+.settings-list {
+  overflow: hidden;
+
+  border: 1px solid
+    rgba(var(--v-theme-on-surface), 0.08);
+
+  border-radius: 12px;
+}
+
+.setting-item {
+  min-height: 82px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 20px;
+
+  padding: 16px 18px;
+
+  background:
+    rgb(var(--v-theme-surface));
+
+  transition:
+    background 0.2s ease;
+}
+
+.setting-item + .setting-item {
+  border-top: 1px solid
+    rgba(var(--v-theme-on-surface), 0.08);
+}
+
+.setting-item:hover {
+  background:
+    rgba(var(--v-theme-on-surface), 0.025);
+}
+
+.setting-item-left {
+  display: flex;
+  align-items: center;
+
+  gap: 14px;
+
+  min-width: 0;
+}
+
+.setting-icon {
+  width: 40px;
+  height: 40px;
+
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 10px;
+
+  color:
+    rgb(var(--v-theme-primary));
+
+  background:
+    rgba(var(--v-theme-primary), 0.10);
+}
+
+.setting-title {
+  color:
+    rgb(var(--v-theme-on-surface));
+
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.setting-description {
+  margin-top: 3px;
+
+  color:
+    rgb(var(--v-theme-on-surface-variant));
+
+  font-size: 12px;
+}
+
+/* ================================================================
+   LANGUAGE
+   ================================================================ */
+
+.language-select {
+  width: 155px;
+  flex-shrink: 0;
+}
+
+:deep(.language-select .v-field) {
+  border-radius: 9px;
+}
+
+:deep(.language-select .v-field__input) {
+  font-size: 13px;
+}
+
+/* ================================================================
+   INFO CARD
+   ================================================================ */
+
+.info-card {
+  padding: 16px 18px;
+}
+
+/* ================================================================
+   APPEARANCE
+   ================================================================ */
+
+.appearance-section {
+  margin-top: 4px;
+}
+
+.setting-group-title {
+  color:
+    rgb(var(--v-theme-on-surface));
+
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.setting-group-description {
+  margin-top: 4px;
+
+  color:
+    rgb(var(--v-theme-on-surface-variant));
+
+  font-size: 12px;
+}
+
+.appearance-options {
+  display: grid;
+
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+
+  gap: 14px;
+
+  margin-top: 16px;
+}
+
+.appearance-option {
+  padding: 0;
+
+  overflow: hidden;
+
+  text-align: left;
+
+  border: 1px solid
+    rgba(var(--v-theme-on-surface), 0.10);
+
+  border-radius: 12px;
+
+  background:
+    rgb(var(--v-theme-surface));
+
+  cursor: pointer;
+
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+
+.appearance-option:hover {
+  transform: translateY(-1px);
+
+  border-color:
+    rgba(var(--v-theme-primary), 0.55);
+
+  box-shadow:
+    0 5px 16px
+    rgba(0, 0, 0, 0.07);
+}
+
+.appearance-option--active {
+  border: 2px solid
+    rgb(var(--v-theme-primary));
+}
+
+.appearance-preview {
+  height: 150px;
+
+  padding: 16px;
+
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.theme-color-btn {
-  border-radius: 50% !important;
-  min-width: 40px !important;
-  width: 40px !important;
-  height: 40px !important;
-  padding: 0 !important;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+.appearance-preview--light {
+  background: #f5f7fa;
 }
 
-.theme-color-btn:hover {
-  transform: scale(1.08);
+.appearance-preview--dark {
+  background: #111827;
 }
 
-.theme-color-btn--active {
-  box-shadow: 0 0 0 3px rgba(var(--v-theme-primary), 0.3),
+.preview-window {
+  width: 100%;
+  max-width: 270px;
+  height: 112px;
+
+  display: flex;
+
+  overflow: hidden;
+
+  border-radius: 7px;
+
+  box-shadow:
     0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
-.custom-color-btn {
-  border-style: dashed !important;
+.appearance-preview--light .preview-window {
+  background: #ffffff;
 }
 
-.custom-color-input {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  opacity: 0;
-  pointer-events: none;
+.appearance-preview--dark .preview-window {
+  background: #1f2937;
 }
 
-@keyframes settingsPop {
-  0% {
-    opacity: 0;
-    transform: scale(0.95) translateY(12px);
-  }
-
-  100% {
-    opacity: 1;
-    transform: scale(1) translateY(0);
-  }
+.preview-sidebar {
+  width: 42px;
+  flex-shrink: 0;
 }
 
-.selected-badge {
-  margin-top: 8px;
-  font-size: 12px;
+.appearance-preview--light .preview-sidebar {
+  background: #eef2f5;
+}
+
+.appearance-preview--dark .preview-sidebar {
+  background: #172033;
+}
+
+.preview-content {
+  flex: 1;
+  padding: 13px;
+}
+
+.preview-line {
+  width: 55%;
+  height: 6px;
+
+  margin-bottom: 7px;
+
+  border-radius: 5px;
+}
+
+.preview-line--long {
+  width: 75%;
+}
+
+.appearance-preview--light .preview-line {
+  background: #dce2e8;
+}
+
+.appearance-preview--dark .preview-line {
+  background: #3a475c;
+}
+
+.preview-box-row {
+  display: grid;
+
+  grid-template-columns: 1fr 1fr;
+
+  gap: 7px;
+
+  margin-top: 12px;
+}
+
+.preview-box-row div {
+  height: 42px;
+
+  border-radius: 5px;
+}
+
+.appearance-preview--light .preview-box-row div {
+  background: #edf1f5;
+}
+
+.appearance-preview--dark .preview-box-row div {
+  background: #2a374b;
+}
+
+.appearance-option-footer {
+  min-height: 52px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 12px 15px;
+
+  border-top: 1px solid
+    rgba(var(--v-theme-on-surface), 0.08);
+
+  color:
+    rgb(var(--v-theme-on-surface));
+}
+
+.appearance-label {
+  font-size: 13px;
   font-weight: 600;
-  color: #0f9d9a;
 }
 
-.appearance-active {
-  border-color: #0f9d9a !important;
+/* ================================================================
+   CURRENT THEME
+   ================================================================ */
+
+.current-theme-card {
+  padding: 16px 18px;
+}
+
+.theme-status-icon {
+  width: 38px;
+  height: 38px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 9px;
+
+  color:
+    rgb(var(--v-theme-primary));
+
+  background:
+    rgba(var(--v-theme-primary), 0.10);
+}
+
+/* ================================================================
+   FOOTER
+   ================================================================ */
+
+.settings-footer {
+  min-height: 66px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 16px;
+
+  padding: 12px 22px;
+}
+
+.footer-status {
+  display: flex;
+  align-items: center;
+
+  gap: 7px;
+
+  color:
+    rgb(var(--v-theme-on-surface-variant));
+
+  font-size: 12px;
+}
+
+/* ================================================================
+   MOBILE
+   ================================================================ */
+
+@media (max-width: 600px) {
+  .settings-header {
+    padding: 16px;
+  }
+
+  .settings-navigation {
+    padding: 0 8px;
+  }
+
+  .settings-nav-item {
+    min-width: 105px;
+    padding: 0 12px;
+  }
+
+  .settings-content {
+    padding: 20px 16px;
+  }
+
+  .setting-item {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .setting-item-left {
+    width: 100%;
+  }
+
+  .language-select {
+    width: 100%;
+  }
+
+  .appearance-options {
+    grid-template-columns: 1fr;
+  }
+
+  .appearance-preview {
+    height: 135px;
+  }
+
+  .settings-footer {
+    padding: 12px 16px;
+  }
+
+  .footer-status {
+    display: none;
+  }
 }
 </style>

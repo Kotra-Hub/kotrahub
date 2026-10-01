@@ -1,11 +1,17 @@
 <template>
-  <v-container fluid class="pa-6">
-
+  <v-container
+    fluid
+    class="pa-6"
+  >
     <!-- =========================================================
          BREADCRUMB
-         ========================================================= -->
-    <div class="d-flex align-center ga-2 mb-6">
-      <v-icon size="20">
+    ========================================================== -->
+
+    <div class="d-flex align-center mb-6">
+      <v-icon
+        size="20"
+        class="mr-2"
+      >
         mdi-cart-outline
       </v-icon>
 
@@ -14,8 +20,8 @@
       </span>
 
       <v-icon
-        size="18"
-        color="grey"
+        size="16"
+        class="mx-2"
       >
         mdi-chevron-right
       </v-icon>
@@ -27,25 +33,25 @@
 
     <!-- =========================================================
          HEADER
-         ========================================================= -->
+    ========================================================== -->
+
     <div
-      class="d-flex flex-wrap align-center justify-space-between ga-4 mb-6"
+      class="d-flex flex-wrap align-center justify-space-between mb-6"
+      style="gap: 16px;"
     >
       <div>
-        <h1 class="text-h5 font-weight-bold mb-1">
+        <h1 class="text-h4 font-weight-bold mb-1">
           Purchase Orders
         </h1>
 
-        <p class="text-body-2 text-medium-emphasis mb-0">
-          Manage purchase orders, approvals, suppliers and procurement terms.
-        </p>
+        <div class="text-body-2 text-medium-emphasis">
+          Manage purchase orders, suppliers and procurement items.
+        </div>
       </div>
 
-      <!-- NEW ORDER IS A BUTTON, NOT A TAB -->
       <v-btn
         color="primary"
         prepend-icon="mdi-plus"
-        rounded="lg"
         @click="openNewOrder"
       >
         New Order
@@ -53,19 +59,44 @@
     </div>
 
     <!-- =========================================================
-         SUMMARY CARDS
-         ========================================================= -->
-    <v-row class="mb-2">
+         SUMMARY
+    ========================================================== -->
+
+    <v-row class="mb-6">
       <v-col
         cols="12"
         sm="6"
         md="3"
       >
-        <AppSummaryCard
-          title="Total Orders"
-          :value="totalOrders"
-          icon="mdi-cart-outline"
-        />
+        <v-card
+          border
+          rounded="lg"
+          class="h-100"
+        >
+          <v-card-text>
+            <div class="d-flex justify-space-between">
+              <div>
+                <div class="text-body-2 text-medium-emphasis">
+                  Total Orders
+                </div>
+
+                <div class="text-h4 font-weight-bold mt-2">
+                  {{ totalOrders }}
+                </div>
+              </div>
+
+              <v-avatar
+                color="primary"
+                variant="tonal"
+                size="44"
+              >
+                <v-icon>
+                  mdi-file-document-multiple-outline
+                </v-icon>
+              </v-avatar>
+            </div>
+          </v-card-text>
+        </v-card>
       </v-col>
 
       <v-col
@@ -73,11 +104,35 @@
         sm="6"
         md="3"
       >
-        <AppSummaryCard
-          title="Pending Approval"
-          :value="pendingApproval"
-          icon="mdi-clock-outline"
-        />
+        <v-card
+          border
+          rounded="lg"
+          class="h-100"
+        >
+          <v-card-text>
+            <div class="d-flex justify-space-between">
+              <div>
+                <div class="text-body-2 text-medium-emphasis">
+                  Approved Orders
+                </div>
+
+                <div class="text-h4 font-weight-bold mt-2">
+                  {{ approvedOrders }}
+                </div>
+              </div>
+
+              <v-avatar
+                color="success"
+                variant="tonal"
+                size="44"
+              >
+                <v-icon>
+                  mdi-check-circle-outline
+                </v-icon>
+              </v-avatar>
+            </div>
+          </v-card-text>
+        </v-card>
       </v-col>
 
       <v-col
@@ -85,812 +140,729 @@
         sm="6"
         md="3"
       >
-        <AppSummaryCard
-          title="Approved Orders"
-          :value="approvedOrders"
-          icon="mdi-check-circle-outline"
-        />
-      </v-col>
+        <v-card
+          border
+          rounded="lg"
+          class="h-100"
+        >
+          <v-card-text>
+            <div class="d-flex justify-space-between">
+              <div>
+                <div class="text-body-2 text-medium-emphasis">
+                  Total Value
+                </div>
 
-      <v-col
-        cols="12"
-        sm="6"
-        md="3"
-      >
-        <AppSummaryCard
-          title="Total Value"
-          :value="formatCurrency(totalValue)"
-          icon="mdi-cash-multiple"
-        />
+                <div class="text-h5 font-weight-bold mt-2">
+                  {{ formatCurrency(totalValue) }}
+                </div>
+              </div>
+
+              <v-avatar
+                color="success"
+                variant="tonal"
+                size="44"
+              >
+                <v-icon>
+                  mdi-cash-multiple
+                </v-icon>
+              </v-avatar>
+            </div>
+          </v-card-text>
+        </v-card>
       </v-col>
     </v-row>
 
     <!-- =========================================================
-         TABS
-         ========================================================= -->
+         MAIN CARD
+    ========================================================== -->
+
     <v-card
       border
-      rounded="xl"
-      elevation="0"
+      rounded="lg"
     >
       <v-tabs
-        v-model="tab"
+        v-model="activeTab"
         color="primary"
-        grow
       >
         <v-tab value="all">
-          <v-icon start>
-            mdi-cart-outline
-          </v-icon>
           All Orders
         </v-tab>
 
-        <v-tab value="departments">
-          <v-icon start>
-            mdi-domain
-          </v-icon>
+        <v-tab value="department">
           Department Orders
         </v-tab>
 
-        <v-tab value="my-orders">
-          <v-icon start>
-            mdi-account-outline
-          </v-icon>
+        <v-tab value="mine">
           My Orders
         </v-tab>
 
         <v-tab value="terms">
-          <v-icon start>
-            mdi-file-document-outline
-          </v-icon>
           Terms & Conditions
         </v-tab>
       </v-tabs>
-    </v-card>
 
-    <!-- =========================================================
-         TAB CONTENT
-         ========================================================= -->
-    <v-window
-      v-model="tab"
-      class="mt-6"
-    >
+      <v-divider />
 
-      <!-- =======================================================
-           ALL ORDERS
-           ======================================================= -->
-      <v-window-item value="all">
-        <v-card
-          border
-          rounded="xl"
-          elevation="0"
-        >
+      <v-window v-model="activeTab">
 
-          <!-- Header -->
-          <div class="pa-5">
-            <div
-              class="d-flex flex-wrap align-center justify-space-between ga-4"
-            >
-              <div>
-                <h2 class="text-subtitle-1 font-weight-bold">
-                  Purchase Orders
-                </h2>
+        <!-- =====================================================
+             ALL ORDERS
+        ====================================================== -->
 
-                <p class="text-body-2 text-medium-emphasis mb-0">
-                  Search and manage purchase orders.
-                </p>
-              </div>
+        <v-window-item value="all">
+          <div class="pa-4">
 
-              <!-- FILTER -->
-              <v-menu
-                v-model="filterMenu"
-                :close-on-content-click="false"
-                location="bottom end"
+            <v-row class="mb-2">
+              <v-col
+                cols="12"
+                md="3"
               >
-                <template #activator="{ props }">
-                  <v-btn
-                    v-bind="props"
-                    variant="outlined"
-                    prepend-icon="mdi-filter-variant"
-                    append-icon="mdi-chevron-down"
-                    rounded="lg"
-                  >
-                    Filter
+                <v-text-field
+                  v-model="filters.search"
+                  label="Search"
+                  placeholder="Search PO, supplier, department..."
+                  prepend-inner-icon="mdi-magnify"
+                  variant="outlined"
+                  density="comfortable"
+                  clearable
+                  hide-details
+                />
+              </v-col>
 
-                    <v-badge
-                      v-if="activeFilterCount > 0"
-                      :content="activeFilterCount"
-                      color="primary"
-                      inline
-                      class="ml-2"
-                    />
-                  </v-btn>
-                </template>
+              <v-col
+                cols="12"
+                sm="6"
+                md="2"
+              >
+                <v-select
+                  v-model="filters.department"
+                  :items="departments"
+                  label="Department"
+                  variant="outlined"
+                  density="comfortable"
+                  clearable
+                  hide-details
+                />
+              </v-col>
 
-                <v-card
-                  width="340"
-                  rounded="lg"
-                  elevation="4"
-                  class="pa-4"
+              <v-col
+                cols="12"
+                sm="6"
+                md="2"
+              >
+                <v-select
+                  v-model="filters.supplier"
+                  :items="suppliers"
+                  label="Supplier"
+                  variant="outlined"
+                  density="comfortable"
+                  clearable
+                  hide-details
+                />
+              </v-col>
+
+              <v-col
+                cols="12"
+                sm="6"
+                md="2"
+              >
+                <v-select
+                  v-model="filters.status"
+                  :items="statuses"
+                  label="PO Status"
+                  variant="outlined"
+                  density="comfortable"
+                  clearable
+                  hide-details
+                />
+              </v-col>
+
+              <v-col
+                cols="12"
+                md="1"
+                class="d-flex align-center"
+              >
+                <v-btn
+                  block
+                  variant="text"
+                  @click="clearFilters"
                 >
-                  <div
-                    class="d-flex align-center justify-space-between mb-4"
-                  >
-                    <span class="text-subtitle-2 font-weight-bold">
-                      Filter Purchase Orders
-                    </span>
+                  Clear
+                </v-btn>
+              </v-col>
+            </v-row>
 
-                    <v-btn
-                      icon="mdi-close"
-                      variant="text"
-                      size="small"
-                      @click="filterMenu = false"
-                    />
-                  </div>
+            <!-- =================================================
+                 PURCHASE ORDER TABLE
+            ================================================== -->
 
-                  <v-select
-                    v-model="filters.department"
-                    label="Department"
-                    :items="departmentOptions"
-                    variant="outlined"
-                    density="comfortable"
-                    clearable
-                    class="mb-3"
-                  />
-
-                  <v-select
-                    v-model="filters.supplier"
-                    label="Supplier"
-                    :items="supplierOptions"
-                    variant="outlined"
-                    density="comfortable"
-                    clearable
-                    class="mb-3"
-                  />
-
-                  <v-select
-                    v-model="filters.status"
-                    label="PO Status"
-                    :items="statusOptions"
-                    variant="outlined"
-                    density="comfortable"
-                    clearable
-                    class="mb-3"
-                  />
-
-                  <v-select
-                    v-model="filters.approvalStatus"
-                    label="Approval Status"
-                    :items="approvalStatusOptions"
-                    variant="outlined"
-                    density="comfortable"
-                    clearable
-                  />
-
-                  <div class="d-flex justify-end ga-2 mt-4">
-                    <v-btn
-                      variant="text"
-                      @click="clearFilters"
-                    >
-                      Clear
-                    </v-btn>
-
-                    <v-btn
-                      color="primary"
-                      @click="filterMenu = false"
-                    >
-                      Apply
-                    </v-btn>
-                  </div>
-                </v-card>
-              </v-menu>
-            </div>
-
-            <!-- Search -->
-            <v-text-field
-              v-model="search"
-              class="mt-5"
-              prepend-inner-icon="mdi-magnify"
-              label="Search purchase orders"
-              placeholder="Search by PO number, supplier, requester, department..."
-              variant="outlined"
-              density="comfortable"
-              clearable
-              hide-details
-            />
-          </div>
-
-          <v-divider />
-
-          <!-- Table -->
-          <div class="table-wrapper">
             <v-data-table
-              :headers="headers"
+              v-model:expanded="expandedOrders"
+              :headers="orderHeaders"
               :items="filteredOrders"
-              :items-per-page="itemsPerPage"
-              :page="page"
-              hide-default-footer
+              item-value="id"
+              show-expand
               hover
+              class="purchase-order-table"
             >
 
-              <!-- PO Number -->
-              <template #item.poNumber="{ item }">
-                <div>
-                  <div class="font-weight-medium">
-                    {{ item.poNumber }}
-                  </div>
+              <!-- CODE -->
 
-                  <div class="text-caption text-medium-emphasis">
-                    {{ item.orderType }}
-                  </div>
+              <template #item.poNumber="{ item }">
+                <span class="font-weight-medium">
+                  {{ item.poNumber }}
+                </span>
+              </template>
+
+              <!-- DEPARTMENT -->
+
+              <template #item.department="{ item }">
+                <div class="text-body-2">
+                  {{ item.department }}
                 </div>
               </template>
 
-              <!-- Supplier -->
+              <!-- SUPPLIER -->
+
               <template #item.supplier="{ item }">
-                <div class="font-weight-medium">
+                <div class="text-body-2">
                   {{ item.supplier }}
                 </div>
               </template>
 
-              <!-- Department -->
-              <template #item.department="{ item }">
-                <div>
-                  {{ item.department }}
-                </div>
+              <!-- STATUS -->
 
-                <div class="text-caption text-medium-emphasis">
-                  {{ item.requester }}
-                </div>
+              <template #item.status="{ item }">
+                <v-chip
+                  size="small"
+                  variant="tonal"
+                  :color="statusColor(item.status)"
+                >
+                  {{ item.status }}
+                </v-chip>
               </template>
 
-              <!-- PO Date -->
-              <template #item.poDate="{ item }">
-                {{ formatDate(item.poDate) }}
-              </template>
+              <!-- TOTAL -->
 
-              <!-- Total -->
               <template #item.totalAmount="{ item }">
                 <span class="font-weight-medium">
                   {{ formatCurrency(item.totalAmount) }}
                 </span>
               </template>
 
-              <!-- PO Status -->
-              <template #item.status="{ item }">
-                <v-chip
-                  :color="getStatusColor(item.status)"
-                  size="small"
-                  variant="tonal"
-                >
-                  {{ item.status }}
-                </v-chip>
+              <!-- DATE -->
+
+              <template #item.poDate="{ item }">
+                {{ formatDate(item.poDate) }}
               </template>
 
-              <!-- Approval -->
-              <template #item.approvalStatus="{ item }">
-                <v-chip
-                  :color="getApprovalColor(item.approvalStatus)"
+              <!-- =================================================
+                   MORE INFO
+              ================================================== -->
+
+              <template #item.data-table-expand="{ item, internalItem, isExpanded, toggleExpand }">
+                <v-btn
                   size="small"
-                  variant="tonal"
+                  variant="text"
+                  color="primary"
+                  :prepend-icon="
+                    isExpanded(internalItem)
+                      ? 'mdi-chevron-up'
+                      : 'mdi-information-outline'
+                  "
+                  @click="toggleExpand(internalItem)"
                 >
-                  {{ item.approvalStatus }}
-                </v-chip>
+                  {{
+                    isExpanded(internalItem)
+                      ? "Hide Info"
+                      : "More Info"
+                  }}
+                </v-btn>
               </template>
 
-              <!-- Actions -->
+              <!-- =================================================
+                   ACTIONS
+              ================================================== -->
+
               <template #item.actions="{ item }">
-                <div class="d-flex align-center ga-1">
-                  <v-btn
-                    icon="mdi-eye-outline"
-                    variant="text"
-                    size="small"
-                    @click="viewOrder(item)"
-                  />
+                <v-menu location="bottom end">
+                  <template #activator="{ props }">
+                    <v-btn
+                      v-bind="props"
+                      icon="mdi-dots-vertical"
+                      size="small"
+                      variant="text"
+                    />
+                  </template>
 
-                  <v-btn
-                    icon="mdi-pencil-outline"
-                    variant="text"
-                    size="small"
-                    :disabled="item.status !== 'Draft'"
-                    @click="editOrder(item)"
-                  />
+                  <v-list density="compact">
 
-                  <v-btn
-                    icon="mdi-delete-outline"
-                    variant="text"
-                    size="small"
-                    color="error"
-                    :disabled="item.status !== 'Draft'"
-                    @click="deleteOrder(item)"
-                  />
-                </div>
+                    <v-list-item
+                      prepend-icon="mdi-content-copy"
+                      title="Clone Order"
+                      @click="handleCloneOrder(item)"
+                    />
+
+                    <v-list-item
+                      prepend-icon="mdi-file-pdf-box"
+                      title="View PDF"
+                      @click="viewPdf(item)"
+                    />
+
+                    <v-divider />
+
+                    <v-list-item
+                      prepend-icon="mdi-eye-outline"
+                      title="View Order"
+                      @click="viewOrder(item)"
+                    />
+
+                    <v-list-item
+                      v-if="item.status === 'Draft'"
+                      prepend-icon="mdi-pencil-outline"
+                      title="Edit"
+                      @click="openEditOrder(item)"
+                    />
+
+                    <v-list-item
+                      prepend-icon="mdi-delete-outline"
+                      title="Delete"
+                      class="text-error"
+                      @click="handleDeleteOrder(item)"
+                    />
+
+                  </v-list>
+                </v-menu>
               </template>
 
-              <!-- No Data -->
+              <!-- =================================================
+                   EXPANDED ROW
+              ================================================== -->
+
+              <template #expanded-row="{ columns, item }">
+                <tr>
+                  <td
+                    :colspan="columns.length"
+                    class="pa-0"
+                  >
+                    <div class="expanded-order-wrapper">
+
+                      <div
+                        class="d-flex flex-wrap align-center justify-space-between mb-4"
+                        style="gap: 12px;"
+                      >
+                        <div>
+                          <div class="text-subtitle-1 font-weight-bold">
+                            Order Items
+                          </div>
+
+                          <div class="text-caption text-medium-emphasis">
+                            {{ item.poNumber }}
+                            ·
+                            {{ item.items.length }}
+                            {{
+                              item.items.length === 1
+                                ? "item"
+                                : "items"
+                            }}
+                          </div>
+                        </div>
+
+                        <div class="text-body-2 font-weight-bold">
+                          Total:
+                          {{ formatCurrency(item.totalAmount) }}
+                        </div>
+                      </div>
+
+                      <!-- ITEM TABLE -->
+
+                      <v-table
+                        density="comfortable"
+                        class="item-detail-table"
+                      >
+                        <thead>
+                          <tr>
+                            <th>
+                              Description
+                            </th>
+
+                            <th>
+                              Type
+                            </th>
+
+                            <th>
+                              Category
+                            </th>
+
+                            <th class="text-right">
+                              Quantity
+                            </th>
+
+                            <th class="text-right">
+                              Unit Price
+                            </th>
+
+                            <th class="text-right">
+                              Discount
+                            </th>
+
+                            <th class="text-right">
+                              Total
+                            </th>
+                          </tr>
+                        </thead>
+
+                        <tbody>
+                          <tr
+                            v-for="orderItem in item.items"
+                            :key="orderItem.id"
+                          >
+                            <td>
+                              <div class="font-weight-medium">
+                                {{
+                                  orderItem.description ||
+                                  orderItem.asset ||
+                                  "-"
+                                }}
+                              </div>
+
+                              <div
+                                v-if="
+                                  orderItem.asset &&
+                                  orderItem.asset !==
+                                    orderItem.description
+                                "
+                                class="text-caption text-medium-emphasis"
+                              >
+                                {{ orderItem.asset }}
+                              </div>
+                            </td>
+
+                            <td>
+                              {{ orderItem.category || "-" }}
+                            </td>
+
+                            <td>
+                              {{ orderItem.subcategory || "-" }}
+                            </td>
+
+                            <td class="text-right">
+                              {{ orderItem.quantity }}
+                            </td>
+
+                            <td class="text-right">
+                              {{ formatCurrency(orderItem.unitPrice) }}
+                            </td>
+
+                            <td class="text-right">
+                              {{ formatCurrency(orderItem.discount) }}
+                            </td>
+
+                            <td class="text-right font-weight-bold">
+                              {{ formatCurrency(orderItem.totalAmount) }}
+                            </td>
+                          </tr>
+                        </tbody>
+
+                        <tfoot>
+                          <tr>
+                            <td
+                              colspan="6"
+                              class="text-right font-weight-bold"
+                            >
+                              Grand Total
+                            </td>
+
+                            <td class="text-right font-weight-bold">
+                              {{ formatCurrency(item.totalAmount) }}
+                            </td>
+                          </tr>
+                        </tfoot>
+                      </v-table>
+
+                    </div>
+                  </td>
+                </tr>
+              </template>
+
               <template #no-data>
-                <div class="pa-8 text-center">
+                <div class="py-10 text-center">
                   <v-icon
                     size="48"
                     color="grey"
                     class="mb-3"
                   >
-                    mdi-cart-off
+                    mdi-file-document-outline
                   </v-icon>
 
-                  <div class="text-body-1 font-weight-medium">
+                  <div class="text-subtitle-1">
                     No purchase orders found
                   </div>
 
                   <div class="text-body-2 text-medium-emphasis">
-                    Try changing your search or filter.
+                    Try changing your filters or search.
                   </div>
                 </div>
               </template>
 
             </v-data-table>
           </div>
+        </v-window-item>
 
-          <v-divider />
+        <!-- =====================================================
+             DEPARTMENT ORDERS
+        ====================================================== -->
 
-          <!-- Pagination -->
-          <div class="pagination-wrapper">
-            <div class="text-body-2 text-medium-emphasis">
-              Showing
-
-              <strong>
-                {{ paginationStart }}
-              </strong>
-
-              -
-
-              <strong>
-                {{ paginationEnd }}
-              </strong>
-
-              of
-
-              <strong>
-                {{ filteredOrders.length }}
-              </strong>
-
-              orders
-            </div>
-
-            <v-pagination
-              v-model="page"
-              :length="pageCount"
-              :total-visible="5"
-              rounded="circle"
-              density="comfortable"
-            />
-          </div>
-
-        </v-card>
-      </v-window-item>
-
-      <!-- =======================================================
-           DEPARTMENT ORDERS
-           ======================================================= -->
-      <v-window-item value="departments">
-        <v-row>
-
-          <v-col
-            v-for="department in departmentCards"
-            :key="department.name"
-            cols="12"
-            sm="6"
-            lg="4"
-          >
-            <v-card
-              border
-              rounded="xl"
-              elevation="0"
-              class="purchase-card h-100"
-            >
-              <div class="pa-5">
-
-                <div
-                  class="d-flex align-start justify-space-between mb-4"
-                >
-                  <v-avatar
-                    size="46"
-                    color="primary"
-                    variant="tonal"
-                  >
-                    <v-icon>
-                      mdi-domain
-                    </v-icon>
-                  </v-avatar>
-
-                  <v-chip
-                    size="small"
-                    variant="tonal"
-                  >
-                    {{ department.orderCount }} Orders
-                  </v-chip>
-                </div>
-
-                <div class="text-subtitle-1 font-weight-bold">
-                  {{ department.name }}
-                </div>
-
-                <div class="text-body-2 text-medium-emphasis mt-1">
-                  {{ department.requesterCount }} Requesters
-                </div>
-
-                <v-divider class="my-4" />
-
-                <div class="department-row">
-                  <span class="department-label">
-                    Total Value
-                  </span>
-
-                  <span class="font-weight-medium">
-                    {{ formatCurrency(department.totalValue) }}
-                  </span>
-                </div>
-
-                <div class="department-row">
-                  <span class="department-label">
-                    Pending Approval
-                  </span>
-
-                  <v-chip
-                    size="small"
-                    :color="
-                      department.pending > 0
-                        ? 'warning'
-                        : 'success'
-                    "
-                    variant="tonal"
-                  >
-                    {{ department.pending }}
-                  </v-chip>
-                </div>
-
-                <v-btn
-                  variant="text"
-                  color="primary"
-                  class="px-0 mt-3"
-                  append-icon="mdi-arrow-right"
-                  @click="filterByDepartment(department.name)"
-                >
-                  View Orders
-                </v-btn>
-
-              </div>
-            </v-card>
-          </v-col>
-
-        </v-row>
-      </v-window-item>
-
-      <!-- =======================================================
-           MY ORDERS
-           ======================================================= -->
-      <v-window-item value="my-orders">
-        <v-card
-          border
-          rounded="xl"
-          elevation="0"
-        >
-          <div class="pa-5">
-
-            <div
-              class="d-flex align-center justify-space-between mb-5"
-            >
-              <div>
-                <h2 class="text-subtitle-1 font-weight-bold">
-                  My Orders
-                </h2>
-
-                <p class="text-body-2 text-medium-emphasis mb-0">
-                  Purchase orders submitted by {{ currentUser }}.
-                </p>
-              </div>
-
-              <v-icon
-                color="primary"
-                size="28"
-              >
-                mdi-account-outline
-              </v-icon>
-            </div>
-
-            <v-row v-if="myOrders.length">
+        <v-window-item value="department">
+          <div class="pa-4">
+            <v-row>
               <v-col
-                v-for="order in myOrders"
-                :key="order.id"
+                v-for="department in departmentCards"
+                :key="department.department"
                 cols="12"
                 md="6"
                 lg="4"
               >
                 <v-card
                   border
-                  rounded="xl"
-                  elevation="0"
-                  class="purchase-card h-100"
+                  rounded="lg"
+                  class="h-100"
                 >
-                  <div class="pa-5">
-
-                    <div
-                      class="d-flex align-start justify-space-between mb-4"
-                    >
+                  <v-card-text>
+                    <div class="d-flex justify-space-between mb-4">
                       <div>
                         <div class="text-subtitle-1 font-weight-bold">
-                          {{ order.poNumber }}
+                          {{ department.department }}
                         </div>
 
                         <div class="text-caption text-medium-emphasis">
-                          {{ formatDate(order.poDate) }}
+                          {{ department.orderCount }}
+                          {{
+                            department.orderCount === 1
+                              ? "order"
+                              : "orders"
+                          }}
                         </div>
                       </div>
 
-                      <v-chip
-                        :color="getStatusColor(order.status)"
-                        size="small"
-                        variant="tonal"
-                      >
-                        {{ order.status }}
-                      </v-chip>
+                      <v-icon color="primary">
+                        mdi-domain
+                      </v-icon>
                     </div>
 
-                    <div class="text-body-1 font-weight-medium mb-1">
-                      {{ order.supplier }}
-                    </div>
+                    <div class="d-flex justify-space-between mb-4">
+                      <div>
+                        <div class="text-caption text-medium-emphasis">
+                          Total Value
+                        </div>
 
-                    <div class="text-body-2 text-medium-emphasis">
-                      {{ order.department }}
-                    </div>
+                        <div class="font-weight-bold">
+                          {{ formatCurrency(department.totalValue) }}
+                        </div>
+                      </div>
 
-                    <v-divider class="my-4" />
+                      <div class="text-right">
+                        <div class="text-caption text-medium-emphasis">
+                          Pending Approval
+                        </div>
 
-                    <div class="department-row">
-                      <span class="department-label">
-                        Order Type
-                      </span>
-
-                      <span>
-                        {{ order.orderType }}
-                      </span>
-                    </div>
-
-                    <div class="department-row">
-                      <span class="department-label">
-                        Delivery Date
-                      </span>
-
-                      <span>
-                        {{ formatDate(order.deliveryDate) }}
-                      </span>
-                    </div>
-
-                    <div class="department-row">
-                      <span class="department-label">
-                        Total
-                      </span>
-
-                      <span class="font-weight-bold">
-                        {{ formatCurrency(order.totalAmount) }}
-                      </span>
-                    </div>
-
-                    <div class="mt-3">
-                      <v-chip
-                        :color="
-                          getApprovalColor(
-                            order.approvalStatus,
-                          )
-                        "
-                        size="small"
-                        variant="tonal"
-                      >
-                        Approval:
-                        {{ order.approvalStatus }}
-                      </v-chip>
+                        <div class="font-weight-bold">
+                          {{ department.pendingOrders }}
+                        </div>
+                      </div>
                     </div>
 
                     <v-btn
                       block
-                      variant="outlined"
-                      rounded="lg"
-                      class="mt-4"
+                      color="primary"
+                      variant="tonal"
                       prepend-icon="mdi-eye-outline"
-                      @click="viewOrder(order)"
+                      @click="
+                        viewDepartmentOrders(
+                          department.department,
+                        )
+                      "
                     >
-                      View Order
+                      View Orders
                     </v-btn>
-
-                  </div>
+                  </v-card-text>
                 </v-card>
               </v-col>
             </v-row>
+          </div>
+        </v-window-item>
 
-            <div
-              v-else
-              class="text-center pa-10"
-            >
-              <v-icon
-                size="52"
-                color="grey"
-                class="mb-3"
-              >
-                mdi-cart-outline
-              </v-icon>
+        <!-- =====================================================
+             MY ORDERS
+        ====================================================== -->
 
-              <div class="text-body-1 font-weight-medium">
-                No orders found
+        <v-window-item value="mine">
+          <div class="pa-4">
+            <div class="mb-4">
+              <div class="text-subtitle-1 font-weight-bold">
+                My Orders
               </div>
 
               <div class="text-body-2 text-medium-emphasis">
-                Your purchase orders will appear here.
+                Orders created by {{ currentUser }}.
               </div>
             </div>
 
-          </div>
-        </v-card>
-      </v-window-item>
+            <v-data-table
+              :headers="myOrderHeaders"
+              :items="myOrders"
+              hover
+            >
+              <template #item.poNumber="{ item }">
+                <span class="font-weight-medium">
+                  {{ item.poNumber }}
+                </span>
+              </template>
 
-      <!-- =======================================================
-           TERMS & CONDITIONS
-           ======================================================= -->
-      <v-window-item value="terms">
-        <v-card
-          border
-          rounded="xl"
-          elevation="0"
-        >
-          <div class="pa-5">
+              <template #item.status="{ item }">
+                <v-chip
+                  size="small"
+                  variant="tonal"
+                  :color="statusColor(item.status)"
+                >
+                  {{ item.status }}
+                </v-chip>
+              </template>
+
+              <template #item.totalAmount="{ item }">
+                {{ formatCurrency(item.totalAmount) }}
+              </template>
+
+              <template #item.poDate="{ item }">
+                {{ formatDate(item.poDate) }}
+              </template>
+
+              <template #item.actions="{ item }">
+                <v-btn
+                  size="small"
+                  variant="text"
+                  prepend-icon="mdi-eye-outline"
+                  @click="viewOrder(item)"
+                >
+                  View
+                </v-btn>
+
+                <v-btn
+                  size="small"
+                  variant="text"
+                  prepend-icon="mdi-file-pdf-box"
+                  @click="viewPdf(item)"
+                >
+                  PDF
+                </v-btn>
+              </template>
+            </v-data-table>
+          </div>
+        </v-window-item>
+
+        <!-- =====================================================
+             TERMS
+        ====================================================== -->
+
+        <v-window-item value="terms">
+          <div class="pa-4">
 
             <div
-              class="d-flex flex-wrap align-center justify-space-between ga-4 mb-5"
+              class="d-flex flex-wrap justify-space-between align-center mb-4"
+              style="gap: 12px;"
             >
               <div>
-                <h2 class="text-subtitle-1 font-weight-bold">
+                <div class="text-subtitle-1 font-weight-bold">
                   Terms & Conditions
-                </h2>
+                </div>
 
-                <p class="text-body-2 text-medium-emphasis mb-0">
-                  Manage procurement terms and conditions applied to purchase orders.
-                </p>
+                <div class="text-body-2 text-medium-emphasis">
+                  Procurement terms used for purchase orders.
+                </div>
               </div>
 
-              <!-- NEW TERMS BUTTON -->
               <v-btn
                 color="primary"
                 prepend-icon="mdi-plus"
-                rounded="lg"
                 @click="openNewTerm"
               >
-                New
+                Add Term
               </v-btn>
             </div>
 
-            <v-expansion-panels
-              variant="accordion"
-              multiple
+            <v-data-table
+              :headers="termHeaders"
+              :items="terms"
+              hover
             >
-              <v-expansion-panel
-                v-for="(term, index) in terms"
-                :key="term.id"
-                class="term-panel"
-              >
-                <v-expansion-panel-title>
-                  <div class="d-flex align-center w-100 ga-3">
+              <template #item.mandatory="{ item }">
+                <v-chip
+                  size="small"
+                  variant="tonal"
+                  :color="
+                    item.mandatory
+                      ? 'error'
+                      : 'grey'
+                  "
+                >
+                  {{
+                    item.mandatory
+                      ? "Mandatory"
+                      : "Optional"
+                  }}
+                </v-chip>
+              </template>
 
-                    <v-avatar
-                      size="34"
-                      color="primary"
-                      variant="tonal"
-                    >
-                      <span class="text-caption font-weight-bold">
-                        {{ String(index + 1).padStart(2, "0") }}
-                      </span>
-                    </v-avatar>
+              <template #item.lastUpdated="{ item }">
+                {{ formatDate(item.lastUpdated) }}
+              </template>
 
-                    <div class="flex-grow-1">
-                      <div class="font-weight-medium">
-                        {{ term.title }}
-                      </div>
+              <template #item.actions="{ item }">
+                <v-btn
+                  icon="mdi-pencil-outline"
+                  size="small"
+                  variant="text"
+                  @click="openEditTerm(item)"
+                />
 
-                      <div class="text-caption text-medium-emphasis">
-                        Applicable for: {{ term.applicableFor }}
-                      </div>
-                    </div>
-
-                    <v-chip
-                      v-if="term.mandatory"
-                      color="error"
-                      size="small"
-                      variant="tonal"
-                      class="mr-3"
-                    >
-                      Mandatory
-                    </v-chip>
-
-                  </div>
-                </v-expansion-panel-title>
-
-                <v-expansion-panel-text>
-                  <div class="term-content">
-
-                    <div class="text-body-2 text-medium-emphasis mb-4">
-                      {{ term.description }}
-                    </div>
-
-                    <div class="d-flex justify-end ga-2">
-                      <v-btn
-                        variant="text"
-                        size="small"
-                        prepend-icon="mdi-pencil-outline"
-                        @click="editTerm(term)"
-                      >
-                        Edit
-                      </v-btn>
-
-                      <v-btn
-                        variant="text"
-                        size="small"
-                        color="error"
-                        prepend-icon="mdi-delete-outline"
-                        @click="deleteTerm(term)"
-                      >
-                        Delete
-                      </v-btn>
-                    </div>
-
-                  </div>
-                </v-expansion-panel-text>
-
-              </v-expansion-panel>
-            </v-expansion-panels>
-
-            <div
-              v-if="!terms.length"
-              class="text-center pa-10"
-            >
-              <v-icon
-                size="52"
-                color="grey"
-                class="mb-3"
-              >
-                mdi-file-document-outline
-              </v-icon>
-
-              <div class="text-body-1 font-weight-medium">
-                No Terms & Conditions
-              </div>
-
-              <div class="text-body-2 text-medium-emphasis">
-                Click New to add a procurement term.
-              </div>
-            </div>
-
+                <v-btn
+                  icon="mdi-delete-outline"
+                  size="small"
+                  variant="text"
+                  color="error"
+                  @click="handleDeleteTerm(item)"
+                />
+              </template>
+            </v-data-table>
           </div>
-        </v-card>
-      </v-window-item>
+        </v-window-item>
 
-    </v-window>
+      </v-window>
+    </v-card>
 
     <!-- =========================================================
-         ADD ASSET / NEW ORDER DIALOG
-         ========================================================= -->
+         NEW / EDIT ORDER
+    ========================================================== -->
+
     <v-dialog
-      v-model="assetDialog"
-      max-width="900"
+      v-model="orderDialog"
+      max-width="1100"
       scrollable
     >
-      <v-card rounded="xl">
+      <v-card rounded="lg">
 
-        <v-card-title class="pa-5 d-flex align-center">
+        <v-card-title class="d-flex align-center pa-5">
           <div>
-            <div class="text-subtitle-1 font-weight-bold">
-              Add Asset
+            <div class="text-h6 font-weight-bold">
+              {{
+                editingOrderId
+                  ? "Edit Purchase Order"
+                  : "New Purchase Order"
+              }}
             </div>
 
-            <div class="text-caption text-medium-emphasis mt-1">
-              Add an asset or item to create a new purchase order.
+            <div class="text-caption text-medium-emphasis">
+              Add purchase order information and items.
             </div>
           </div>
 
@@ -899,8 +871,7 @@
           <v-btn
             icon="mdi-close"
             variant="text"
-            size="small"
-            @click="assetDialog = false"
+            @click="closeOrderDialog"
           />
         </v-card-title>
 
@@ -908,23 +879,110 @@
 
         <v-card-text class="pa-5">
 
-          <!-- Asset Information -->
-          <div class="section-title mb-4">
-            Asset Information
+          <div class="text-subtitle-1 font-weight-bold mb-4">
+            Order Information
+          </div>
+
+          <v-row>
+            <v-col
+              cols="12"
+              md="4"
+            >
+              <v-text-field
+                v-model="orderForm.orderType"
+                label="Order Type"
+                variant="outlined"
+                density="comfortable"
+              />
+            </v-col>
+
+            <v-col
+              cols="12"
+              md="4"
+            >
+              <v-select
+                v-model="orderForm.department"
+                :items="departments"
+                label="Department"
+                variant="outlined"
+                density="comfortable"
+                clearable
+              />
+            </v-col>
+
+            <v-col
+              cols="12"
+              md="4"
+            >
+              <v-text-field
+                :model-value="currentUser"
+                label="Requester"
+                variant="outlined"
+                density="comfortable"
+                readonly
+              />
+            </v-col>
+          </v-row>
+
+          <v-divider class="my-5" />
+
+          <div class="d-flex align-center justify-space-between mb-4">
+            <div>
+              <div class="text-subtitle-1 font-weight-bold">
+                Purchase Item
+              </div>
+
+              <div class="text-caption text-medium-emphasis">
+                Add item details below.
+              </div>
+            </div>
+
+            <v-chip
+              v-if="orderItems.length"
+              color="primary"
+              variant="tonal"
+            >
+              {{ orderItems.length }} items
+            </v-chip>
           </div>
 
           <v-row>
 
             <v-col
               cols="12"
-              md="6"
+              md="4"
             >
               <v-text-field
                 v-model="assetForm.asset"
                 label="Asset"
                 variant="outlined"
                 density="comfortable"
-                placeholder="e.g. Laptop Computer"
+              />
+            </v-col>
+
+            <v-col
+              cols="12"
+              md="4"
+            >
+              <v-select
+                v-model="assetForm.category"
+                :items="categories"
+                label="Category"
+                variant="outlined"
+                density="comfortable"
+              />
+            </v-col>
+
+            <v-col
+              cols="12"
+              md="4"
+            >
+              <v-select
+                v-model="assetForm.subcategory"
+                :items="subcategories"
+                label="Subcategory"
+                variant="outlined"
+                density="comfortable"
               />
             </v-col>
 
@@ -933,12 +991,11 @@
               md="6"
             >
               <v-select
-                v-model="assetForm.category"
-                label="Category *"
-                :items="categoryOptions"
+                v-model="assetForm.supplier"
+                :items="suppliers"
+                label="Vendor / Supplier"
                 variant="outlined"
                 density="comfortable"
-                clearable
               />
             </v-col>
 
@@ -947,54 +1004,12 @@
               md="6"
             >
               <v-text-field
-                v-model="assetForm.subcategory"
-                label="Subcategory"
-                variant="outlined"
-                density="comfortable"
-                placeholder="e.g. Notebook"
-              />
-            </v-col>
-
-            <v-col
-              cols="12"
-              md="6"
-            >
-              <v-select
-                v-model="assetForm.vendorSupplier"
-                label="Vendor / Supplier *"
-                :items="supplierOptions"
-                variant="outlined"
-                density="comfortable"
-                clearable
-              />
-            </v-col>
-
-            <v-col cols="12">
-              <v-textarea
                 v-model="assetForm.description"
-                label="Description / Specifications *"
+                label="Item Description / Specifications"
                 variant="outlined"
                 density="comfortable"
-                rows="5"
-                maxlength="2000"
-                counter
-                placeholder="Enter item description or specifications..."
               />
-
-              <div class="text-caption text-medium-emphasis mt-n3 mb-2">
-                {{ descriptionWordCount }} words |
-                {{ assetForm.description.length }} / 2000 characters
-              </div>
             </v-col>
-
-          </v-row>
-
-          <!-- Product Details -->
-          <div class="section-title mt-3 mb-4">
-            Product Details
-          </div>
-
-          <v-row>
 
             <v-col
               cols="12"
@@ -1005,7 +1020,6 @@
                 label="Brand"
                 variant="outlined"
                 density="comfortable"
-                placeholder="e.g. Dell"
               />
             </v-col>
 
@@ -1018,7 +1032,6 @@
                 label="Manufacturer"
                 variant="outlined"
                 density="comfortable"
-                placeholder="e.g. Dell Technologies"
               />
             </v-col>
 
@@ -1031,31 +1044,30 @@
                 label="Model"
                 variant="outlined"
                 density="comfortable"
-                placeholder="e.g. Latitude 5440"
               />
             </v-col>
 
             <v-col
               cols="12"
-              md="4"
+              md="3"
             >
               <v-text-field
                 v-model="assetForm.hsCode"
                 label="HS Code"
                 variant="outlined"
                 density="comfortable"
-                placeholder="HS Code"
               />
             </v-col>
 
             <v-col
               cols="12"
-              md="4"
+              sm="4"
+              md="2"
             >
               <v-select
                 v-model="assetForm.currency"
+                :items="currencies"
                 label="Currency"
-                :items="currencyOptions"
                 variant="outlined"
                 density="comfortable"
               />
@@ -1063,10 +1075,11 @@
 
             <v-col
               cols="12"
-              md="4"
+              sm="4"
+              md="2"
             >
               <v-text-field
-                v-model.number="assetForm.pieces"
+                v-model.number="assetForm.quantity"
                 label="Pieces"
                 type="number"
                 min="1"
@@ -1077,25 +1090,45 @@
 
             <v-col
               cols="12"
-              md="4"
+              sm="4"
+              md="2"
             >
               <v-text-field
-                v-model.number="assetForm.unitCost"
-                label="MYR / Unit Cost"
+                v-model.number="assetForm.unitPrice"
+                label="Unit Cost"
                 type="number"
                 min="0"
                 variant="outlined"
                 density="comfortable"
-                prefix="RM"
               />
             </v-col>
 
             <v-col
               cols="12"
-              md="4"
+              sm="6"
+              md="2"
             >
               <v-text-field
-                :model-value="formatCurrency(assetTotalCost)"
+                v-model.number="assetForm.discount"
+                label="Discount"
+                type="number"
+                min="0"
+                variant="outlined"
+                density="comfortable"
+              />
+            </v-col>
+
+            <v-col
+              cols="12"
+              sm="6"
+              md="3"
+            >
+              <v-text-field
+                :model-value="
+                  formatCurrency(
+                    currentItemTotal,
+                  )
+                "
                 label="Total Cost"
                 variant="outlined"
                 density="comfortable"
@@ -1109,11 +1142,10 @@
             >
               <v-select
                 v-model="assetForm.department"
-                label="Department *"
-                :items="departmentOptions"
+                :items="departments"
+                label="Item Department"
                 variant="outlined"
                 density="comfortable"
-                clearable
               />
             </v-col>
 
@@ -1130,117 +1162,188 @@
               />
             </v-col>
 
+            <v-col
+              cols="12"
+              md="4"
+            >
+              <v-select
+                v-model="assetForm.costSplit"
+                :items="costSplitOptions"
+                label="Cost Split"
+                variant="outlined"
+                density="comfortable"
+              />
+            </v-col>
+
+            <v-col cols="12">
+              <v-file-input
+                :model-value="assetForm.supportingDocuments"
+                label="Supporting Documents"
+                prepend-icon="mdi-paperclip"
+                variant="outlined"
+                density="comfortable"
+                multiple
+                show-size
+                @update:model-value="handleFileChange"
+              />
+            </v-col>
+
           </v-row>
 
-          <!-- Cost Split -->
-          <div class="section-title mt-3 mb-3">
-            Cost Split
-          </div>
-
-          <v-radio-group
-            v-model="assetForm.costSplit"
-            hide-details
-          >
-            <v-radio
-              label="Do not split cost"
-              value="none"
-            />
-
-            <v-radio
-              label="Split cost by quantity"
-              value="quantity"
-            />
-
-            <v-radio
-              label="Split cost by percentage (%)"
-              value="percentage"
-            />
-          </v-radio-group>
-
-          <!-- Supporting Documents -->
-          <div class="section-title mt-5 mb-3">
-            Supporting Documents
-          </div>
+          <!-- ADDED ITEMS -->
 
           <div
-            class="asset-upload"
-            :class="{ dragging: isDragging }"
-            @dragover.prevent="isDragging = true"
-            @dragleave.prevent="isDragging = false"
-            @drop.prevent="handleDrop"
-            @click="triggerFileInput"
+            v-if="orderItems.length"
+            class="mt-4"
           >
-            <input
-              ref="fileInput"
-              type="file"
-              multiple
-              hidden
-              @change="handleFileChange"
-            />
-
-            <v-icon
-              size="42"
-              color="primary"
-              class="mb-3"
-            >
-              mdi-cloud-upload-outline
-            </v-icon>
-
-            <div class="text-body-1 font-weight-medium">
-              Drag & Drop files here or click to upload
+            <div class="text-subtitle-2 font-weight-bold mb-3">
+              Added Items
             </div>
 
-            <div class="text-body-2 text-medium-emphasis mt-1">
-              Attach supporting documents (e.g. quotation & comparison)
-            </div>
-          </div>
-
-          <div
-            v-if="uploadedFiles.length"
-            class="d-flex flex-wrap ga-2 mt-3"
-          >
-            <v-chip
-              v-for="(file, index) in uploadedFiles"
-              :key="`${file.name}-${index}`"
-              closable
-              variant="tonal"
-              prepend-icon="mdi-file-outline"
-              @click:close="removeFile(index)"
+            <v-table
+              density="comfortable"
+              class="border rounded"
             >
-              {{ file.name }}
-            </v-chip>
+              <thead>
+                <tr>
+                  <th>Description</th>
+                  <th>Type</th>
+                  <th>Category</th>
+                  <th class="text-right">
+                    Quantity
+                  </th>
+                  <th class="text-right">
+                    Unit Price
+                  </th>
+                  <th class="text-right">
+                    Discount
+                  </th>
+                  <th class="text-right">
+                    Total
+                  </th>
+                  <th class="text-center">
+                    Action
+                  </th>
+                </tr>
+              </thead>
+
+              <tbody>
+                <tr
+                  v-for="(orderItem, index) in orderItems"
+                  :key="orderItem.id"
+                >
+                  <td>
+                    {{
+                      orderItem.description ||
+                      orderItem.asset ||
+                      "-"
+                    }}
+                  </td>
+
+                  <td>
+                    {{ orderItem.category || "-" }}
+                  </td>
+
+                  <td>
+                    {{ orderItem.subcategory || "-" }}
+                  </td>
+
+                  <td class="text-right">
+                    {{ orderItem.quantity }}
+                  </td>
+
+                  <td class="text-right">
+                    {{ formatCurrency(orderItem.unitPrice) }}
+                  </td>
+
+                  <td class="text-right">
+                    {{ formatCurrency(orderItem.discount) }}
+                  </td>
+
+                  <td class="text-right font-weight-bold">
+                    {{ formatCurrency(orderItem.totalAmount) }}
+                  </td>
+
+                  <td class="text-center">
+                    <v-btn
+                      icon="mdi-delete-outline"
+                      size="small"
+                      variant="text"
+                      color="error"
+                      @click="
+                        removeOrderItem(index)
+                      "
+                    />
+                  </td>
+                </tr>
+              </tbody>
+
+              <tfoot>
+                <tr>
+                  <td
+                    colspan="6"
+                    class="text-right font-weight-bold"
+                  >
+                    Total
+                  </td>
+
+                  <td class="text-right font-weight-bold">
+                    {{ formatCurrency(orderItemsTotal) }}
+                  </td>
+
+                  <td />
+                </tr>
+              </tfoot>
+            </v-table>
           </div>
 
-          <!-- Add Another -->
+          <v-divider class="my-5" />
+
+          <v-textarea
+            v-model="orderForm.notes"
+            label="Notes"
+            rows="3"
+            variant="outlined"
+            density="comfortable"
+          />
+
           <v-checkbox
-            v-model="assetForm.addAnotherItem"
+            v-model="addAnotherItem"
             label="Add another item?"
             hide-details
-            class="mt-4"
           />
 
         </v-card-text>
 
         <v-divider />
 
-        <v-card-actions class="pa-4">
+        <v-card-actions class="pa-5">
           <v-spacer />
 
           <v-btn
-            variant="outlined"
-            rounded="lg"
-            @click="assetDialog = false"
+            variant="text"
+            @click="closeOrderDialog"
           >
             Cancel
           </v-btn>
 
           <v-btn
+            variant="outlined"
             color="primary"
-            rounded="lg"
-            prepend-icon="mdi-content-save-outline"
-            @click="saveAssetOrder"
+            @click="addCurrentItem"
           >
-            Save Order
+            Add Item
+          </v-btn>
+
+          <v-btn
+            color="primary"
+            @click="saveOrder"
+          >
+            {{
+              editingOrderId
+                ? "Update Order"
+                : "Save Order"
+            }}
           </v-btn>
         </v-card-actions>
 
@@ -1248,23 +1351,242 @@
     </v-dialog>
 
     <!-- =========================================================
-         ADD / EDIT TERMS & CONDITIONS DIALOG
-         ========================================================= -->
+         VIEW ORDER
+    ========================================================== -->
+
+    <v-dialog
+      v-model="viewDialog"
+      max-width="1000"
+      scrollable
+    >
+      <v-card
+        v-if="selectedOrder"
+        rounded="lg"
+      >
+        <v-card-title class="d-flex align-center pa-5">
+          <div>
+            <div class="text-h6 font-weight-bold">
+              {{ selectedOrder.poNumber }}
+            </div>
+
+            <div class="text-caption text-medium-emphasis">
+              {{ selectedOrder.orderType }}
+            </div>
+          </div>
+
+          <v-spacer />
+
+          <v-chip
+            size="small"
+            variant="tonal"
+            :color="statusColor(selectedOrder.status)"
+          >
+            {{ selectedOrder.status }}
+          </v-chip>
+
+          <v-btn
+            icon="mdi-close"
+            variant="text"
+            class="ml-2"
+            @click="viewDialog = false"
+          />
+        </v-card-title>
+
+        <v-divider />
+
+        <v-card-text class="pa-5">
+
+          <v-row>
+            <v-col
+              cols="12"
+              md="4"
+            >
+              <div class="text-caption text-medium-emphasis">
+                Department
+              </div>
+
+              <div class="font-weight-medium">
+                {{ selectedOrder.department }}
+              </div>
+            </v-col>
+
+            <v-col
+              cols="12"
+              md="4"
+            >
+              <div class="text-caption text-medium-emphasis">
+                Supplier
+              </div>
+
+              <div class="font-weight-medium">
+                {{ selectedOrder.supplier }}
+              </div>
+            </v-col>
+
+            <v-col
+              cols="12"
+              md="4"
+            >
+              <div class="text-caption text-medium-emphasis">
+                Requester
+              </div>
+
+              <div class="font-weight-medium">
+                {{ selectedOrder.requester }}
+              </div>
+            </v-col>
+
+            <v-col
+              cols="12"
+              md="4"
+            >
+              <div class="text-caption text-medium-emphasis">
+                PO Date
+              </div>
+
+              <div class="font-weight-medium">
+                {{ formatDate(selectedOrder.poDate) }}
+              </div>
+            </v-col>
+
+            <v-col
+              cols="12"
+              md="4"
+            >
+              <div class="text-caption text-medium-emphasis">
+                Total
+              </div>
+
+              <div class="text-h6 font-weight-bold">
+                {{ formatCurrency(selectedOrder.totalAmount) }}
+              </div>
+            </v-col>
+          </v-row>
+
+          <v-divider class="my-5" />
+
+          <div class="text-subtitle-1 font-weight-bold mb-3">
+            Order Items
+          </div>
+
+          <v-table class="border rounded">
+            <thead>
+              <tr>
+                <th>Description</th>
+                <th>Type</th>
+                <th>Category</th>
+                <th class="text-right">
+                  Quantity
+                </th>
+                <th class="text-right">
+                  Unit Price
+                </th>
+                <th class="text-right">
+                  Discount
+                </th>
+                <th class="text-right">
+                  Total
+                </th>
+              </tr>
+            </thead>
+
+            <tbody>
+              <tr
+                v-for="orderItem in selectedOrder.items"
+                :key="orderItem.id"
+              >
+                <td>
+                  {{
+                    orderItem.description ||
+                    orderItem.asset ||
+                    "-"
+                  }}
+                </td>
+
+                <td>
+                  {{ orderItem.category || "-" }}
+                </td>
+
+                <td>
+                  {{ orderItem.subcategory || "-" }}
+                </td>
+
+                <td class="text-right">
+                  {{ orderItem.quantity }}
+                </td>
+
+                <td class="text-right">
+                  {{ formatCurrency(orderItem.unitPrice) }}
+                </td>
+
+                <td class="text-right">
+                  {{ formatCurrency(orderItem.discount) }}
+                </td>
+
+                <td class="text-right font-weight-bold">
+                  {{ formatCurrency(orderItem.totalAmount) }}
+                </td>
+              </tr>
+            </tbody>
+          </v-table>
+
+          <div
+            v-if="selectedOrder.notes"
+            class="mt-5"
+          >
+            <div class="text-caption text-medium-emphasis">
+              Notes
+            </div>
+
+            <div>
+              {{ selectedOrder.notes }}
+            </div>
+          </div>
+
+        </v-card-text>
+
+        <v-divider />
+
+        <v-card-actions class="pa-5">
+          <v-spacer />
+
+          <v-btn
+            variant="outlined"
+            prepend-icon="mdi-file-pdf-box"
+            @click="viewPdf(selectedOrder)"
+          >
+            View PDF
+          </v-btn>
+
+          <v-btn
+            v-if="selectedOrder.status === 'Draft'"
+            color="primary"
+            prepend-icon="mdi-pencil-outline"
+            @click="openEditOrder(selectedOrder)"
+          >
+            Edit
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- =========================================================
+         TERMS
+    ========================================================== -->
+
     <v-dialog
       v-model="termDialog"
       max-width="650"
     >
-      <v-card rounded="xl">
+      <v-card rounded="lg">
 
-        <v-card-title class="pa-5 d-flex align-center">
-          <div>
-            <div class="text-subtitle-1 font-weight-bold">
-              {{ editingTermId ? "Edit Terms & Conditions" : "Add Terms & Conditions" }}
-            </div>
-
-            <div class="text-caption text-medium-emphasis mt-1">
-              Define a procurement term and its applicability.
-            </div>
+        <v-card-title class="d-flex align-center pa-5">
+          <div class="text-h6 font-weight-bold">
+            {{
+              editingTermId
+                ? "Edit Term"
+                : "Add Term"
+            }}
           </div>
 
           <v-spacer />
@@ -1272,7 +1594,6 @@
           <v-btn
             icon="mdi-close"
             variant="text"
-            size="small"
             @click="termDialog = false"
           />
         </v-card-title>
@@ -1281,58 +1602,55 @@
 
         <v-card-text class="pa-5">
 
-          <v-select
-            v-model="termForm.applicableFor"
-            label="Applicable for"
-            :items="applicableForOptions"
-            variant="outlined"
-            density="comfortable"
-            clearable
-            class="mb-4"
-          />
-
           <v-text-field
             v-model="termForm.title"
-            label="Title *"
-            placeholder="e.g.: ABC Policy"
+            label="Title"
             variant="outlined"
             density="comfortable"
-            class="mb-4"
+            class="mb-3"
+          />
+
+          <v-select
+            v-model="termForm.applicableFor"
+            :items="applicableForOptions"
+            label="Applicable For"
+            variant="outlined"
+            density="comfortable"
+            class="mb-3"
           />
 
           <v-textarea
             v-model="termForm.description"
-            label="Description *"
+            label="Description"
+            rows="4"
             variant="outlined"
             density="comfortable"
-            rows="6"
-            maxlength="2000"
-            hide-details
-            placeholder="Enter terms and conditions..."
+            class="mb-3"
           />
 
-          <div class="text-caption text-medium-emphasis mt-2">
-            {{ termDescriptionWordCount }} words |
-            {{ termForm.description.length }} / 2000 characters
-          </div>
+          <v-text-field
+            v-model="termForm.lastUpdated"
+            label="Last Updated"
+            type="date"
+            variant="outlined"
+            density="comfortable"
+          />
 
           <v-checkbox
             v-model="termForm.mandatory"
-            label="Is Mandatory?"
+            label="Mandatory"
             hide-details
-            class="mt-4"
           />
 
         </v-card-text>
 
         <v-divider />
 
-        <v-card-actions class="pa-4">
+        <v-card-actions class="pa-5">
           <v-spacer />
 
           <v-btn
-            variant="outlined"
-            rounded="lg"
+            variant="text"
             @click="termDialog = false"
           >
             Cancel
@@ -1340,261 +1658,9 @@
 
           <v-btn
             color="primary"
-            rounded="lg"
-            prepend-icon="mdi-content-save-outline"
             @click="saveTerm"
           >
-            {{ editingTermId ? "Save Changes" : "Save" }}
-          </v-btn>
-        </v-card-actions>
-
-      </v-card>
-    </v-dialog>
-
-    <!-- =========================================================
-         PURCHASE ORDER DETAILS DIALOG
-         ========================================================= -->
-    <v-dialog
-      v-model="detailsDialog"
-      max-width="800"
-      scrollable
-    >
-      <v-card rounded="xl">
-
-        <v-card-title class="pa-5 d-flex align-center">
-          <span class="text-subtitle-1 font-weight-bold">
-            Purchase Order Details
-          </span>
-
-          <v-spacer />
-
-          <v-btn
-            icon="mdi-close"
-            variant="text"
-            size="small"
-            @click="detailsDialog = false"
-          />
-        </v-card-title>
-
-        <v-divider />
-
-        <v-card-text
-          v-if="selectedOrder"
-          class="pa-5"
-        >
-
-          <!-- PO Header -->
-          <div class="d-flex flex-wrap align-center ga-3 mb-6">
-
-            <div class="flex-grow-1">
-              <div class="text-h6 font-weight-bold">
-                {{ selectedOrder.poNumber }}
-              </div>
-
-              <div class="text-body-2 text-medium-emphasis">
-                {{ selectedOrder.orderType }}
-              </div>
-            </div>
-
-            <v-chip
-              :color="getStatusColor(selectedOrder.status)"
-              variant="tonal"
-            >
-              {{ selectedOrder.status }}
-            </v-chip>
-
-            <v-chip
-              :color="
-                getApprovalColor(
-                  selectedOrder.approvalStatus,
-                )
-              "
-              variant="tonal"
-            >
-              {{ selectedOrder.approvalStatus }}
-            </v-chip>
-
-          </div>
-
-          <!-- Details -->
-          <v-row>
-
-            <v-col
-              cols="12"
-              sm="6"
-            >
-              <div class="detail-box">
-                <div class="detail-label">
-                  Supplier
-                </div>
-
-                <div class="detail-value">
-                  {{ selectedOrder.supplier }}
-                </div>
-              </div>
-            </v-col>
-
-            <v-col
-              cols="12"
-              sm="6"
-            >
-              <div class="detail-box">
-                <div class="detail-label">
-                  Requester
-                </div>
-
-                <div class="detail-value">
-                  {{ selectedOrder.requester }}
-                </div>
-              </div>
-            </v-col>
-
-            <v-col
-              cols="12"
-              sm="6"
-            >
-              <div class="detail-box">
-                <div class="detail-label">
-                  Department
-                </div>
-
-                <div class="detail-value">
-                  {{ selectedOrder.department }}
-                </div>
-              </div>
-            </v-col>
-
-            <v-col
-              cols="12"
-              sm="6"
-            >
-              <div class="detail-box">
-                <div class="detail-label">
-                  PO Date
-                </div>
-
-                <div class="detail-value">
-                  {{ formatDate(selectedOrder.poDate) }}
-                </div>
-              </div>
-            </v-col>
-
-            <v-col
-              cols="12"
-              sm="6"
-            >
-              <div class="detail-box">
-                <div class="detail-label">
-                  Delivery Date
-                </div>
-
-                <div class="detail-value">
-                  {{ formatDate(selectedOrder.deliveryDate) }}
-                </div>
-              </div>
-            </v-col>
-
-            <v-col
-              cols="12"
-              sm="6"
-            >
-              <div class="detail-box">
-                <div class="detail-label">
-                  Total Amount
-                </div>
-
-                <div class="detail-value">
-                  {{ formatCurrency(selectedOrder.totalAmount) }}
-                </div>
-              </div>
-            </v-col>
-
-          </v-row>
-
-          <!-- Items -->
-          <div class="section-title mt-6 mb-3">
-            Order Items
-          </div>
-
-          <div class="order-items">
-
-            <div
-              v-for="(item, index) in selectedOrder.items"
-              :key="`${item.item}-${index}`"
-              class="order-item"
-            >
-              <div class="d-flex align-start ga-3">
-
-                <v-avatar
-                  size="36"
-                  color="primary"
-                  variant="tonal"
-                >
-                  <span class="text-caption font-weight-bold">
-                    {{ index + 1 }}
-                  </span>
-                </v-avatar>
-
-                <div class="flex-grow-1">
-                  <div class="font-weight-medium">
-                    {{ item.description }}
-                  </div>
-
-                  <div class="text-caption text-medium-emphasis">
-                    {{ item.item }}
-                  </div>
-                </div>
-
-                <div class="text-right">
-                  <div class="font-weight-medium">
-                    {{ item.quantity }} ×
-                    {{ formatCurrency(item.unitPrice) }}
-                  </div>
-
-                  <div class="text-caption text-medium-emphasis">
-                    {{ formatCurrency(item.quantity * item.unitPrice) }}
-                  </div>
-                </div>
-
-              </div>
-            </div>
-
-          </div>
-
-          <!-- Notes -->
-          <div class="section-title mt-6 mb-3">
-            Notes
-          </div>
-
-          <div class="detail-box">
-            <div class="detail-value text-body-2">
-              {{ selectedOrder.notes || "-" }}
-            </div>
-          </div>
-
-        </v-card-text>
-
-        <v-divider />
-
-        <v-card-actions class="pa-4">
-          <v-spacer />
-
-          <v-btn
-            variant="outlined"
-            rounded="lg"
-            @click="detailsDialog = false"
-          >
-            Close
-          </v-btn>
-
-          <v-btn
-            v-if="selectedOrder?.status === 'Draft'"
-            color="primary"
-            rounded="lg"
-            prepend-icon="mdi-pencil-outline"
-            @click="editSelectedOrder"
-          >
-            Edit
+            Save
           </v-btn>
         </v-card-actions>
 
@@ -1603,18 +1669,20 @@
 
     <!-- =========================================================
          SNACKBAR
-         ========================================================= -->
+    ========================================================== -->
+
     <v-snackbar
-      v-model="snackbar"
-      :timeout="3000"
-      :color="snackbarColor"
+      v-model="snackbar.show"
+      :color="snackbar.color"
+      location="bottom right"
+      timeout="3000"
     >
-      {{ snackbarMessage }}
+      {{ snackbar.message }}
 
       <template #actions>
         <v-btn
           variant="text"
-          @click="snackbar = false"
+          @click="snackbar.show = false"
         >
           Close
         </v-btn>
@@ -1625,1551 +1693,1561 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from "vue"
-import AppSummaryCard from "@/components/common/AppSummaryCard.vue"
+import {
+  computed,
+  ref,
+  watch,
+} from "vue"
 
-/* */
+import {
+  usePurchaseOrders,
+  type AssetForm,
+  type PurchaseOrder,
+  type PurchaseOrderItem,
+  type TermsCondition,
+} from "@/composables/usePurchaseOrders"
 
-type POStatus =
-  | "Draft"
-  | "Pending Approval"
-  | "Approved"
-  | "Ordered"
-  | "Partially Received"
-  | "Completed"
-  | "Cancelled"
+const {
+  orders,
+  terms,
+  currentUser,
 
-type ApprovalStatus =
-  | "Pending"
-  | "Approved"
-  | "Rejected"
+  departments,
+  suppliers,
+  categories,
+  subcategories,
+  statuses,
+  currencies,
+  costSplitOptions,
+  applicableForOptions,
 
-type CostSplit =
-  | "none"
-  | "quantity"
-  | "percentage"
+  totalOrders,
+  approvedOrders,
+  totalValue,
+  myOrders,
+  departmentCards,
 
-interface PurchaseOrderItem {
-  item: string
-  description: string
-  quantity: number
-  unitPrice: number
-}
+  createEmptyAsset,
+  createItemFromForm,
 
-interface PurchaseOrder {
-  id: string
-  poNumber: string
-  orderType: string
+  createOrder,
+  updateOrder,
+  deleteOrder,
+  cloneOrder,
+
+  addTerm,
+  updateTerm,
+  deleteTerm,
+} = usePurchaseOrders()
+
+/* ================================================================
+   TABS
+================================================================ */
+
+const activeTab =
+  ref("all")
+
+/* ================================================================
+   FILTERS
+================================================================ */
+
+const filters = ref<{
+  search: string
+  department: string
   supplier: string
-  requester: string
-  department: string
-  poDate: string
-  deliveryDate: string
-  totalAmount: number
-  status: POStatus
-  approvalStatus: ApprovalStatus
-  items: PurchaseOrderItem[]
-  notes: string
-}
-
-interface AssetForm {
-  asset: string
-  category: string
-  subcategory: string
-  vendorSupplier: string
-  description: string
-  brand: string
-  manufacturer: string
-  model: string
-  hsCode: string
-  currency: string
-  department: string
-  requiredDeliveryDate: string
-  pieces: number
-  unitCost: number
-  costSplit: CostSplit
-  addAnotherItem: boolean
-}
-
-interface TermItem {
-  id: string
-  applicableFor: string
-  title: string
-  description: string
-  mandatory: boolean
-}
-
-interface TermForm {
-  applicableFor: string
-  title: string
-  description: string
-  mandatory: boolean
-}
-
-/* */
-
-const tab = ref("all")
-
-const search = ref("")
-const page = ref(1)
-const itemsPerPage = 10
-
-const filterMenu = ref(false)
-
-const detailsDialog = ref(false)
-const selectedOrder = ref<PurchaseOrder | null>(null)
-
-const assetDialog = ref(false)
-
-const termDialog = ref(false)
-const editingTermId = ref<string | null>(null)
-
-const snackbar = ref(false)
-const snackbarMessage = ref("")
-const snackbarColor = ref("success")
-
-const currentUser = ref("Muhammad Aiman")
-
-const fileInput = ref<HTMLInputElement | null>(null)
-const isDragging = ref(false)
-const uploadedFiles = ref<File[]>([])
-
-const filters = ref({
-  department: null as string | null,
-  supplier: null as string | null,
-  status: null as POStatus | null,
-  approvalStatus: null as ApprovalStatus | null,
+  status: any | null
+}>({
+  search: "",
+  department: "",
+  supplier: "",
+  status: null,
 })
 
-/* */
-
-function createEmptyAssetForm(): AssetForm {
-  return {
-    asset: "",
-    category: "",
-    subcategory: "",
-    vendorSupplier: "",
-    description: "",
-    brand: "",
-    manufacturer: "",
-    model: "",
-    hsCode: "",
-    currency: "MYR — Malaysian Ringgit",
+const clearFilters = () => {
+  filters.value = {
+    search: "",
     department: "",
-    requiredDeliveryDate: "",
-    pieces: 1,
-    unitCost: 0,
-    costSplit: "none",
-    addAnotherItem: false,
+    supplier: "",
+    status: null,
   }
 }
 
-const assetForm = ref<AssetForm>(
-  createEmptyAssetForm(),
-)
+/* ================================================================
+   HEADERS
+================================================================ */
 
-/* */
-
-function createEmptyTermForm(): TermForm {
-  return {
-    applicableFor: "All Purchase Orders",
-    title: "",
-    description: "",
-    mandatory: false,
-  }
-}
-
-const termForm = ref<TermForm>(
-  createEmptyTermForm(),
-)
-
-/* */
-
-const headers = [
+const orderHeaders = [
   {
-    title: "PO Number",
+    title: "Code",
     key: "poNumber",
-    sortable: false,
-    minWidth: 180,
   },
+
   {
-    title: "Supplier",
-    key: "supplier",
-    sortable: false,
-    minWidth: 220,
+    title: "Purpose",
+    key: "orderType",
   },
+
   {
     title: "Department",
     key: "department",
-    sortable: false,
-    minWidth: 210,
   },
+
   {
-    title: "PO Date",
-    key: "poDate",
-    sortable: false,
-    minWidth: 120,
+    title: "Vendor / Supplier",
+    key: "supplier",
   },
+
   {
-    title: "Total Amount",
-    key: "totalAmount",
-    sortable: false,
-    minWidth: 150,
+    title: "Issuer",
+    key: "requester",
   },
+
   {
-    title: "PO Status",
+    title: "Status",
     key: "status",
-    sortable: false,
-    minWidth: 150,
   },
+
   {
-    title: "Approval",
-    key: "approvalStatus",
-    sortable: false,
-    minWidth: 130,
+    title: "Total",
+    key: "totalAmount",
+    align: "end" as const,
   },
+
+  {
+    title: "Modified",
+    key: "poDate",
+  },
+
+  /*
+   * IMPORTANT:
+   * Jangan letak data-table-expand dekat sini.
+   * show-expand akan create column tersebut automatically.
+   */
   {
     title: "Actions",
     key: "actions",
     sortable: false,
+  },
+]
+
+const myOrderHeaders = [
+  {
+    title: "Code",
+    key: "poNumber",
+  },
+
+  {
+    title: "Purpose",
+    key: "orderType",
+  },
+
+  {
+    title: "Department",
+    key: "department",
+  },
+
+  {
+    title: "Supplier",
+    key: "supplier",
+  },
+
+  {
+    title: "Status",
+    key: "status",
+  },
+
+  {
+    title: "Total",
+    key: "totalAmount",
     align: "end" as const,
-    minWidth: 140,
+  },
+
+  {
+    title: "Date",
+    key: "poDate",
+  },
+
+  {
+    title: "Actions",
+    key: "actions",
+    sortable: false,
   },
 ]
 
-/* */
+const termHeaders = [
+  {
+    title: "Title",
+    key: "title",
+  },
 
-const departmentOptions = [
-  "Information Technology",
-  "Human Resource",
-  "Finance",
-  "Procurement",
-  "Sales & Marketing",
-  "Quality Assurance",
-  "Production",
-  "Regulatory Affairs",
-  "Corporate Affairs",
+  {
+    title: "Applicable For",
+    key: "applicableFor",
+  },
+
+  {
+    title: "Description",
+    key: "description",
+  },
+
+  {
+    title: "Last Updated",
+    key: "lastUpdated",
+  },
+
+  {
+    title: "Mandatory",
+    key: "mandatory",
+  },
+
+  {
+    title: "Actions",
+    key: "actions",
+    sortable: false,
+  },
 ]
 
-const supplierOptions = [
-  "ABC Office Supplies Sdn Bhd",
-  "Tech Solutions Sdn Bhd",
-  "Kotra Medical Supplies",
-  "Mega Stationery Sdn Bhd",
-  "Secure Network Systems",
-  "Office Furniture Enterprise",
-]
+/* ================================================================
+   FILTERED ORDERS
+================================================================ */
 
-const categoryOptions = [
-  "IT Equipment",
-  "Office Supplies",
-  "Furniture",
-  "Network Services",
-  "Marketing Materials",
-  "Production Supplies",
-  "Quality Equipment",
-  "Software",
-  "Professional Services",
-  "Others",
-]
+const filteredOrders =
+  computed(() => {
+    const search =
+      filters.value.search
+        .trim()
+        .toLowerCase()
 
-const currencyOptions = [
-  "MYR — Malaysian Ringgit",
-  "USD — US Dollar",
-  "SGD — Singapore Dollar",
-  "EUR — Euro",
-  "GBP — British Pound",
-]
+    return orders.value.filter(
+      (order) => {
+        const searchableText = [
+          order.poNumber,
+          order.orderType,
+          order.department,
+          order.supplier,
+          order.requester,
+          order.status,
+        ]
+          .join(" ")
+          .toLowerCase()
 
-const statusOptions: POStatus[] = [
-  "Draft",
-  "Pending Approval",
-  "Approved",
-  "Ordered",
-  "Partially Received",
-  "Completed",
-  "Cancelled",
-]
+        const matchesSearch =
+          !search ||
+          searchableText.includes(
+            search,
+          )
 
-const approvalStatusOptions: ApprovalStatus[] = [
-  "Pending",
-  "Approved",
-  "Rejected",
-]
+        const matchesDepartment =
+          !filters.value.department ||
+          order.department ===
+            filters.value.department
 
-const applicableForOptions = [
-  "All Purchase Orders",
-  "IT Equipment",
-  "Office Supplies",
-  "Furniture",
-  "Network Services",
-  "Marketing Materials",
-  "Production Supplies",
-  "Quality Equipment",
-  "Software",
-  "Professional Services",
-]
+        const matchesSupplier =
+          !filters.value.supplier ||
+          order.supplier ===
+            filters.value.supplier
 
-/* */
+        const matchesStatus =
+          !filters.value.status ||
+          order.status ===
+            filters.value.status
 
-const orders = ref<PurchaseOrder[]>([
-  {
-    id: "PO-001",
-    poNumber: "PO-2026-0001",
-    orderType: "General Purchase",
-    supplier: "Tech Solutions Sdn Bhd",
-    requester: "Muhammad Aiman",
-    department: "Information Technology",
-    poDate: "2026-09-02",
-    deliveryDate: "2026-09-15",
-    totalAmount: 12500,
-    status: "Approved",
-    approvalStatus: "Approved",
-    items: [
-      {
-        item: "IT-001",
-        description: "Desktop Computer",
-        quantity: 5,
-        unitPrice: 1800,
+
+        return (
+          matchesSearch &&
+          matchesDepartment &&
+          matchesSupplier &&
+          matchesStatus         
+        )
       },
-      {
-        item: "IT-002",
-        description: "27-inch Monitor",
-        quantity: 5,
-        unitPrice: 700,
-      },
-    ],
-    notes: "IT equipment purchase for new employee onboarding.",
-  },
-
-  {
-    id: "PO-002",
-    poNumber: "PO-2026-0002",
-    orderType: "Office Supplies",
-    supplier: "ABC Office Supplies Sdn Bhd",
-    requester: "Farah Nadia",
-    department: "Human Resource",
-    poDate: "2026-09-04",
-    deliveryDate: "2026-09-12",
-    totalAmount: 4250,
-    status: "Pending Approval",
-    approvalStatus: "Pending",
-    items: [
-      {
-        item: "HR-001",
-        description: "Office Files",
-        quantity: 100,
-        unitPrice: 15,
-      },
-      {
-        item: "HR-002",
-        description: "Printer Paper",
-        quantity: 50,
-        unitPrice: 55,
-      },
-    ],
-    notes: "Monthly office supplies for HR department.",
-  },
-
-  {
-    id: "PO-003",
-    poNumber: "PO-2026-0003",
-    orderType: "IT Equipment",
-    supplier: "Secure Network Systems",
-    requester: "Daniel Tan",
-    department: "Information Technology",
-    poDate: "2026-08-25",
-    deliveryDate: "2026-09-10",
-    totalAmount: 18900,
-    status: "Ordered",
-    approvalStatus: "Approved",
-    items: [
-      {
-        item: "NET-001",
-        description: "Network Switch",
-        quantity: 3,
-        unitPrice: 3500,
-      },
-      {
-        item: "NET-002",
-        description: "Network Access Point",
-        quantity: 6,
-        unitPrice: 1300,
-      },
-    ],
-    notes: "Network infrastructure upgrade.",
-  },
-
-  {
-    id: "PO-004",
-    poNumber: "PO-2026-0004",
-    orderType: "Furniture",
-    supplier: "Office Furniture Enterprise",
-    requester: "Jason Lim",
-    department: "Finance",
-    poDate: "2026-08-20",
-    deliveryDate: "2026-09-05",
-    totalAmount: 8750,
-    status: "Completed",
-    approvalStatus: "Approved",
-    items: [
-      {
-        item: "FIN-001",
-        description: "Office Desk",
-        quantity: 5,
-        unitPrice: 950,
-      },
-      {
-        item: "FIN-002",
-        description: "Office Chair",
-        quantity: 5,
-        unitPrice: 800,
-      },
-    ],
-    notes: "Replacement furniture for Finance department.",
-  },
-
-  {
-    id: "PO-005",
-    poNumber: "PO-2026-0005",
-    orderType: "IT Equipment",
-    supplier: "Kotra Medical Supplies",
-    requester: "Muhammad Aiman",
-    department: "Information Technology",
-    poDate: "2026-09-08",
-    deliveryDate: "2026-09-22",
-    totalAmount: 6300,
-    status: "Pending Approval",
-    approvalStatus: "Pending",
-    items: [
-      {
-        item: "IT-003",
-        description: "Laptop Computer",
-        quantity: 2,
-        unitPrice: 3150,
-      },
-    ],
-    notes: "Laptop replacement and new user setup.",
-  },
-
-  {
-    id: "PO-006",
-    poNumber: "PO-2026-0006",
-    orderType: "Office Supplies",
-    supplier: "Mega Stationery Sdn Bhd",
-    requester: "Aina Rahman",
-    department: "Procurement",
-    poDate: "2026-08-15",
-    deliveryDate: "2026-08-25",
-    totalAmount: 2800,
-    status: "Completed",
-    approvalStatus: "Approved",
-    items: [
-      {
-        item: "PRC-001",
-        description: "Stationery Supplies",
-        quantity: 1,
-        unitPrice: 2800,
-      },
-    ],
-    notes: "General stationery supplies.",
-  },
-
-  {
-    id: "PO-007",
-    poNumber: "PO-2026-0007",
-    orderType: "Network Services",
-    supplier: "Secure Network Systems",
-    requester: "Muhammad Aiman",
-    department: "Information Technology",
-    poDate: "2026-09-10",
-    deliveryDate: "2026-09-30",
-    totalAmount: 15200,
-    status: "Draft",
-    approvalStatus: "Pending",
-    items: [
-      {
-        item: "NET-003",
-        description: "Network Security Service",
-        quantity: 1,
-        unitPrice: 15200,
-      },
-    ],
-    notes: "Annual network security service renewal.",
-  },
-
-  {
-    id: "PO-008",
-    poNumber: "PO-2026-0008",
-    orderType: "Marketing Materials",
-    supplier: "ABC Office Supplies Sdn Bhd",
-    requester: "Michelle Wong",
-    department: "Sales & Marketing",
-    poDate: "2026-08-28",
-    deliveryDate: "2026-09-08",
-    totalAmount: 5400,
-    status: "Partially Received",
-    approvalStatus: "Approved",
-    items: [
-      {
-        item: "MKT-001",
-        description: "Promotional Materials",
-        quantity: 1,
-        unitPrice: 5400,
-      },
-    ],
-    notes: "Marketing materials for company campaign.",
-  },
-
-  {
-    id: "PO-009",
-    poNumber: "PO-2026-0009",
-    orderType: "Production Supplies",
-    supplier: "Kotra Medical Supplies",
-    requester: "Hafiz Rahman",
-    department: "Production",
-    poDate: "2026-09-01",
-    deliveryDate: "2026-09-18",
-    totalAmount: 22100,
-    status: "Approved",
-    approvalStatus: "Approved",
-    items: [
-      {
-        item: "PRD-001",
-        description: "Production Materials",
-        quantity: 1,
-        unitPrice: 22100,
-      },
-    ],
-    notes: "Production material replenishment.",
-  },
-
-  {
-    id: "PO-010",
-    poNumber: "PO-2026-0010",
-    orderType: "Quality Equipment",
-    supplier: "Tech Solutions Sdn Bhd",
-    requester: "Syafiq Ismail",
-    department: "Quality Assurance",
-    poDate: "2026-08-30",
-    deliveryDate: "2026-09-20",
-    totalAmount: 9800,
-    status: "Cancelled",
-    approvalStatus: "Rejected",
-    items: [
-      {
-        item: "QA-001",
-        description: "Quality Testing Equipment",
-        quantity: 1,
-        unitPrice: 9800,
-      },
-    ],
-    notes: "Order cancelled following budget review.",
-  },
-])
-
-/* */
-
-const terms = ref<TermItem[]>([
-  {
-    id: "01",
-    applicableFor: "All Purchase Orders",
-    title: "Purchase Order Acceptance",
-    description:
-      "The supplier is required to acknowledge and accept the purchase order before processing the requested goods or services.",
-    mandatory: true,
-  },
-
-  {
-    id: "02",
-    applicableFor: "All Purchase Orders",
-    title: "Pricing and Payment",
-    description:
-      "Prices stated in the purchase order shall remain valid according to the agreed quotation. Payment will be processed according to the approved company payment terms.",
-    mandatory: true,
-  },
-
-  {
-    id: "03",
-    applicableFor: "All Purchase Orders",
-    title: "Delivery Requirements",
-    description:
-      "Goods or services must be delivered according to the delivery date, location and requirements stated in the purchase order.",
-    mandatory: true,
-  },
-
-  {
-    id: "04",
-    applicableFor: "All Purchase Orders",
-    title: "Quality Requirements",
-    description:
-      "All supplied goods and services must meet the specifications, quality standards and requirements stated in the purchase order.",
-    mandatory: true,
-  },
-
-  {
-    id: "05",
-    applicableFor: "All Purchase Orders",
-    title: "Documentation",
-    description:
-      "The supplier shall provide the required delivery order, invoice and other supporting documents for verification and payment processing.",
-    mandatory: false,
-  },
-
-  {
-    id: "06",
-    applicableFor: "All Purchase Orders",
-    title: "Changes to Purchase Order",
-    description:
-      "Any changes to quantity, pricing, delivery date or specifications must receive prior approval before implementation.",
-    mandatory: true,
-  },
-
-  {
-    id: "07",
-    applicableFor: "All Purchase Orders",
-    title: "Cancellation",
-    description:
-      "The company may cancel a purchase order subject to the applicable procurement terms and conditions.",
-    mandatory: false,
-  },
-
-  {
-    id: "08",
-    applicableFor: "All Purchase Orders",
-    title: "Compliance",
-    description:
-      "Suppliers are required to comply with applicable company policies, procurement requirements and relevant laws and regulations.",
-    mandatory: true,
-  },
-])
-
-/* */
-
-const totalOrders = computed(() => {
-  return orders.value.length
-})
-
-const pendingApproval = computed(() => {
-  return orders.value.filter(
-    (order) => order.approvalStatus === "Pending",
-  ).length
-})
-
-const approvedOrders = computed(() => {
-  return orders.value.filter(
-    (order) => order.approvalStatus === "Approved",
-  ).length
-})
-
-const totalValue = computed(() => {
-  return orders.value.reduce(
-    (total, order) => total + order.totalAmount,
-    0,
-  )
-})
-
-const myOrders = computed(() => {
-  return orders.value.filter(
-    (order) => order.requester === currentUser.value,
-  )
-})
-
-const activeFilterCount = computed(() => {
-  return Object.values(filters.value).filter(Boolean).length
-})
-
-const filteredOrders = computed(() => {
-  const keyword = search.value
-    .trim()
-    .toLowerCase()
-
-  return orders.value.filter((order) => {
-
-    const matchesSearch =
-      !keyword ||
-      [
-        order.poNumber,
-        order.orderType,
-        order.supplier,
-        order.requester,
-        order.department,
-        order.status,
-        order.approvalStatus,
-      ].some((value) =>
-        value.toLowerCase().includes(keyword),
-      )
-
-    const matchesDepartment =
-      !filters.value.department ||
-      order.department === filters.value.department
-
-    const matchesSupplier =
-      !filters.value.supplier ||
-      order.supplier === filters.value.supplier
-
-    const matchesStatus =
-      !filters.value.status ||
-      order.status === filters.value.status
-
-    const matchesApproval =
-      !filters.value.approvalStatus ||
-      order.approvalStatus ===
-        filters.value.approvalStatus
-
-    return (
-      matchesSearch &&
-      matchesDepartment &&
-      matchesSupplier &&
-      matchesStatus &&
-      matchesApproval
     )
   })
-})
 
-const pageCount = computed(() => {
-  return Math.max(
-    1,
-    Math.ceil(
-      filteredOrders.value.length /
-        itemsPerPage,
-    ),
+/* ================================================================
+   EXPANDED ROW
+================================================================ */
+
+const expandedOrders =
+  ref<string[]>([])
+
+watch(
+  filters,
+  () => {
+    expandedOrders.value = []
+  },
+  {
+    deep: true,
+  },
+)
+
+/* ================================================================
+   ORDER FORM
+================================================================ */
+
+const orderDialog =
+  ref(false)
+
+const editingOrderId =
+  ref<string | null>(null)
+
+const assetForm =
+  ref<AssetForm>(
+    createEmptyAsset(),
   )
-})
 
-const paginationStart = computed(() => {
-  if (!filteredOrders.value.length) {
-    return 0
+const orderItems =
+  ref<PurchaseOrderItem[]>([])
+
+const orderForm =
+  ref({
+    orderType:
+      "Purchase Order",
+
+    department: "",
+
+    notes: "",
+  })
+
+const addAnotherItem =
+  ref(false)
+
+/* ================================================================
+   TOTALS
+================================================================ */
+
+const currentItemTotal =
+  computed(() => {
+    return Math.max(
+      0,
+
+      Number(
+        assetForm.value.quantity ||
+          0,
+      ) *
+        Number(
+          assetForm.value.unitPrice ||
+            0,
+        ) -
+        Number(
+          assetForm.value.discount ||
+            0,
+        ),
+    )
+  })
+
+const orderItemsTotal =
+  computed(() => {
+    return orderItems.value.reduce(
+      (sum, item) =>
+        sum +
+        Number(
+          item.totalAmount || 0,
+        ),
+      0,
+    )
+  })
+
+/* ================================================================
+   NEW ORDER
+================================================================ */
+
+const openNewOrder =
+  () => {
+    editingOrderId.value =
+      null
+
+    orderForm.value = {
+      orderType:
+        "Purchase Order",
+
+      department: "",
+
+      notes: "",
+    }
+
+    assetForm.value =
+      createEmptyAsset()
+
+    orderItems.value = []
+
+    addAnotherItem.value =
+      false
+
+    orderDialog.value =
+      true
   }
 
-  return (
-    (page.value - 1) * itemsPerPage + 1
-  )
-})
+const closeOrderDialog =
+  () => {
+    orderDialog.value =
+      false
 
-const paginationEnd = computed(() => {
-  return Math.min(
-    page.value * itemsPerPage,
-    filteredOrders.value.length,
-  )
-})
+    editingOrderId.value =
+      null
 
-const departmentCards = computed(() => {
-  return departmentOptions.map(
-    (department) => {
-      const departmentOrders =
-        orders.value.filter(
-          (order) =>
-            order.department ===
-            department,
-        )
+    orderItems.value = []
 
-      const requesters = new Set(
-        departmentOrders.map(
-          (order) => order.requester,
+    assetForm.value =
+      createEmptyAsset()
+  }
+
+/* ================================================================
+   EDIT ORDER
+================================================================ */
+
+const openEditOrder = (
+  order: PurchaseOrder,
+) => {
+  if (
+    order.status !==
+    "Draft"
+  ) {
+    showSnackbar(
+      "Only Draft orders can be edited.",
+      "warning",
+    )
+
+    return
+  }
+
+  editingOrderId.value =
+    order.id
+
+  orderForm.value = {
+    orderType:
+      order.orderType,
+
+    department:
+      order.department,
+
+    notes:
+      order.notes,
+  }
+
+  /*
+   * Load ALL existing items.
+   * This fixes the previous issue where
+   * the first item could be duplicated.
+   */
+  orderItems.value =
+    order.items.map(
+      (item) => ({
+        ...item,
+
+        supportingDocuments: [
+          ...item.supportingDocuments,
+        ],
+      }),
+    )
+
+  assetForm.value =
+    createEmptyAsset()
+
+  assetForm.value.department =
+    order.department
+
+  addAnotherItem.value =
+    false
+
+  orderDialog.value =
+    true
+}
+
+/* ================================================================
+   VALIDATE ITEM
+================================================================ */
+
+const validateItem =
+  () => {
+    if (
+      !assetForm.value.asset.trim()
+    ) {
+      showSnackbar(
+        "Please enter the asset.",
+        "warning",
+      )
+
+      return false
+    }
+
+    if (
+      !assetForm.value.supplier
+    ) {
+      showSnackbar(
+        "Please select a supplier.",
+        "warning",
+      )
+
+      return false
+    }
+
+    if (
+      !orderForm.value.department
+    ) {
+      showSnackbar(
+        "Please select a department.",
+        "warning",
+      )
+
+      return false
+    }
+
+    if (
+      Number(
+        assetForm.value.quantity,
+      ) <= 0
+    ) {
+      showSnackbar(
+        "Quantity must be greater than 0.",
+        "warning",
+      )
+
+      return false
+    }
+
+    if (
+      Number(
+        assetForm.value.unitPrice,
+      ) < 0
+    ) {
+      showSnackbar(
+        "Unit price cannot be negative.",
+        "warning",
+      )
+
+      return false
+    }
+
+    if (
+      Number(
+        assetForm.value.discount,
+      ) < 0
+    ) {
+      showSnackbar(
+        "Discount cannot be negative.",
+        "warning",
+      )
+
+      return false
+    }
+
+    return true
+  }
+
+/* ================================================================
+   ADD CURRENT ITEM
+================================================================ */
+
+const addCurrentItem =
+  () => {
+    if (!validateItem()) {
+      return
+    }
+
+    if (
+      !assetForm.value.department
+    ) {
+      assetForm.value.department =
+        orderForm.value.department
+    }
+
+    const item =
+      createItemFromForm(
+        assetForm.value,
+      )
+
+    orderItems.value.push(
+      item,
+    )
+
+    assetForm.value =
+      createEmptyAsset()
+
+    assetForm.value.department =
+      orderForm.value.department
+
+    showSnackbar(
+      "Item added.",
+      "success",
+    )
+  }
+
+/* ================================================================
+   REMOVE ITEM
+================================================================ */
+
+const removeOrderItem =
+  (index: number) => {
+    orderItems.value.splice(
+      index,
+      1,
+    )
+
+    showSnackbar(
+      "Item removed.",
+      "success",
+    )
+  }
+
+/* ================================================================
+   SAVE ORDER
+================================================================ */
+
+const saveOrder =
+  () => {
+    /*
+     * If current item contains data,
+     * add it automatically.
+     */
+    if (
+      assetForm.value.asset.trim()
+    ) {
+      if (!validateItem()) {
+        return
+      }
+
+      if (
+        !assetForm.value.department
+      ) {
+        assetForm.value.department =
+          orderForm.value.department
+      }
+
+      orderItems.value.push(
+        createItemFromForm(
+          assetForm.value,
         ),
       )
 
-      const totalValue =
-        departmentOrders.reduce(
-          (sum, order) =>
-            sum + order.totalAmount,
-          0,
-        )
-
-      const pending =
-        departmentOrders.filter(
-          (order) =>
-            order.approvalStatus ===
-            "Pending",
-        ).length
-
-      return {
-        name: department,
-        orderCount:
-          departmentOrders.length,
-        requesterCount:
-          requesters.size,
-        totalValue,
-        pending,
-      }
-    },
-  )
-})
-
-const descriptionWordCount = computed(() => {
-  return countWords(
-    assetForm.value.description,
-  )
-})
-
-const assetTotalCost = computed(() => {
-  const pieces =
-    Number(assetForm.value.pieces) || 0
-
-  const unitCost =
-    Number(assetForm.value.unitCost) || 0
-
-  return Math.max(0, pieces) *
-    Math.max(0, unitCost)
-})
-
-const termDescriptionWordCount = computed(() => {
-  return countWords(
-    termForm.value.description,
-  )
-})
-
-/* */
-
-watch(
-  [
-    search,
-    () => filters.value.department,
-    () => filters.value.supplier,
-    () => filters.value.status,
-    () => filters.value.approvalStatus,
-  ],
-  () => {
-    page.value = 1
-  },
-)
-
-watch(
-  pageCount,
-  () => {
-    if (page.value > pageCount.value) {
-      page.value = pageCount.value
-    }
-  },
-)
-
-/* */
-
-function countWords(value: string) {
-  const trimmed = value.trim()
-
-  if (!trimmed) {
-    return 0
-  }
-
-  return trimmed.split(/\s+/).length
-}
-
-function formatCurrency(value: number) {
-  return new Intl.NumberFormat(
-    "en-MY",
-    {
-      style: "currency",
-      currency: "MYR",
-      minimumFractionDigits: 2,
-    },
-  ).format(value)
-}
-
-function formatDate(value: string) {
-  if (!value) {
-    return "-"
-  }
-
-  const date = new Date(`${value}T00:00:00`)
-
-  return new Intl.DateTimeFormat(
-    "en-MY",
-    {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-    },
-  ).format(date)
-}
-
-function getStatusColor(
-  status: POStatus,
-) {
-  switch (status) {
-    case "Draft":
-      return "grey"
-
-    case "Pending Approval":
-      return "warning"
-
-    case "Approved":
-      return "success"
-
-    case "Ordered":
-      return "info"
-
-    case "Partially Received":
-      return "orange"
-
-    case "Completed":
-      return "success"
-
-    case "Cancelled":
-      return "error"
-
-    default:
-      return "grey"
-  }
-}
-
-function getApprovalColor(
-  status: ApprovalStatus,
-) {
-  switch (status) {
-    case "Pending":
-      return "warning"
-
-    case "Approved":
-      return "success"
-
-    case "Rejected":
-      return "error"
-
-    default:
-      return "grey"
-  }
-}
-
-function showSnackbar(
-  message: string,
-  color = "success",
-) {
-  snackbarMessage.value = message
-  snackbarColor.value = color
-  snackbar.value = true
-}
-
-/* */
-
-function clearFilters() {
-  filters.value = {
-    department: null,
-    supplier: null,
-    status: null,
-    approvalStatus: null,
-  }
-}
-
-function filterByDepartment(
-  department: string,
-) {
-  filters.value.department = department
-  filters.value.supplier = null
-  filters.value.status = null
-  filters.value.approvalStatus = null
-
-  tab.value = "all"
-}
-
-function filterByMyOrders() {
-  tab.value = "my-orders"
-}
-
-/* */
-
-function openNewOrder() {
-  assetForm.value = createEmptyAssetForm()
-  uploadedFiles.value = []
-  isDragging.value = false
-
-  assetDialog.value = true
-}
-
-function validateAssetForm() {
-  if (!assetForm.value.category) {
-    showSnackbar(
-      "Please select a category.",
-      "error",
-    )
-
-    return false
-  }
-
-  if (!assetForm.value.vendorSupplier) {
-    showSnackbar(
-      "Please select a vendor / supplier.",
-      "error",
-    )
-
-    return false
-  }
-
-  if (
-    !assetForm.value.description.trim()
-  ) {
-    showSnackbar(
-      "Please enter the description / specifications.",
-      "error",
-    )
-
-    return false
-  }
-
-  if (
-    assetForm.value.description.length >
-    2000
-  ) {
-    showSnackbar(
-      "Description cannot exceed 2000 characters.",
-      "error",
-    )
-
-    return false
-  }
-
-  if (
-    !assetForm.value.department
-  ) {
-    showSnackbar(
-      "Please select a department.",
-      "error",
-    )
-
-    return false
-  }
-
-  if (
-    !assetForm.value.pieces ||
-    assetForm.value.pieces < 1
-  ) {
-    showSnackbar(
-      "Pieces must be at least 1.",
-      "error",
-    )
-
-    return false
-  }
-
-  if (
-    assetForm.value.unitCost < 0
-  ) {
-    showSnackbar(
-      "Unit cost cannot be negative.",
-      "error",
-    )
-
-    return false
-  }
-
-  return true
-}
-
-function saveAssetOrder() {
-  if (!validateAssetForm()) {
-    return
-  }
-
-  const nextNumber =
-    orders.value.length + 1
-
-  const today =
-    new Date()
-      .toISOString()
-      .split("T")[0]
-
-  const newOrder: PurchaseOrder = {
-    id: `PO-${String(nextNumber).padStart(3, "0")}`,
-
-    poNumber:
-      `PO-${new Date().getFullYear()}-${String(
-        nextNumber,
-      ).padStart(4, "0")}`,
-
-    orderType:
-      assetForm.value.category,
-
-    supplier:
-      assetForm.value.vendorSupplier,
-
-    requester:
-      currentUser.value,
-
-    department:
-      assetForm.value.department,
-
-    poDate: today,
-
-    deliveryDate:
-      assetForm.value.requiredDeliveryDate ||
-      today,
-
-    totalAmount:
-      assetTotalCost.value,
-
-    status: "Draft",
-
-    approvalStatus: "Pending",
-
-    items: [
-      {
-        item:
-          assetForm.value.asset ||
-          `ASSET-${nextNumber}`,
-
-        description:
-          assetForm.value.description,
-
-        quantity:
-          assetForm.value.pieces,
-
-        unitPrice:
-          assetForm.value.unitCost,
-      },
-    ],
-
-    notes:
-      [
-        assetForm.value.brand,
-        assetForm.value.manufacturer,
-        assetForm.value.model,
-      ]
-        .filter(Boolean)
-        .join(" · ") ||
-      assetForm.value.description,
-  }
-
-  orders.value.push(newOrder)
-
-  if (assetForm.value.addAnotherItem) {
-    assetForm.value = {
-      ...createEmptyAssetForm(),
-      department:
-        assetForm.value.department,
-      vendorSupplier:
-        assetForm.value.vendorSupplier,
+      assetForm.value =
+        createEmptyAsset()
     }
 
-    uploadedFiles.value = []
-
-    showSnackbar(
-      "Order item added successfully. You can add another item.",
-    )
-
-    return
-  }
-
-  assetDialog.value = false
-
-  showSnackbar(
-    `${newOrder.poNumber} created successfully.`,
-  )
-}
-
-function editOrder(
-  order: PurchaseOrder,
-) {
-  if (order.status !== "Draft") {
-    return
-  }
-
-  const item = order.items[0]
-
-  assetForm.value = {
-    asset: item?.item || "",
-    category: order.orderType,
-    subcategory: "",
-    vendorSupplier: order.supplier,
-    description:
-      item?.description || "",
-    brand: "",
-    manufacturer: "",
-    model: "",
-    hsCode: "",
-    currency: "MYR — Malaysian Ringgit",
-    department: order.department,
-    requiredDeliveryDate:
-      order.deliveryDate,
-    pieces: item?.quantity || 1,
-    unitCost: item?.unitPrice || 0,
-    costSplit: "none",
-    addAnotherItem: false,
-  }
-
-  selectedOrder.value = order
-  detailsDialog.value = false
-  assetDialog.value = true
-}
-
-function editSelectedOrder() {
-  if (!selectedOrder.value) {
-    return
-  }
-
-  editOrder(selectedOrder.value)
-}
-
-function deleteOrder(
-  order: PurchaseOrder,
-) {
-  if (order.status !== "Draft") {
-    return
-  }
-
-  const index =
-    orders.value.findIndex(
-      (item) => item.id === order.id,
-    )
-
-  if (index === -1) {
-    return
-  }
-
-  orders.value.splice(index, 1)
-
-  showSnackbar(
-    `${order.poNumber} deleted successfully.`,
-  )
-}
-
-/* */
-
-function triggerFileInput() {
-  fileInput.value?.click()
-}
-
-function handleFileChange(
-  event: Event,
-) {
-  const target =
-    event.target as HTMLInputElement
-
-  if (!target.files) {
-    return
-  }
-
-  addFiles(
-    Array.from(target.files),
-  )
-
-  target.value = ""
-}
-
-function handleDrop(
-  event: DragEvent,
-) {
-  isDragging.value = false
-
-  if (!event.dataTransfer?.files) {
-    return
-  }
-
-  addFiles(
-    Array.from(
-      event.dataTransfer.files,
-    ),
-  )
-}
-
-function addFiles(
-  files: File[],
-) {
-  uploadedFiles.value.push(...files)
-
-  showSnackbar(
-    `${files.length} file(s) attached.`,
-  )
-}
-
-function removeFile(
-  index: number,
-) {
-  uploadedFiles.value.splice(index, 1)
-}
-
-/* */
-
-function viewOrder(
-  order: PurchaseOrder,
-) {
-  selectedOrder.value = order
-  detailsDialog.value = true
-}
-
-/* */
-
-function openNewTerm() {
-  editingTermId.value = null
-  termForm.value = createEmptyTermForm()
-  termDialog.value = true
-}
-
-function editTerm(term: TermItem) {
-  editingTermId.value = term.id
-
-  termForm.value = {
-    applicableFor:
-      term.applicableFor,
-    title: term.title,
-    description:
-      term.description,
-    mandatory:
-      term.mandatory,
-  }
-
-  termDialog.value = true
-}
-
-function saveTerm() {
-  if (!termForm.value.title.trim()) {
-    showSnackbar(
-      "Please enter a title.",
-      "error",
-    )
-
-    return
-  }
-
-  if (
-    !termForm.value.description.trim()
-  ) {
-    showSnackbar(
-      "Please enter a description.",
-      "error",
-    )
-
-    return
-  }
-
-  if (
-    termForm.value.description.length >
-    2000
-  ) {
-    showSnackbar(
-      "Description cannot exceed 2000 characters.",
-      "error",
-    )
-
-    return
-  }
-
-  if (editingTermId.value) {
-    const term =
-      terms.value.find(
-        (item) =>
-          item.id ===
-          editingTermId.value,
+    if (
+      !orderItems.value.length
+    ) {
+      showSnackbar(
+        "Please add at least one item.",
+        "warning",
       )
 
-    if (term) {
-      Object.assign(term, {
-        applicableFor:
-          termForm.value
-            .applicableFor,
+      return
+    }
 
-        title:
-          termForm.value.title.trim(),
+    if (
+      !orderForm.value.department
+    ) {
+      showSnackbar(
+        "Please select a department.",
+        "warning",
+      )
 
-        description:
-          termForm.value.description.trim(),
+      return
+    }
 
-        mandatory:
-          termForm.value.mandatory,
+    const items =
+      orderItems.value.map(
+        (item) => ({
+          ...item,
+
+          department:
+            item.department ||
+            orderForm.value
+              .department,
+        }),
+      )
+
+    if (
+      editingOrderId.value
+    ) {
+      updateOrder(
+        editingOrderId.value,
+        {
+          orderType:
+            orderForm.value
+              .orderType,
+
+          department:
+            orderForm.value
+              .department,
+
+          notes:
+            orderForm.value
+              .notes,
+
+          items,
+        },
+      )
+
+      showSnackbar(
+        "Purchase order updated successfully.",
+        "success",
+      )
+    } else {
+      createOrder({
+        orderType:
+          orderForm.value
+            .orderType,
+
+        requester:
+          currentUser.value,
+
+        department:
+          orderForm.value
+            .department,
+
+        notes:
+          orderForm.value
+            .notes,
+
+        items,
+
+        status: "Draft",
+
       })
+
+      showSnackbar(
+        "Purchase order created successfully.",
+        "success",
+      )
+    }
+
+    closeOrderDialog()
+  }
+
+/* ================================================================
+   FILES
+================================================================ */
+
+const handleFileChange =
+  (
+    value:
+      | File[]
+      | File
+      | null,
+  ) => {
+    if (!value) {
+      assetForm.value.supportingDocuments =
+        []
+
+      return
+    }
+
+    if (
+      Array.isArray(value)
+    ) {
+      assetForm.value.supportingDocuments =
+        value
+
+      return
+    }
+
+    assetForm.value.supportingDocuments =
+      [value]
+  }
+
+/* ================================================================
+   VIEW ORDER
+================================================================ */
+
+const viewDialog =
+  ref(false)
+
+const selectedOrder =
+  ref<PurchaseOrder | null>(
+    null,
+  )
+
+const viewOrder =
+  (
+    order: PurchaseOrder,
+  ) => {
+    selectedOrder.value =
+      order
+
+    viewDialog.value =
+      true
+  }
+
+/* ================================================================
+   CLONE
+================================================================ */
+
+const handleCloneOrder =
+  (
+    order: PurchaseOrder,
+  ) => {
+    const cloned =
+      cloneOrder(
+        order.id,
+      )
+
+    if (!cloned) {
+      showSnackbar(
+        "Unable to clone order.",
+        "error",
+      )
+
+      return
     }
 
     showSnackbar(
-      "Terms & Conditions updated successfully.",
+      `${order.poNumber} cloned as ${cloned.poNumber}.`,
+      "success",
     )
-  } else {
-    const nextId =
-      terms.value.length + 1
+  }
 
-    terms.value.push({
-      id: String(nextId).padStart(2, "0"),
+/* ================================================================
+   DELETE
+================================================================ */
+
+const handleDeleteOrder =
+  (
+    order: PurchaseOrder,
+  ) => {
+    const confirmed =
+      window.confirm(
+        `Delete ${order.poNumber}?`,
+      )
+
+    if (!confirmed) {
+      return
+    }
+
+    if (
+      deleteOrder(order.id)
+    ) {
+      expandedOrders.value =
+        expandedOrders.value.filter(
+          (id) =>
+            id !== order.id,
+        )
+
+      showSnackbar(
+        `${order.poNumber} deleted.`,
+        "success",
+      )
+    }
+  }
+
+/* ================================================================
+   DEPARTMENT
+================================================================ */
+
+const viewDepartmentOrders =
+  (
+    department: string,
+  ) => {
+    filters.value = {
+      search: "",
+
+      department,
+
+      supplier: "",
+
+      status: "",
+
+    }
+
+    activeTab.value =
+      "all"
+  }
+
+/* ================================================================
+   TERMS
+================================================================ */
+
+const termDialog =
+  ref(false)
+
+const editingTermId =
+  ref<string | null>(null)
+
+const termForm = ref({
+  title: "",
+
+  applicableFor:
+    "All Suppliers",
+
+  description: "",
+
+  lastUpdated:
+    new Date()
+      .toISOString()
+      .split("T")[0],
+
+  mandatory: true,
+})
+
+const resetTermForm =
+  () => {
+    termForm.value = {
+      title: "",
 
       applicableFor:
-        termForm.value.applicableFor,
+        "All Suppliers",
 
+      description: "",
+
+      lastUpdated:
+        new Date()
+          .toISOString()
+          .split("T")[0],
+
+      mandatory: true,
+    }
+  }
+
+const openNewTerm =
+  () => {
+    editingTermId.value =
+      null
+
+    resetTermForm()
+
+    termDialog.value =
+      true
+  }
+
+const openEditTerm =
+  (
+    term: TermsCondition,
+  ) => {
+    editingTermId.value =
+      term.id
+
+    termForm.value = {
       title:
-        termForm.value.title.trim(),
+        term.title,
+
+      applicableFor:
+        term.applicableFor,
 
       description:
-        termForm.value.description.trim(),
+        term.description,
+
+      lastUpdated:
+        term.lastUpdated,
 
       mandatory:
-        termForm.value.mandatory,
-    })
+        term.mandatory,
+    }
+
+    termDialog.value =
+      true
+  }
+
+const saveTerm =
+  () => {
+    if (
+      !termForm.value.title.trim()
+    ) {
+      showSnackbar(
+        "Please enter a title.",
+        "warning",
+      )
+
+      return
+    }
+
+    if (
+      editingTermId.value
+    ) {
+      updateTerm(
+        editingTermId.value,
+        {
+          ...termForm.value,
+        },
+      )
+
+      showSnackbar(
+        "Term updated successfully.",
+        "success",
+      )
+    } else {
+      addTerm({
+        ...termForm.value,
+      })
+
+      showSnackbar(
+        "Term added successfully.",
+        "success",
+      )
+    }
+
+    termDialog.value =
+      false
+
+    editingTermId.value =
+      null
+  }
+
+const handleDeleteTerm =
+  (
+    term: TermsCondition,
+  ) => {
+    const confirmed =
+      window.confirm(
+        `Delete "${term.title}"?`,
+      )
+
+    if (!confirmed) {
+      return
+    }
+
+    deleteTerm(term.id)
 
     showSnackbar(
-      "Terms & Conditions added successfully.",
+      "Term deleted.",
+      "success",
     )
   }
 
-  termDialog.value = false
-  editingTermId.value = null
-}
+/* ================================================================
+   PDF
+================================================================ */
 
-function deleteTerm(
-  term: TermItem,
-) {
-  const index =
-    terms.value.findIndex(
-      (item) => item.id === term.id,
+const escapeHtml =
+  (
+    value: unknown,
+  ) => {
+    return String(
+      value ?? "",
     )
-
-  if (index === -1) {
-    return
+      .replace(
+        /&/g,
+        "&amp;",
+      )
+      .replace(
+        /</g,
+        "&lt;",
+      )
+      .replace(
+        />/g,
+        "&gt;",
+      )
+      .replace(
+        /"/g,
+        "&quot;",
+      )
+      .replace(
+        /'/g,
+        "&#039;",
+      )
   }
 
-  terms.value.splice(index, 1)
+const viewPdf =
+  (
+    order: PurchaseOrder,
+  ) => {
+    const printWindow =
+      window.open(
+        "",
+        "_blank",
+        "width=1100,height=800",
+      )
 
-  showSnackbar(
-    "Terms & Conditions deleted successfully.",
-  )
-}
+    if (!printWindow) {
+      showSnackbar(
+        "Please allow pop-ups to view PDF.",
+        "warning",
+      )
+
+      return
+    }
+
+    const rows =
+      order.items
+        .map(
+          (item) => `
+            <tr>
+              <td>
+                ${escapeHtml(
+                  item.description ||
+                    item.asset ||
+                    "-",
+                )}
+              </td>
+
+              <td>
+                ${escapeHtml(
+                  item.category ||
+                    "-",
+                )}
+              </td>
+
+              <td>
+                ${escapeHtml(
+                  item.subcategory ||
+                    "-",
+                )}
+              </td>
+
+              <td class="right">
+                ${item.quantity}
+              </td>
+
+              <td class="right">
+                ${formatCurrency(
+                  item.unitPrice,
+                )}
+              </td>
+
+              <td class="right">
+                ${formatCurrency(
+                  item.discount,
+                )}
+              </td>
+
+              <td class="right">
+                ${formatCurrency(
+                  item.totalAmount,
+                )}
+              </td>
+            </tr>
+          `,
+        )
+        .join("")
+
+    printWindow.document.write(`
+      <!DOCTYPE html>
+
+      <html>
+
+      <head>
+
+        <meta charset="UTF-8">
+
+        <title>
+          ${escapeHtml(
+            order.poNumber,
+          )}
+        </title>
+
+        <style>
+
+          body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            color: #222;
+          }
+
+          h1 {
+            margin-bottom: 5px;
+          }
+
+          .header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+          }
+
+          .info {
+            display: grid;
+            grid-template-columns:
+              repeat(3, 1fr);
+
+            gap: 15px;
+
+            margin-bottom: 30px;
+          }
+
+          .box {
+            border: 1px solid #ddd;
+            padding: 12px;
+          }
+
+          .label {
+            color: #777;
+            font-size: 11px;
+            margin-bottom: 5px;
+          }
+
+          .value {
+            font-weight: bold;
+          }
+
+          table {
+            width: 100%;
+            border-collapse: collapse;
+          }
+
+          th,
+          td {
+            border: 1px solid #ddd;
+            padding: 9px;
+          }
+
+          th {
+            background: #f5f5f5;
+            text-align: left;
+          }
+
+          .right {
+            text-align: right;
+          }
+
+          .grand-total td {
+            font-weight: bold;
+          }
+
+          .notes {
+            margin-top: 30px;
+            border: 1px solid #ddd;
+            padding: 15px;
+          }
+
+        </style>
+
+      </head>
+
+      <body>
+
+        <div class="header">
+
+          <div>
+            <h1>Purchase Order</h1>
+
+            <div>
+              Procurement
+            </div>
+          </div>
+
+          <div style="text-align:right;">
+            <strong>
+              ${escapeHtml(
+                order.poNumber,
+              )}
+            </strong>
+
+            <br>
+
+            ${escapeHtml(
+              formatDate(
+                order.poDate,
+              ),
+            )}
+          </div>
+
+        </div>
+
+        <div class="info">
+
+          <div class="box">
+            <div class="label">
+              Department
+            </div>
+
+            <div class="value">
+              ${escapeHtml(
+                order.department,
+              )}
+            </div>
+          </div>
+
+          <div class="box">
+            <div class="label">
+              Supplier
+            </div>
+
+            <div class="value">
+              ${escapeHtml(
+                order.supplier,
+              )}
+            </div>
+          </div>
+
+          <div class="box">
+            <div class="label">
+              Requester
+            </div>
+
+            <div class="value">
+              ${escapeHtml(
+                order.requester,
+              )}
+            </div>
+          </div>
+
+          <div class="box">
+            <div class="label">
+              Status
+            </div>
+
+            <div class="value">
+              ${escapeHtml(
+                order.status,
+              )}
+            </div>
+          </div>
+
+          <div class="box">
+            <div class="label">
+              Order Type
+            </div>
+
+            <div class="value">
+              ${escapeHtml(
+                order.orderType,
+              )}
+            </div>
+          </div>
+
+        </div>
+
+        <h3>
+          Order Items
+        </h3>
+
+        <table>
+
+          <thead>
+            <tr>
+              <th>Description</th>
+              <th>Type</th>
+              <th>Category</th>
+              <th>Quantity</th>
+              <th>Unit Price</th>
+              <th>Discount</th>
+              <th>Total</th>
+            </tr>
+          </thead>
+
+          <tbody>
+
+            ${rows}
+
+            <tr class="grand-total">
+
+              <td
+                colspan="6"
+                class="right"
+              >
+                Grand Total
+              </td>
+
+              <td class="right">
+                ${formatCurrency(
+                  order.totalAmount,
+                )}
+              </td>
+
+            </tr>
+
+          </tbody>
+
+        </table>
+
+        ${
+          order.notes
+            ? `
+              <div class="notes">
+                <strong>
+                  Notes
+                </strong>
+
+                <br><br>
+
+                ${escapeHtml(
+                  order.notes,
+                )}
+              </div>
+            `
+            : ""
+        }
+
+        <script>
+          window.onload = function () {
+            window.print();
+          };
+        <\/script>
+
+      </body>
+
+      </html>
+    `)
+
+    printWindow.document.close()
+  }
+
+/* ================================================================
+   FORMAT
+================================================================ */
+
+const formatCurrency =
+  (
+    value: number,
+  ) => {
+    return new Intl.NumberFormat(
+      "en-MY",
+      {
+        style: "currency",
+        currency: "MYR",
+        minimumFractionDigits: 2,
+      },
+    ).format(
+      Number(value || 0),
+    )
+  }
+
+const formatDate =
+  (
+    value: string,
+  ) => {
+    if (!value) {
+      return "-"
+    }
+
+    const date =
+      new Date(value)
+
+    if (
+      Number.isNaN(
+        date.getTime(),
+      )
+    ) {
+      return value
+    }
+
+    return new Intl.DateTimeFormat(
+      "en-MY",
+      {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+      },
+    ).format(date)
+  }
+
+/* ================================================================
+   COLORS
+================================================================ */
+
+const statusColor =
+  (
+    status: string,
+  ) => {
+    switch (status) {
+      case "Draft":
+        return "grey"
+
+      case "Pending Approval":
+        return "warning"
+
+      case "Approved":
+        return "success"
+
+      case "Ordered":
+        return "info"
+
+      case "Partially Received":
+        return "deep-purple"
+
+      case "Completed":
+        return "success"
+
+      case "Cancelled":
+        return "error"
+
+      default:
+        return "grey"
+    }
+  }
+
+const approvalColor =
+  (
+    status: string,
+  ) => {
+    switch (status) {
+      case "Approved":
+        return "success"
+
+      case "Rejected":
+        return "error"
+
+      case "Pending":
+        return "warning"
+
+      default:
+        return "grey"
+    }
+  }
+
+/* ================================================================
+   SNACKBAR
+================================================================ */
+
+const snackbar = ref({
+  show: false,
+  message: "",
+  color:
+    "success" as
+      | "success"
+      | "warning"
+      | "error"
+      | "info",
+})
+
+const showSnackbar =
+  (
+    message: string,
+    color:
+      | "success"
+      | "warning"
+      | "error"
+      | "info" =
+      "success",
+  ) => {
+    snackbar.value = {
+      show: true,
+      message,
+      color,
+    }
+  }
 </script>
 
 <style scoped>
-.table-wrapper {
-  width: 100%;
-  overflow-x: auto;
+.purchase-order-table :deep(th) {
+  white-space: nowrap;
 }
 
-.table-wrapper :deep(table) {
-  min-width: 1250px;
+.purchase-order-table :deep(td) {
+  vertical-align: middle;
 }
 
-.table-wrapper :deep(th) {
+.expanded-order-wrapper {
+  padding: 20px 24px 24px;
+  background: rgb(var(--v-theme-surface-variant));
+}
+
+.item-detail-table {
+  background: rgb(var(--v-theme-surface));
+  border: 1px solid
+    rgba(
+      var(--v-border-color),
+      var(--v-border-opacity)
+    );
+  border-radius: 8px;
+}
+
+.item-detail-table th {
   white-space: nowrap;
   font-weight: 600;
-  font-size: 13px;
 }
 
-.table-wrapper :deep(td) {
-  white-space: nowrap;
-  font-size: 14px;
+.item-detail-table td {
+  vertical-align: middle;
 }
 
-.pagination-wrapper {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 16px 20px;
-  flex-wrap: wrap;
+.item-detail-table tfoot td {
+  border-top: 2px solid
+    rgba(
+      var(--v-border-color),
+      var(--v-border-opacity)
+    );
 }
 
-.purchase-card {
-  border: 1px solid #d9d9d9 !important;
-  border-radius: 16px !important;
-  overflow: hidden;
-  transition:
-    transform 0.2s ease,
-    box-shadow 0.2s ease,
-    border-color 0.2s ease;
-}
-
-.purchase-card:hover {
-  transform: translateY(-2px);
-  border-color: #bdbdbd !important;
-  box-shadow:
-    0 4px 12px
-    rgba(0, 0, 0, 0.08) !important;
-}
-
-.department-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 8px 0;
-  font-size: 14px;
-}
-
-.department-label {
-  color: #757575;
-}
-
-.section-title {
-  font-size: 14px;
-  font-weight: 600;
-}
-
-.asset-upload {
-  min-height: 170px;
-  border: 2px dashed #d0d0d0;
-  border-radius: 14px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  padding: 24px;
-  cursor: pointer;
-  transition:
-    border-color 0.2s ease,
-    background-color 0.2s ease;
-}
-
-.asset-upload:hover {
-  border-color: #9e9e9e;
-  background: #fafafa;
-}
-
-.asset-upload.dragging {
-  border-color: rgb(var(--v-theme-primary));
-  background: rgba(
-    var(--v-theme-primary),
-    0.04
-  );
-}
-
-.term-panel {
-  border: 1px solid #e0e0e0 !important;
-  margin-bottom: 10px;
-  border-radius: 12px !important;
-  overflow: hidden;
-}
-
-.term-content {
-  padding: 4px 0 8px;
-}
-
-.detail-box {
-  border: 1px solid #e0e0e0;
-  border-radius: 12px;
-  padding: 14px 16px;
+.h-100 {
   height: 100%;
-}
-
-.detail-label {
-  color: #757575;
-  font-size: 12px;
-  margin-bottom: 5px;
-}
-
-.detail-value {
-  font-size: 14px;
-  font-weight: 500;
-}
-
-.order-items {
-  border: 1px solid #e0e0e0;
-  border-radius: 12px;
-  overflow: hidden;
-}
-
-.order-item {
-  padding: 14px 16px;
-  border-bottom: 1px solid #eeeeee;
-}
-
-.order-item:last-child {
-  border-bottom: none;
-}
-
-@media (max-width: 960px) {
-  .pagination-wrapper {
-    justify-content: center;
-  }
-}
-
-@media (max-width: 700px) {
-  .pagination-wrapper {
-    flex-direction: column;
-    align-items: center;
-  }
 }
 </style>
